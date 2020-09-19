@@ -4,6 +4,7 @@ project(Wind C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(
+        src
         thirdparty/googletest/googletest
         thirdparty/googletest/googlemock
 )

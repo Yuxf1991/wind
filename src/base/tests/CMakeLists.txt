@@ -1,4 +1,0 @@
-include_directories(include)
-
-add_executable(timezone_test timezone_test.cc)
-target_link_libraries(timezone_test wind_base)

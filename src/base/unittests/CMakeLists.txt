@@ -1,0 +1,7 @@
+include_directories(include)
+
+add_executable(timezone_test timezone_test.cpp)
+target_link_libraries(timezone_test wind_base gtest_main)
+
+add_executable(current_thread_test current_thread_test.cpp)
+target_link_libraries(current_thread_test wind_base gtest_main)
