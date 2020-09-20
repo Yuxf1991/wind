@@ -32,13 +32,26 @@ namespace wind {
 
         ~UniqueLock() RELEASE() { m_mutex.unlock(); }
 
-        bool isLockedByCurrentThread() { return m_mutex.isLockedByCurrentThread(); }
+    private:
+        friend class Condition;
+        class SCOPED_CAPABILITY UnAssignGuard : NonCopyable {
+        public:
+            explicit UnAssignGuard(UniqueLock<MutexType> &lock)
+                    : m_lock(lock)
+            {
+                m_lock.m_mutex.unAssign();
+            }
+
+            ~UnAssignGuard() {
+                m_lock.m_mutex.assign();
+            }
+
+        private:
+            UniqueLock<MutexType> &m_lock;
+        };
+
         pthread_mutex_t *getPthreadMutex() { return m_mutex.getPthreadMutex(); }
 
-        void assign() { m_mutex.assign(); }
-        void unAssign() { m_mutex.unAssign(); }
-
-    private:
         MutexType &m_mutex;
     };
 

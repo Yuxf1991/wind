@@ -12,25 +12,6 @@
 #include "NonCopyable.h"
 
 namespace wind {
-    namespace {
-        template <typename MutexType>
-        class UniqueLockUnAssignGuard : NonCopyable {
-        public:
-            explicit UniqueLockUnAssignGuard(UniqueLock<MutexType> &lock)
-                    : m_lock(lock)
-            {
-                m_lock.unAssign();
-            }
-
-            ~UniqueLockUnAssignGuard() {
-                m_lock.assign();
-            }
-
-        private:
-            UniqueLock<MutexType> &m_lock;
-        };
-    }
-
     class Condition : NonCopyable {
     public:
         Condition() {
@@ -43,9 +24,8 @@ namespace wind {
 
         template <typename MutexType, typename Predictor>
         void wait(UniqueLock<MutexType> &lock, Predictor func) {
-            assert(lock.isLockedByCurrentThread());
             while (!func()) {
-                UniqueLockUnAssignGuard<Mutex> tmp(lock);
+                UniqueLock<Mutex>::UnAssignGuard tmp(lock);
                 PTHREAD_CHECK(pthread_cond_wait(&m_pCondition, lock.getPthreadMutex()));
             }
         }

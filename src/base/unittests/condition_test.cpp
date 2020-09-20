@@ -23,6 +23,7 @@ namespace wind {
                     std::cout << "waiting for sub thread done." << std::endl;
                     m_thread.join();
                 }
+                std::cout << "Quit main thread." << std::endl;
             }
 
             void quit() {
@@ -34,9 +35,29 @@ namespace wind {
                 m_quit = true;
 
                 LockGuard<Mutex> lock(m_mutex);
-                message = "should quit";
+                SendMessageLocked("should quit");
+            }
+
+            void SendMessageLocked(std::string tmp) {
+                assert(CurrentThread::isMainThread());
+                assert(m_mutex.isLockedByCurrentThread());
+
+                message = std::move(tmp);
+
                 m_prepared = true;
-                std::cout << "send message: " + message << std::endl;
+                m_consumed = false;
+                std::cout << "[main thread] send message: " + message << std::endl;
+                m_Condition.notify();
+            }
+
+            void ConsumeMessageLocked() {
+                assert(!CurrentThread::isMainThread());
+                assert(m_mutex.isLockedByCurrentThread());
+
+                std::cout << "[sub thread] get message: " + message << std::endl;
+
+                m_prepared = false;
+                m_consumed = true;
                 m_Condition.notify();
             }
 
@@ -44,8 +65,7 @@ namespace wind {
                 while (!m_quit) {
                     UniqueLock<Mutex> lock(m_mutex);
                     m_Condition.wait(lock, [this](){ return m_prepared; });
-                    std::cout << "get message: " + message << std::endl;
-                    m_prepared = false;
+                    ConsumeMessageLocked();
                 }
 
                 std::cout << "Quit sub thread." << std::endl;
@@ -53,20 +73,22 @@ namespace wind {
 
             void MainThreadWork() {
                 while (!m_quit) {
+                    {
+                        UniqueLock<Mutex> lock(m_mutex);
+                        m_Condition.wait(lock, [this]() { return m_consumed; });
+                    }
+
                     std::string tmp;
+                    std::cout << "Type message please(q or Q to quit): " << std::endl;
                     std::getline(std::cin, tmp);
                     if (tmp.size() == 1 && (tmp[0] == 'q' || tmp[0] == 'Q')) {
-                        std::cout << "Quit main thread." << std::endl;
                         quit();
                         break;
                     }
 
                     {
                         LockGuard<Mutex> lock(m_mutex);
-                        message = tmp;
-                        m_prepared = true;
-                        std::cout << "send message: " + message << std::endl;
-                        m_Condition.notify();
+                        SendMessageLocked(tmp);
                     }
                 }
             }
@@ -80,6 +102,7 @@ namespace wind {
 
             std::string message GUARDED_BY(m_mutex);
             bool m_prepared GUARDED_BY(m_mutex) = false;
+            bool m_consumed GUARDED_BY(m_mutex) = true;
         };
     } // namespace test
 } // namespace wind
