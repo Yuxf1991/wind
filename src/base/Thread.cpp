@@ -3,6 +3,7 @@
 //
 
 #include "Thread.h"
+#include "CountDownLatch.h"
 
 #include <atomic>
 

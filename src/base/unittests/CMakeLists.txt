@@ -5,3 +5,6 @@ target_link_libraries(timezone_test wind_base gtest_main)
 
 add_executable(current_thread_test current_thread_test.cpp)
 target_link_libraries(current_thread_test wind_base gtest_main)
+
+add_executable(condition_test condition_test.cpp)
+target_link_libraries(condition_test wind_base)
