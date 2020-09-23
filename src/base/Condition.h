@@ -25,7 +25,7 @@ namespace wind {
         template <typename MutexType, typename Predictor>
         void wait(UniqueLock<MutexType> &lock, Predictor func) {
             while (!func()) {
-                UniqueLock<Mutex>::UnAssignGuard tmp(lock);
+                typename UniqueLock<MutexType>::UnAssignGuard tmp(lock);
                 PTHREAD_CHECK(pthread_cond_wait(&m_pCondition, lock.getPthreadMutex()));
             }
         }
