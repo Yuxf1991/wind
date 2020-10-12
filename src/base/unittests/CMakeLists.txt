@@ -8,3 +8,6 @@ target_link_libraries(current_thread_test wind_base gtest_main)
 
 add_executable(condition_test condition_test.cpp)
 target_link_libraries(condition_test wind_base)
+
+add_executable(timestamp_test timestamp_test.cpp)
+target_link_libraries(timestamp_test wind_base)
