@@ -3,11 +3,14 @@ include_directories(include)
 add_executable(timezone_test timezone_test.cpp)
 target_link_libraries(timezone_test wind_base gtest_main)
 
-add_executable(current_thread_test current_thread_test.cpp)
-target_link_libraries(current_thread_test wind_base gtest_main)
+add_executable(currentThread_test currentThread_test.cpp)
+target_link_libraries(currentThread_test wind_base gtest_main)
 
 add_executable(condition_test condition_test.cpp)
 target_link_libraries(condition_test wind_base)
 
 add_executable(timestamp_test timestamp_test.cpp)
 target_link_libraries(timestamp_test wind_base)
+
+add_executable(thread_test thread_test.cpp)
+target_link_libraries(thread_test wind_base)

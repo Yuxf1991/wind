@@ -9,7 +9,7 @@
 
 # cmake-build-directories
 cmake-build-debug/*
-cmake-build-releas/*
+cmake-build-release/*
 build/*
 
 # Compiled Object files

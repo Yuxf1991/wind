@@ -29,7 +29,7 @@ namespace wind {
 
         void wait() {
             UniqueLock<Mutex> lock(m_mutex);
-            m_condition.wait(lock, [this]() { m_count <= 0; });
+            m_condition.wait(lock, [this]() { return m_count <= 0; });
         }
 
     private:
