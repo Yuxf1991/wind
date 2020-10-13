@@ -3,17 +3,39 @@
 //
 
 #include "Thread.h"
-#include "CountDownLatch.h"
 
 #include <atomic>
+#include <sys/prctl.h>
+
+#include "CountDownLatch.h"
+#include "Utils.h"
 
 namespace wind {
     namespace threadHelper {
+        void afterFork() {
+            CurrentThread::t_TLS.tid = 0;
+            CurrentThread::t_TLS.threadName = "main";
+            CurrentThread::cacheTid();
+        }
+
+        void beforeFork() {
+        }
+
+        struct MainThreadInitializer {
+            MainThreadInitializer() {
+                CurrentThread::t_TLS.threadName = "main";
+                CurrentThread::cacheTid();
+                pthread_atfork(&beforeFork,nullptr, &afterFork);
+            }
+            ~MainThreadInitializer() = default;
+        };
+        [[maybe_unused]] MainThreadInitializer initMainThread;
+
         void Helper::run() {
             tid = CurrentThread::tid();
             latch.countDown();
             CurrentThread::t_TLS.threadName = (name.empty() ? defaultThreadName : name.c_str());
-
+            ::prctl(PR_SET_NAME, CurrentThread::t_TLS.threadName);
             try {
                 func();
                 CurrentThread::t_TLS.threadName = "finished";
