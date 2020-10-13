@@ -28,7 +28,7 @@ namespace wind {
             EXPECT_GT(CurrentThread::tid(), 0);
 
             // other thread
-            int tid = 0;
+            pid_t tid = 0;
             // TODO: use our own thread class.
             std::thread t{ [&tid]() { tid = CurrentThread::tid(); }};
             t.join();

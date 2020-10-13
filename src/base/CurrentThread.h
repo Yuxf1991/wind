@@ -5,40 +5,30 @@
 #ifndef WIND_CURRENTTHREAD_H
 #define WIND_CURRENTTHREAD_H
 
-#include <sys/types.h>
-#include <sys/syscall.h>
-#include <sys/unistd.h>
+#include <string>
 
 namespace wind {
     namespace CurrentThread {
         // Thread Local Storage
         typedef struct {
-            int tid = 0;
+            pid_t tid = 0;
             const char *threadName = "null";
         } TLS;
 
         extern __thread TLS t_TLS;
 
-        inline pid_t gettid() {
-            return ::syscall(SYS_gettid);
-        }
+        void cacheTid();
 
-        inline void cacheTid() {
-            if (t_TLS.tid == 0) {
-                t_TLS.tid = gettid();
-            }
-        }
-
-        inline int tid() {
+        inline pid_t tid() {
             if (__builtin_expect(t_TLS.tid == 0, false)) {
                 cacheTid();
             }
             return t_TLS.tid;
         }
 
-        inline bool isMainThread() {
-            return tid() == ::getpid();
-        }
+        bool isMainThread();
+
+        std::string stackTrace(bool demangle=false);
     } // namespace CurrentThread
 } // namespace wind
 
