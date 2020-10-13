@@ -86,7 +86,7 @@ namespace wind {
         } else {
             m_latch.wait();
             // TODO: use our logging
-            fprintf(stdout, "%s: thread started, tid is %d.\n", m_name.c_str(), m_tid);
+            fprintf(stdout, "%s started, tid is %d.\n", m_name.c_str(), m_tid);
         }
     }
 

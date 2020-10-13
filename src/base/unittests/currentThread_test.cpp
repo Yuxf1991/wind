@@ -15,7 +15,7 @@ namespace wind {
 
             // other thread
             bool res = true; // set to true deliberately.
-            wind::Thread t{ [&res]() { res = CurrentThread::isMainThread(); }};
+            Thread t{ [&res]() { res = CurrentThread::isMainThread(); }};
             t.start();
             t.join();
             EXPECT_EQ(res, false);
@@ -28,7 +28,7 @@ namespace wind {
 
             // other thread
             pid_t tid = 0;
-            wind::Thread t{ [&tid]() { tid = CurrentThread::tid(); }};
+            Thread t{ [&tid]() { tid = CurrentThread::tid(); }};
             t.start();
             t.join();
             printf("other thread's tid is %d\n", tid);

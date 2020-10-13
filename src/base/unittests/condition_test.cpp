@@ -96,7 +96,7 @@ namespace wind {
         private:
             Condition m_Condition;
             Mutex m_mutex;
-            wind::Thread m_thread;
+            Thread m_thread;
             std::atomic<bool> m_quit = false;
 
             std::string message GUARDED_BY(m_mutex);
