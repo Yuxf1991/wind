@@ -57,8 +57,7 @@ namespace wind {
         }
         m_started = true;
         m_startHelper = std::make_unique<threadHelper::Helper>(m_func, m_name, m_tid, m_latch);
-        if (pthread_create(&m_pthreadId, nullptr, &threadHelper::startThread, m_startHelper.get())
-            != 0) {
+        if (pthread_create(&m_pthreadId, nullptr, &threadHelper::startThread, m_startHelper.get()) != 0) {
             m_started = false;
             // TODO: use our logging
             fprintf(stderr, "%s: Failed in pthread_create.\n", m_name.c_str());
@@ -75,13 +74,7 @@ namespace wind {
         assert(!m_detached);
         if (m_started && !m_joined && !m_detached) {
             m_detached = true;
-            if (pthread_detach(m_pthreadId) != 0) {
-                // TODO: use our logging
-                fprintf(stderr, "%s: Failed in pthread_detach.\n", m_name.c_str());
-            } else {
-                // TODO: use our logging
-                fprintf(stdout, "%s: thread detached, tid is %d.\n", m_name.c_str(), m_tid);
-            }
+            PTHREAD_CHECK(pthread_detach(m_pthreadId));
         }
     }
 
@@ -91,13 +84,7 @@ namespace wind {
         assert(!m_detached);
         if (m_started && !m_joined && !m_detached) {
             m_joined = true;
-            if (pthread_join(m_pthreadId, nullptr) != 0) {
-                // TODO: use our logging
-                fprintf(stderr, "%s: Failed in pthread_join.\n", m_name.c_str());
-            } else {
-                // TODO: use our logging
-                fprintf(stdout, "%s: thread joined, tid is %d.\n", m_name.c_str(), m_tid);
-            }
+            PTHREAD_CHECK(pthread_join(m_pthreadId, nullptr));
         }
     }
 
