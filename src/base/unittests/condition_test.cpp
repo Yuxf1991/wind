@@ -4,17 +4,17 @@
 
 #include <atomic>
 #include <iostream>
-#include <thread>
 #include <string>
 
 #include "base/Condition.h"
+#include "base/Thread.h"
 
 namespace wind {
     namespace test {
         class ConditionTest {
         public:
-            ConditionTest() : m_quit(false) {
-                m_thread = std::thread{[this]() { ThreadFunc(); }};
+            ConditionTest() : m_thread([this]() { ThreadFunc(); }), m_quit(false) {
+                m_thread.start();
             }
 
             ~ConditionTest() {
@@ -96,8 +96,7 @@ namespace wind {
         private:
             Condition m_Condition;
             Mutex m_mutex;
-            // TODO: use our own thread;
-            std::thread m_thread;
+            wind::Thread m_thread;
             std::atomic<bool> m_quit = false;
 
             std::string message GUARDED_BY(m_mutex);

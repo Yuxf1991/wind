@@ -2,11 +2,10 @@
 // Created by tracy on 2020/9/20.
 //
 
-#include <thread>
-
 #include <gtest/gtest.h>
 
 #include "base/CurrentThread.h"
+#include "base/Thread.h"
 
 namespace wind {
     namespace test {
@@ -16,8 +15,8 @@ namespace wind {
 
             // other thread
             bool res = true; // set to true deliberately.
-            // TODO: use our own thread class.
-            std::thread t{ [&res]() { res = CurrentThread::isMainThread(); }};
+            wind::Thread t{ [&res]() { res = CurrentThread::isMainThread(); }};
+            t.start();
             t.join();
             EXPECT_EQ(res, false);
         }
@@ -29,8 +28,8 @@ namespace wind {
 
             // other thread
             pid_t tid = 0;
-            // TODO: use our own thread class.
-            std::thread t{ [&tid]() { tid = CurrentThread::tid(); }};
+            wind::Thread t{ [&tid]() { tid = CurrentThread::tid(); }};
+            t.start();
             t.join();
             printf("other thread's tid is %d\n", tid);
             EXPECT_GT(tid, 0);
