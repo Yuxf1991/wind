@@ -4,9 +4,10 @@
 
 #include "CurrentThread.h"
 
-#include <sys/types.h>
 #include <sys/syscall.h>
 #include <sys/unistd.h>
+
+#include "Utils.h"
 
 namespace wind {
     namespace CurrentThread {
@@ -24,6 +25,7 @@ namespace wind {
 
         // TODO: get stackTrace for currentThread
         std::string stackTrace(bool demangle) {
+            UNUSED_VALUE(demangle);
             std::string stackTrace;
             return stackTrace;
         }

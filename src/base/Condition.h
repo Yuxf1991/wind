@@ -6,7 +6,6 @@
 #define WIND_CONDITION_H
 
 #include <functional>
-#include <cassert>
 
 #include "Mutex.h"
 #include "NonCopyable.h"

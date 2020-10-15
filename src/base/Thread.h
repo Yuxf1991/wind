@@ -55,8 +55,8 @@ namespace wind {
         bool m_detached = false;
         bool m_joined = false;
 
-        pthread_t m_pthreadId;
-        pid_t m_tid;
+        pthread_t m_pthreadId = 0;
+        pid_t m_tid = 0;
         CountDownLatch m_latch;
         static std::atomic<int> m_numThread;
 

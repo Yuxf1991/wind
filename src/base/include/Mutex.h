@@ -10,15 +10,7 @@
 
 #include "base/CurrentThread.h"
 #include "NonCopyable.h"
-#include "PThreadCheck.h"
-
-// Enable thread safety attributes only with clang.
-#if defined(__clang__) && (!defined(SWIG))
-#define THREAD_ANNOTATION_ATTRIBUTE__(x)   __attribute__((x))
-#else
-#define THREAD_ANNOTATION_ATTRIBUTE__(x)   // do nothing
-#endif
-#include "private/ClangTSA.h"
+#include "Utils.h"
 
 namespace wind {
     template <typename MutexType>

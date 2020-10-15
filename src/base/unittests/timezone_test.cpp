@@ -1,6 +1,7 @@
-#include "base/TimeZone.h"
-
 #include <iostream>
+
+#include "base/TimeZone.h"
+#include "Utils.h"
 
 template <typename Duration>
 using sys_time = std::chrono::time_point<std::chrono::system_clock, Duration>;
@@ -32,4 +33,5 @@ std::tm* gettm()
 
 int main() {
     std::tm *t = gettm();
+    UNUSED_VALUE(t);
 }

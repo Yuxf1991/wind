@@ -17,13 +17,21 @@ extern void __assert_perror_fail (int errnum,
 __END_DECLS
 #endif
 
-#define PTHREAD_CHECK(ret) ({ __typeof__ (ret) errnum = (ret);          \
-                       if (__builtin_expect(errnum != 0, false))        \
-                         __assert_perror_fail (errnum, __FILE__, __LINE__, __func__);})
+#define PTHREAD_CHECK(ret)                                              \
+    do {                                                                \
+        __typeof__ (ret) errnum = (ret);                                \
+        if (__builtin_expect(errnum != 0, false)) {                     \
+            __assert_perror_fail (errnum, __FILE__, __LINE__, __func__);\
+        }                                                               \
+    } while(0)
 #else // CHECK_PTHREAD_RETURN_VALUE
 
-#define PTHREAD_CHECK(ret) ({ __typeof__ (ret) errnum = (ret);          \
-                       assert(errnum == 0); (void) errnum;})
+#define PTHREAD_CHECK(ret)              \
+    do {                                \
+        __typeof__ (ret) errnum = (ret);\
+        assert(errnum == 0);            \
+        (void) errnum;                  \
+    } while(0)
 
 #endif // CHECK_PTHREAD_RETURN_VALUE
 
