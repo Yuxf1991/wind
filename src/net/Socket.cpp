@@ -12,7 +12,7 @@
 
 namespace wind {
     namespace sockets {
-//#ifndef HAVE_ACCEPT4
+#ifndef HAVE_ACCEPT4
         int setCloExecOrClose(int fd) {
             assert(fd != -1);
             int flags = ::fcntl(fd, F_GETFD);
@@ -26,19 +26,19 @@ namespace wind {
 
             return 0;
         }
-//#endif
+#endif
 
         int createCloExec(int domain) {
             int fd = -1;
-//#ifdef HAVE_ACCEPT4
-//            SYSCALL_CHECK(fd = ::socket(domain, SOCK_STREAM | SOCK_CLOEXEC, 0));
-//#else
+#ifdef HAVE_ACCEPT4
+            SYSCALL_CHECK(fd = ::socket(domain, SOCK_STREAM | SOCK_CLOEXEC, 0));
+#else
             SYSCALL_CHECK(fd = ::socket(domain, SOCK_STREAM, 0));
             if (setCloExecOrClose(fd) == -1) {
                 SYSCALL_CHECK(close(fd));
                 fd = -1;
             }
-//#endif
+#endif
             return fd;
         }
     } // namespace sockets
