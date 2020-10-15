@@ -30,8 +30,10 @@ namespace wind {
                 }
             }
             ~AutoFreeBuf() {
-                delete [] m_buf;
-                m_buf = nullptr;
+                if (m_buf) {
+                    delete[] m_buf;
+                    m_buf = nullptr;
+                }
             }
             [[nodiscard]] char *buf() const { return m_buf; }
 
