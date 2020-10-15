@@ -14,23 +14,9 @@ namespace wind {
         explicit CountDownLatch(int count) : m_count(count) {}
         ~CountDownLatch() = default;
 
-        int getCount() const {
-            LockGuard<Mutex> lock(m_mutex);
-            return m_count;
-        }
-
-        void countDown() {
-            LockGuard<Mutex> lock(m_mutex);
-            m_count--;
-            if (m_count == 0) {
-                m_condition.notifyAll();
-            }
-        }
-
-        void wait() {
-            UniqueLock<Mutex> lock(m_mutex);
-            m_condition.wait(lock, [this]() { return m_count <= 0; });
-        }
+        void wait();
+        int getCount() const;
+        void countDown();
 
     private:
         mutable Mutex m_mutex;
