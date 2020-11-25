@@ -12,9 +12,6 @@
 #include "NonCopyable.h"
 
 namespace wind {
-
-
-
     class TimeZone : public NonCopyable {
 
     };
