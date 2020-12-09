@@ -1,4 +1,5 @@
 set(WIND_BASE_SRC
+    Utils.cpp
     Condition.cpp
     CountDownLatch.cpp
     CurrentThread.cpp

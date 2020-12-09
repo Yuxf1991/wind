@@ -14,5 +14,4 @@ include_directories(
 )
 
 add_subdirectory(thirdparty/googletest)
-add_subdirectory(src/base)
-add_subdirectory(src/net)
+add_subdirectory(src)

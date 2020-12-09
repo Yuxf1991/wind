@@ -16,6 +16,8 @@ namespace wind {
             EXPECT_TRUE(fd != -1);
             int flags = ::fcntl(fd, F_GETFD);
             EXPECT_TRUE(flags | FD_CLOEXEC);
+            Socket socket(fd);
+            EXPECT_GE(socket, 0);
         }
     } // namespace test
 } // namespace wind

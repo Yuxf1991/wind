@@ -43,9 +43,8 @@ namespace wind {
         }
     } // namespace sockets
 
-    Socket::Socket(int socket) : m_socket(socket) {}
+    Socket::Socket(int fd) : utils::ScopedFd(fd) {}
 
     Socket::~Socket() {
-        SYSCALL_CHECK(::close(m_socket));
     }
 } // namespace wind

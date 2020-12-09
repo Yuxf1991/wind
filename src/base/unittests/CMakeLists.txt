@@ -14,4 +14,4 @@ add_executable(thread_test thread_test.cpp)
 target_link_libraries(thread_test wind_base)
 
 add_executable(utils_test utils_test.cpp)
-target_link_libraries(utils_test wind_base)
+target_link_libraries(utils_test wind_base gtest_main)

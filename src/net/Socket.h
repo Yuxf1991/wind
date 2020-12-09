@@ -5,20 +5,17 @@
 #ifndef WIND_SOCKET_H
 #define WIND_SOCKET_H
 
-#include "NonCopyable.h"
+#include "Utils.h"
 
 namespace wind {
     namespace sockets {
         int createCloExec(int domain);
     } // namespace sockets
 
-    class Socket {
+    class Socket : public utils::ScopedFd {
     public:
-        explicit Socket(int socket);
-        ~Socket();
-
-    private:
-        int m_socket;
+        explicit Socket(int fd);
+        ~Socket() override;
     };
 } // namespace wind
 
