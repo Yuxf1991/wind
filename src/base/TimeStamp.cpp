@@ -13,10 +13,10 @@ namespace wind {
         using SysTime = std::chrono::time_point<std::chrono::system_clock, Duration>;
         using SysNanoSeconds = SysTime<std::chrono::nanoseconds>;
 
-        wtime_t nanosecondsSinceEpoch()
+        TimeInteger nanosecondsSinceEpoch()
         {
             SysNanoSeconds tmp = std::chrono::system_clock::now();
-            wtime_t t = tmp.time_since_epoch().count();
+            TimeInteger t = tmp.time_since_epoch().count();
             return t;
         }
     }
@@ -27,26 +27,26 @@ namespace wind {
 
     std::string TimeStamp::toString(TimePrecision precision) const {
         char buf[32] = {};
-        wtime_t seconds = m_nanoSecondsSinceEpoch / NANO_SECS_PER_SECOND;
+        TimeInteger seconds = m_nanoSecondsSinceEpoch / NANO_SECS_PER_SECOND;
         switch (precision) {
             case TimePrecision::SECOND: {
                 snprintf(buf, sizeof(buf)-1, "%" PRId64 ".%03" PRId64 "", seconds, 0l);
                 break;
             }
             case TimePrecision::MILLI: {
-                wtime_t millis = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND)
+                TimeInteger millis = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND)
                                  / NANO_SECS_PER_MILLISECOND;
                 snprintf(buf, sizeof(buf)-1, "%" PRId64 ".%03" PRId64 "", seconds, millis);
                 break;
             }
             case TimePrecision::MICRO: {
-                wtime_t micros = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND)
+                TimeInteger micros = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND)
                                  / NANO_SECS_PER_MICROSECOND;
                 snprintf(buf, sizeof(buf)-1, "%" PRId64 ".%06" PRId64 "", seconds, micros);
                 break;
             }
             case TimePrecision::NANO: {
-                wtime_t nanos = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND);
+                TimeInteger nanos = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND);
                 snprintf(buf, sizeof(buf)-1, "%" PRId64 ".%09" PRId64 "", seconds, nanos);
                 break;
             }
@@ -58,7 +58,7 @@ namespace wind {
 
     std::string TimeStamp::toFormattedString(TimePrecision precision) const {
         char buf[64] = {};
-        wtime_t seconds = m_nanoSecondsSinceEpoch / NANO_SECS_PER_SECOND;
+        TimeInteger seconds = m_nanoSecondsSinceEpoch / NANO_SECS_PER_SECOND;
         struct tm *tm_time = ::gmtime(&seconds);
         switch (precision) {
             case TimePrecision::SECOND: {
@@ -84,7 +84,7 @@ namespace wind {
                 break;
             }
             case TimePrecision::NANO: {
-                wtime_t nanos = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND);
+                TimeInteger nanos = (m_nanoSecondsSinceEpoch % NANO_SECS_PER_SECOND);
                 snprintf(buf, sizeof(buf), "%4d-%02d-%02d %02d:%02d:%02d.%09ld",
                          tm_time->tm_year + 1900, tm_time->tm_mon + 1, tm_time->tm_mday,
                          tm_time->tm_hour, tm_time->tm_min, tm_time->tm_sec, nanos);

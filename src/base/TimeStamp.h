@@ -16,7 +16,7 @@ namespace wind {
     constexpr int MICRO_SECS_PER_MILLISECOND = 1e3;
     constexpr int MILLI_SECS_PER_SECOND = 1e3;
 
-    using wtime_t = ::time_t;
+    using TimeInteger = ::time_t;
 
     enum class TimePrecision {
         SECOND,
@@ -31,7 +31,7 @@ namespace wind {
         TimeStamp() = default;
         ~TimeStamp() = default;
 
-        explicit TimeStamp(wtime_t nanoSecondsSinceEpoch)
+        explicit TimeStamp(TimeInteger nanoSecondsSinceEpoch)
             : m_nanoSecondsSinceEpoch(nanoSecondsSinceEpoch)
         {
         }
@@ -43,7 +43,7 @@ namespace wind {
 
 
     private:
-        wtime_t m_nanoSecondsSinceEpoch;
+        TimeInteger m_nanoSecondsSinceEpoch;
     };
 } // namespace wind;
 
