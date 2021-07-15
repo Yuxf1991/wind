@@ -9,12 +9,12 @@ namespace wind {
 class NonCopyable {
 public:
     NonCopyable(const NonCopyable &other) = delete;
-    NonCopyable& operator=(const NonCopyable &other) = delete;
+    void operator=(const NonCopyable &other) = delete;
 
 protected:
     NonCopyable() = default;
     ~NonCopyable() = default;
 };
-} // namespace wind;
+} // namespace wind
 
 #endif //WIND_NONCOPYABLE_H

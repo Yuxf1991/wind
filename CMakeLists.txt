@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.10)
 project(Wind C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-Wextra -Wall -Werror -g)
-add_compile_definitions(CHECK_PTHREAD_RETURN_VALUE)
+
+# compile options
+add_compile_options(-Wextra -Wall -Werror)
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+        add_compile_options(-g)
+endif()
 
 include_directories(
         src
