@@ -1,2 +1,0 @@
-add_executable(TimeStampTest TimeStampTest.cpp)
-target_link_libraries(TimeStampTest gtest_main wind_utils)

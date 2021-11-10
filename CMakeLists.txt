@@ -13,9 +13,9 @@ include_directories(
         src
         src/base/include
         src/net/include
-        thirdparty/googletest/googletest
-        thirdparty/googletest/googlemock
+        third_party/googletest/googletest/include
+        third_party/googletest/googlemock/include
 )
 
-add_subdirectory(thirdparty/googletest)
-add_subdirectory(src)
+add_subdirectory(third_party)
+add_subdirectory(wind)
