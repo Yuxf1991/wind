@@ -23,4 +23,15 @@ TEST(CurrentThreadTest, TidTest)
     }};
     t.join();
 }
+
+TEST(CurrentThreadTest, MainThreadInitTest)
+{
+    cout << CurrentThread::name() << endl;
+    EXPECT_EQ(strcmp(CurrentThread::name(), "main"), 0);
+    std::thread t{[]() {
+        cout << CurrentThread::name() << endl;
+        EXPECT_EQ(strcmp(CurrentThread::name(), "unknown"), 0);
+    }};
+    t.join();
+}
 } // namespace wind

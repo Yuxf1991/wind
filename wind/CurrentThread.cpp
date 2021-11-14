@@ -12,6 +12,21 @@ ThreadId getThreadId()
 {
     return static_cast<ThreadId>(::syscall(SYS_gettid));
 }
+
+void mainThreadInit()
+{
+    CurrentThread::cacheTid();
+    CurrentThread::t_tls.name = "main";
+}
+
+struct MainThreadInitializer {
+    MainThreadInitializer() noexcept
+    {
+        mainThreadInit();
+    }
+};
+
+[[maybe_unused]] MainThreadInitializer mainThreadInitializer;
 } // namespace detail
 
 namespace CurrentThread {

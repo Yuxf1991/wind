@@ -36,6 +36,10 @@ inline bool isMainThread()
     return tid() == ::getpid();
 }
 
+inline const char *name()
+{
+    return t_tls.name;
+}
 } // namespace CurrentThread
 } // namespace wind
 #endif // WIND_CURRENTTHREAD_H
