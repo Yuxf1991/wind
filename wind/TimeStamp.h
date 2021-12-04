@@ -5,8 +5,7 @@
 #ifndef WIND_TIMESTAMP_H
 #define WIND_TIMESTAMP_H
 
-#include <string>
-#include <ctime>
+#include "Types.h"
 
 namespace wind {
 constexpr int MILLI_SECS_PER_SECOND = 1000;
@@ -15,8 +14,6 @@ constexpr int MICRO_SECS_PER_SECOND = MICRO_SECS_PER_MILLISECOND * MILLI_SECS_PE
 constexpr int NANO_SECS_PER_MICROSECOND = 1000;
 constexpr int NANO_SECS_PER_MILLISECOND = NANO_SECS_PER_MICROSECOND * MICRO_SECS_PER_MILLISECOND;
 constexpr int NANO_SECS_PER_SECOND = NANO_SECS_PER_MILLISECOND * MILLI_SECS_PER_SECOND;
-
-using TimeType = std::time_t;
 
 enum class TimePrecision { SECOND, MILLI, MICRO, NANO };
 
@@ -31,13 +28,13 @@ public:
     {}
 
     static TimeStamp now() noexcept;
-    TimeType get() const noexcept
+    [[nodiscard]] TimeType get() const noexcept
     {
         return nanoSecondsSinceEpoch_;
     }
 
-    [[nodiscard]] std::string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
-    [[nodiscard]] std::string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    [[nodiscard]] string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    [[nodiscard]] string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
 
 private:
     TimeType nanoSecondsSinceEpoch_;

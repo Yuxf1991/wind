@@ -5,7 +5,7 @@ include_directories(
 
 set(WIND_SRC
         TimeStamp.cpp
-        CurrentThread.h CurrentThread.cpp Types.h)
+        CurrentThread.h CurrentThread.cpp Types.h UniqueFd.h)
 
 add_library(wind ${WIND_SRC})
 add_subdirectory(tests)

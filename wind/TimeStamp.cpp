@@ -5,7 +5,7 @@
 #include "TimeStamp.h"
 
 #include <chrono>
-#include <inttypes.h>
+#include <cinttypes>
 
 namespace wind {
 namespace detail {

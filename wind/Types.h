@@ -6,7 +6,10 @@
 #define WIND_TYPES_H
 
 #include <string>
+#include <ctime>
+
 namespace wind {
+using TimeType = std::time_t;
 using std::string;
 
 #define WIND_LIKELY(x) __builtin_expect(!!(x), 1)
