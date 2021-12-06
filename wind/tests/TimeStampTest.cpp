@@ -5,7 +5,8 @@
 using std::cout;
 using std::endl;
 
-TEST(TimeStampTest, NowTest) {
+TEST(TimeStampTest, NowTest)
+{
     auto t = wind::TimeStamp::now();
     cout << "nanoSecondsSinceEpoch: " << t.get() << endl;
     cout << "toString: " << t.toString() << endl;

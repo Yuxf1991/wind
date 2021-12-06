@@ -28,7 +28,8 @@ struct DefaultFdCloser {
     {
 #ifndef NDEBUG
         // TODO: use our own logging
-        std::cout << "DefaultFdCloser::operator(int): closing... fd " << fd << std::endl;
+        std::cout << "DefaultFdCloser::operator(int): closing... fd " << fd
+                  << std::endl;
 #endif
         TEMP_FAILURE_RETRY(::close(fd));
     }

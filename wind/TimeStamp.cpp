@@ -32,22 +32,28 @@ std::string TimeStamp::toString(TimePrecision precision) const noexcept
     TimeType seconds = nanoSecondsSinceEpoch_ / NANO_SECS_PER_SECOND;
     switch (precision) {
     case TimePrecision::SECOND: {
-        snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%03" PRId64 "", seconds, 0l);
+        snprintf(
+            buf, sizeof(buf) - 1, "%" PRId64 ".%03" PRId64 "", seconds, 0l);
         break;
     }
     case TimePrecision::MILLI: {
-        TimeType millis = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MILLISECOND;
-        snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%03" PRId64 "", seconds, millis);
+        TimeType millis = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND)
+                          / NANO_SECS_PER_MILLISECOND;
+        snprintf(
+            buf, sizeof(buf) - 1, "%" PRId64 ".%03" PRId64 "", seconds, millis);
         break;
     }
     case TimePrecision::MICRO: {
-        TimeType micros = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MICROSECOND;
-        snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%06" PRId64 "", seconds, micros);
+        TimeType micros = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND)
+                          / NANO_SECS_PER_MICROSECOND;
+        snprintf(
+            buf, sizeof(buf) - 1, "%" PRId64 ".%06" PRId64 "", seconds, micros);
         break;
     }
     case TimePrecision::NANO: {
         TimeType nanos = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND);
-        snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%09" PRId64 "", seconds, nanos);
+        snprintf(
+            buf, sizeof(buf) - 1, "%" PRId64 ".%09" PRId64 "", seconds, nanos);
         break;
     }
     default: break;
@@ -75,7 +81,9 @@ std::string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
         break;
     }
     case TimePrecision::MILLI: {
-        int millis = static_cast<int>(nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MILLISECOND;
+        int millis =
+            static_cast<int>(nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND)
+            / NANO_SECS_PER_MILLISECOND;
         snprintf(buf,
                  sizeof(buf),
                  "%4d-%02d-%02d %02d:%02d:%02d.%03d",
@@ -89,7 +97,9 @@ std::string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
         break;
     }
     case TimePrecision::MICRO: {
-        int micros = static_cast<int>(nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MICROSECOND;
+        int micros =
+            static_cast<int>(nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND)
+            / NANO_SECS_PER_MICROSECOND;
         snprintf(buf,
                  sizeof(buf),
                  "%4d-%02d-%02d %02d:%02d:%02d.%06d",

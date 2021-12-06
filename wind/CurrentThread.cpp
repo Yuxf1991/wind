@@ -20,10 +20,7 @@ void mainThreadInit()
 }
 
 struct MainThreadInitializer {
-    MainThreadInitializer() noexcept
-    {
-        mainThreadInit();
-    }
+    MainThreadInitializer() noexcept { mainThreadInit(); }
 };
 
 [[maybe_unused]] MainThreadInitializer mainThreadInitializer;
