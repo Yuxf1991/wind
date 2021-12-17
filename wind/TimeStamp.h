@@ -9,8 +9,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -28,13 +28,10 @@
 namespace wind {
 constexpr int MILLI_SECS_PER_SECOND = 1000;
 constexpr int MICRO_SECS_PER_MILLISECOND = 1000;
-constexpr int MICRO_SECS_PER_SECOND =
-    MICRO_SECS_PER_MILLISECOND * MILLI_SECS_PER_SECOND;
+constexpr int MICRO_SECS_PER_SECOND = MICRO_SECS_PER_MILLISECOND * MILLI_SECS_PER_SECOND;
 constexpr int NANO_SECS_PER_MICROSECOND = 1000;
-constexpr int NANO_SECS_PER_MILLISECOND =
-    NANO_SECS_PER_MICROSECOND * MICRO_SECS_PER_MILLISECOND;
-constexpr int NANO_SECS_PER_SECOND =
-    NANO_SECS_PER_MILLISECOND * MILLI_SECS_PER_SECOND;
+constexpr int NANO_SECS_PER_MILLISECOND = NANO_SECS_PER_MICROSECOND * MICRO_SECS_PER_MILLISECOND;
+constexpr int NANO_SECS_PER_SECOND = NANO_SECS_PER_MILLISECOND * MILLI_SECS_PER_SECOND;
 
 enum class TimePrecision { SECOND, MILLI, MICRO, NANO };
 
@@ -49,15 +46,10 @@ public:
     {}
 
     static TimeStamp now() noexcept;
-    [[nodiscard]] TimeType get() const noexcept
-    {
-        return nanoSecondsSinceEpoch_;
-    }
+    [[nodiscard]] TimeType get() const noexcept { return nanoSecondsSinceEpoch_; }
 
-    [[nodiscard]] string
-    toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
-    [[nodiscard]] string toFormattedString(
-        TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    [[nodiscard]] string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    [[nodiscard]] string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
 
 private:
     TimeType nanoSecondsSinceEpoch_;

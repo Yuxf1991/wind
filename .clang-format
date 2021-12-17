@@ -108,7 +108,7 @@ BreakConstructorInitializers: AfterColon
 BreakStringLiterals: false
 
 # 每行字符的限制，0表示没有限制
-ColumnLimit: 80
+ColumnLimit: 120
 
 CompactNamespaces: true
 

@@ -9,8 +9,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -65,10 +65,7 @@ public:
         ::memcpy(curr_, s, bytesToWrite);
         curr_ += bytesToWrite;
     }
-    void append(const char *s)
-    {
-        append(s, ::strlen(s));
-    }
+    void append(const char *s) { append(s, ::strlen(s)); }
     void append(const string &s) { append(s.c_str(), s.size()); }
     string toString() const { return string(data_, length()); }
 
