@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# cache
+.cache
+
 # macOS
 .DS_Store
 
@@ -14,6 +17,8 @@
 cmake-build-debug/*
 cmake-build-release/*
 build/*
+build-vscode/*
+compile_commands.json
 
 # Compiled Object files
 *.slo

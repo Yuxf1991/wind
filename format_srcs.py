@@ -20,16 +20,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# utils
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+#!/usr/bin/python
 
-set(WIND_SRC
-    TimeStamp.cpp
-    CurrentThread.h
-    CurrentThread.cpp
-    Buffer.cpp)
+# format all c/c++ source files in directory wind by using clang-format
+import os
 
-add_library(wind ${WIND_SRC})
-add_subdirectory(tests)
+format_cmd = "clang-format -i "
+to_format_exts = [".c", ".cc", ".cxx", ".cpp", ".h", ".hpp"]
+
+def format_srcs(abs_src_path):
+    for [dirpath, dirnames, filenames] in os.walk(abs_src_path):
+        cur_abs_path = os.path.join(abs_src_path, dirpath)
+        for filename in filenames:
+            abs_file_name = os.path.join(cur_abs_path, filename)
+            to_format_flag = False
+            for ext in to_format_exts:
+                if abs_file_name.endswith(ext):
+                    to_format_flag = True
+                    break
+            if to_format_flag:
+                format_cmd_tmp = format_cmd + abs_file_name
+                print(format_cmd_tmp)
+                os.system(format_cmd_tmp)
+                print(format_cmd_tmp + " done.")
+
+if __name__ == "__main__":
+    cur_abs_path = os.path.abspath(os.path.dirname(__file__))
+    format_srcs(os.path.join(cur_abs_path, "wind"))
