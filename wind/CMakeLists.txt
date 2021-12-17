@@ -32,4 +32,5 @@ set(WIND_SRC
     Buffer.cpp)
 
 add_library(wind ${WIND_SRC})
+target_link_libraries(wind pthread)
 add_subdirectory(tests)
