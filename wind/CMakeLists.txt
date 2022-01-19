@@ -29,7 +29,9 @@ set(WIND_SRC
     TimeStamp.cpp
     CurrentThread.h
     CurrentThread.cpp
-    Buffer.cpp)
+    Buffer.cpp
+    Channel.cpp
+    EPoller.cpp)
 
 add_library(wind ${WIND_SRC})
 target_link_libraries(wind pthread)

@@ -20,43 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TYPES_H
-#define WIND_TYPES_H
-
-#include <string>
-#include <cassert>
-#include <cstring>
-#include <ctime>
-#include <type_traits>
-
+#include "Channel.h"
+#include <algorithm>
 namespace wind {
-using TimeType = std::time_t;
-using std::string;
-using std::size_t;
+Channel::Channel(int fd, ChannelCallback callback) : fd_(fd), callback_(std::move(callback))
+{}
 
-#ifdef NDEBUG
-#define ASSERT(exp)
-#else
-#define ASSERT(exp) assert(exp)
-#endif
+Channel::~Channel() noexcept
+{}
 
-inline void memZero(uint8_t *data, size_t len)
+void Channel::dispatch() const
 {
-    ::memset(data, 0, len);
-}
-
-#ifdef __cplusplus
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))
-#else
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), 1))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-#endif
-
-template<typename EnumType>
-inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)
-{
-    return static_cast<typename std::underlying_type<EnumType>::type>(e);
+    if (callback_ != nullptr) {
+        callback_();
+    }
 }
 } // namespace wind
-#endif // WIND_TYPES_H

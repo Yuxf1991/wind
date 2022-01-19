@@ -20,43 +20,48 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TYPES_H
-#define WIND_TYPES_H
+#ifndef WIND_CHANNEL_H
+#define WIND_CHANNEL_H
 
-#include <string>
-#include <cassert>
-#include <cstring>
-#include <ctime>
-#include <type_traits>
+#include <functional>
+
+#include "NonCopyable.h"
+#include "UniqueFd.h"
 
 namespace wind {
-using TimeType = std::time_t;
-using std::string;
-using std::size_t;
+using ChannelCallback = std::function<void()>;
 
-#ifdef NDEBUG
-#define ASSERT(exp)
-#else
-#define ASSERT(exp) assert(exp)
-#endif
+enum class ChannelEvent : uint32_t {
+    NONE = 0x0,
+    READ_EVNET = 0x1,
+    EMERGENCY_EVENT = 0x2,
+    WRITE_EVENT = 0x4,
+    READ_AND_WRITE_EVENT = READ_EVNET | WRITE_EVENT,
+    EMERGENCY_READ_EVENT = READ_EVNET | EMERGENCY_EVENT,
+    EMERGENCY_WRITE_EVENT = WRITE_EVENT | EMERGENCY_EVENT,
+    EMERGENCY_READ_AND_WRITE_EVENT = READ_EVNET | WRITE_EVENT | EMERGENCY_EVENT,
+};
 
-inline void memZero(uint8_t *data, size_t len)
-{
-    ::memset(data, 0, len);
-}
+class Channel : NonCopyable {
+public:
+    Channel(int fd, ChannelCallback callback);
+    virtual ~Channel() noexcept;
 
-#ifdef __cplusplus
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))
-#else
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), 1))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-#endif
+    int fd() const
+    {
+        return fd_.get();
+    }
 
-template<typename EnumType>
-inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)
-{
-    return static_cast<typename std::underlying_type<EnumType>::type>(e);
-}
+    ChannelEvent events() const
+    {
+        return events_;
+    }
+    virtual void dispatch() const;
+
+protected:
+    UniqueFd fd_;
+    ChannelEvent events_ = ChannelEvent::EMERGENCY_READ_AND_WRITE_EVENT;
+    ChannelCallback callback_;
+};
 } // namespace wind
-#endif // WIND_TYPES_H
+#endif // WIND_CHANNEL_H
