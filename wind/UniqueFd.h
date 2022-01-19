@@ -52,16 +52,16 @@ struct DefaultFdCloser {
     }
 };
 
-template <typename Closer = DefaultFdCloser>
-class UniqueFd : NonCopyable {
+template <typename Closer>
+class UniqueFdImpl : NonCopyable {
 public:
-    UniqueFd() = default;
-    explicit UniqueFd(int fd) noexcept : fd_(fd) {}
-    ~UniqueFd() noexcept { reset(); }
+    UniqueFdImpl() = default;
+    explicit UniqueFdImpl(int fd) noexcept : fd_(fd) {}
+    ~UniqueFdImpl() noexcept { reset(); }
 
     // movable
-    UniqueFd(UniqueFd &&other) noexcept : fd_(other.release()) {}
-    UniqueFd &operator=(UniqueFd &&other) noexcept
+    UniqueFdImpl(UniqueFdImpl &&other) noexcept : fd_(other.release()) {}
+    UniqueFdImpl &operator=(UniqueFdImpl &&other) noexcept
     {
         reset(other.release());
         return *this;
@@ -95,5 +95,7 @@ private:
 
     int fd_ = INVALID_FD();
 };
+
+using UniqueFd = UniqueFdImpl<DefaultFdCloser>;
 } // namespace wind
 #endif // WIND_UNIQUEFD_H
