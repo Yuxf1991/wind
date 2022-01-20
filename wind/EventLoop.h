@@ -20,19 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "Channel.h"
-#include <algorithm>
-namespace wind {
-Channel::Channel(int fd, ChannelCallback callback) : fd_(fd), callback_(std::move(callback))
-{}
+#ifndef WIND_EVENT_LOOP_H
+#define WIND_EVENT_LOOP_H
 
-Channel::~Channel() noexcept
-{}
-
-void Channel::dispatch() const
-{
-    if (callback_ != nullptr) {
-        callback_();
-    }
-}
-} // namespace wind
+#endif // WIND_EVENT_LOOP_H

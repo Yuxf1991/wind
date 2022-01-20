@@ -20,39 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_EPOLLER_H
-#define WIND_EPOLLER_H
-
-#include <memory>
-#include <sys/epoll.h>
-#include <unordered_map>
-#include <vector>
-
-#include "Channel.h"
-#include "NonCopyable.h"
+#include "EventChannel.h"
+#include <algorithm>
 
 namespace wind {
-class EPoller : NonCopyable {
-public:
-    enum class Event {
-        kRead = EPOLLIN,
-        kWrite = EPOLLOUT,
-        kEmergency = EPOLLPRI
-    };
+EventChannel::EventChannel(int fd, ChannelCallback callback) : fd_(fd), callback_(std::move(callback))
+{}
 
-public:
-    EPoller();
-    ~EPoller() noexcept;
+EventChannel::~EventChannel() noexcept
+{}
 
-    void pollOnce(int timeOutMs, std::vector<std::weak_ptr<Channel>> &activeChannels);
-    void updateChannel(std::shared_ptr<Channel> channel);
-    void removeChannel(int fd);
-
-private:
-    UniqueFd epollFd_;
-    static int eventSize_;
-    std::vector<epoll_event> activeEvents_; // to receive events from epoll_wait. 
-    std::unordered_map<int, std::shared_ptr<Channel>> channels_;
-};
+void EventChannel::dispatch() const
+{
+    if (callback_ != nullptr) {
+        callback_();
+    }
+}
 } // namespace wind
-#endif // WIND_EPOLLER_H

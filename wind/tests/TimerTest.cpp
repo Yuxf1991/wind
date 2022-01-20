@@ -15,6 +15,7 @@ using namespace std;
 void PrintTime()
 {
     cout << wind::TimeStamp::now().toFormattedString() << endl;
+    cout << wind::TimeStamp::now().get() << endl;
 }
 
 int main()
@@ -39,6 +40,7 @@ int main()
             for (int i = 0; i < ret; ++i) {
                 uint64_t tmp;
                 (void)TEMP_FAILURE_RETRY(read(timerFd, &tmp, sizeof(tmp)));
+                cout << tmp << endl;
                 auto func = (void (*)())(evs[i].data.ptr);
                 func();
             }

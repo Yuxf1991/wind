@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "EPoller.h"
-#include "Channel.h"
+#include "EventPoller.h"
+
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <unordered_map>
@@ -45,15 +45,15 @@ inline uint32_t toEpollEvent(ChannelEvent event)
 }
 } // namespace detail
 
-int EPoller::eventSize_ = 32;
+int EventPoller::eventSize_ = 32;
 
-EPoller::EPoller() : epollFd_(::epoll_create1(EPOLL_CLOEXEC)) {}
+EventPoller::EventPoller() : epollFd_(::epoll_create1(EPOLL_CLOEXEC)) {}
 
-EPoller::~EPoller() noexcept
+EventPoller::~EventPoller() noexcept
 {    
 }
 
-void EPoller::pollOnce(int timeOutMs, std::vector<std::weak_ptr<Channel>>& activeChannels)
+void EventPoller::pollOnce(int timeOutMs, std::vector<std::weak_ptr<Channel>>& activeChannels)
 {
     activeEvents_.resize(eventSize_);
     auto cnt = TEMP_FAILURE_RETRY(::epoll_wait(epollFd_.get(), activeEvents_.data(), eventSize_, timeOutMs));
@@ -73,7 +73,7 @@ void EPoller::pollOnce(int timeOutMs, std::vector<std::weak_ptr<Channel>>& activ
     }
 }
 
-void EPoller::updateChannel(std::shared_ptr<Channel> channel)
+void EventPoller::updateChannel(std::shared_ptr<Channel> channel)
 {
     if (channel == nullptr) {
         return;
@@ -105,7 +105,7 @@ void EPoller::updateChannel(std::shared_ptr<Channel> channel)
     }
 }
 
-void EPoller::removeChannel(int fd)
+void EventPoller::removeChannel(int fd)
 {
     if (channels_.count(fd) == 0) {
         // TODO: log

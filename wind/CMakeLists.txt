@@ -30,8 +30,9 @@ set(WIND_SRC
     CurrentThread.h
     CurrentThread.cpp
     Buffer.cpp
-    Channel.cpp
-    EPoller.cpp)
+    EventChannel.cpp
+    EventPoller.cpp
+    EventLoop.cpp)
 
 add_library(wind ${WIND_SRC})
 target_link_libraries(wind pthread)
