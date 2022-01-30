@@ -20,34 +20,55 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "EPoller.h"
-#include "Channel.h"
+#include "EventPoller.h"
+#include "TimeStamp.h"
 
+#include <cstring>
 #include <memory>
 #include <netinet/in.h>
-#include <unistd.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 using namespace wind;
 
-void echoFunc(int fd)
+std::unique_ptr<EventPoller> g_poller;
+
+void echoFunc(int fd, TimeStamp receivedTime)
 {
     char buf[1024] = {0};
-    int len = read(fd, buf, sizeof(buf));
-    write(fd, buf, len);
+    int len = TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)));
+    if (len < 0) {
+        std::cout << receivedTime.toFormattedString() << " recv msg err: " << strerror(errno) << std::endl;
+    } else if(len == 0) {
+        std::cout << receivedTime.toFormattedString() << " client " << fd << " closed, remove this channel." << std::endl;
+        if (g_poller != nullptr) {
+            g_poller->removeChannel(fd);
+        }
+    }else {
+        std::cout << receivedTime.toFormattedString() << " recv msg: " << buf << std::endl;
+        int ret = TEMP_FAILURE_RETRY(write(fd, buf, len));
+        if (ret < 0) {
+            std::cout << receivedTime.toFormattedString() << " send msg err: " << strerror(errno) << std::endl;
+        } else {
+            std::cout << receivedTime.toFormattedString() << " send msg: " << buf << std::endl;
+        }
+    }
 }
 
-void acceptFunc(int fd, EPoller *poller)
+void acceptFunc(int fd, TimeStamp receivedTime)
 {
     sockaddr_in clientSockAddr = {};
     socklen_t len;
     int clientFd = ::accept(fd, (sockaddr *)(&clientSockAddr), &len);
-    std::cout << "accept client: " << clientFd << std::endl;
+    std::cout << receivedTime.toFormattedString() << " accept client: " << clientFd << std::endl;
 
-    auto channel = std::make_shared<Channel>(clientFd, [clientFd]() {
-        echoFunc(clientFd);
+    auto channel = std::make_shared<EventChannel>(clientFd);
+    channel->setReadCallback([clientFd](TimeStamp receivedTime) {
+        echoFunc(clientFd, receivedTime);
     });
-    poller->updateChannel(channel);
+    if (g_poller != nullptr) {
+        g_poller->updateChannel(channel);
+    }
 }
 
 int main()
@@ -66,19 +87,20 @@ int main()
 
     listen(fd, 5);
 
-    EPoller epoller;
-    auto channel = std::make_shared<Channel>(fd, [fd, &epoller]() {
-        acceptFunc(fd, &epoller);
+    g_poller = std::make_unique<EventPoller>();
+    auto channel = std::make_shared<EventChannel>(fd);
+    channel->setReadCallback([fd](TimeStamp receivedTime) {
+        acceptFunc(fd, receivedTime);
     });
-    epoller.updateChannel(channel);
+    channel->enableReading();
+    g_poller->updateChannel(channel);
 
     while (true) {
-        std::vector<std::weak_ptr<Channel>> activeChannels;
-        epoller.pollOnce(100, activeChannels);
+        std::vector<std::shared_ptr<EventChannel>> activeChannels;
+        auto pollTime = g_poller->pollOnce(activeChannels, -1);
         for (const auto &channel : activeChannels) {
-            auto channelSp = channel.lock();
-            if (channelSp != nullptr) {
-                channelSp->dispatch();
+            if (channel != nullptr) {
+                channel->handleEvent(pollTime);
             }
         }
     };

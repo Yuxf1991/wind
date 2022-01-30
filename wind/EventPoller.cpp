@@ -21,73 +21,71 @@
 // SOFTWARE.
 
 #include "EventPoller.h"
+#include "EventChannel.h"
+#include "TimeStamp.h"
 
+#include <cstddef>
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <unordered_map>
 
 namespace wind {
 namespace detail {
-inline uint32_t toEpollEvent(ChannelEvent event)
-{
-    static std::unordered_map<ChannelEvent, uint32_t> eventMap = {
-        {ChannelEvent::READ_EVNET, EPOLLIN},
-        {ChannelEvent::WRITE_EVENT, EPOLLOUT},
-        {ChannelEvent::EMERGENCY_EVENT, EPOLLPRI},
-        {ChannelEvent::READ_AND_WRITE_EVENT, EPOLLIN | EPOLLOUT},
-        {ChannelEvent::EMERGENCY_READ_EVENT, EPOLLPRI | EPOLLIN},
-        {ChannelEvent::EMERGENCY_WRITE_EVENT, EPOLLPRI | EPOLLOUT},
-        {ChannelEvent::EMERGENCY_READ_AND_WRITE_EVENT, EPOLLPRI | EPOLLIN | EPOLLOUT},
-        {ChannelEvent::NONE, 0u}
-    };
 
-    return eventMap[event];
-}
 } // namespace detail
 
-int EventPoller::eventSize_ = 32;
+size_t EventPoller::eventSize_ = 32;
 
-EventPoller::EventPoller() : epollFd_(::epoll_create1(EPOLL_CLOEXEC)) {}
+EventPoller::EventPoller() : epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_) {}
 
 EventPoller::~EventPoller() noexcept
 {    
 }
 
-void EventPoller::pollOnce(int timeOutMs, std::vector<std::weak_ptr<Channel>>& activeChannels)
-{
-    activeEvents_.resize(eventSize_);
+TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>>& activeChannels, int timeOutMs)
+{  
     auto cnt = TEMP_FAILURE_RETRY(::epoll_wait(epollFd_.get(), activeEvents_.data(), eventSize_, timeOutMs));
+    auto pollTime = TimeStamp::now();
     if (cnt <= 0) {
         // TODO: err log
     } else {
         for (int i = 0; i < cnt; ++i) {
             const auto &event = activeEvents_[i];
             int fd = event.data.fd;
-            if (channels_.count(fd) == 0) {
+            if (channels_.count(fd) == 0 && channels_.at(fd) == nullptr) {
                 // TODO: log
                 continue;
             }
 
+            const auto &channel = channels_.at(fd);
+            channel->setRecevicedEvents(event.events);
             activeChannels.emplace_back(channels_.at(fd));
         }
     }
+
+    if (static_cast<size_t>(cnt) == eventSize_) {
+        eventSize_ *= 2;
+        activeEvents_.resize(eventSize_);
+    }
+
+    return pollTime;
 }
 
-void EventPoller::updateChannel(std::shared_ptr<Channel> channel)
+void EventPoller::updateChannel(std::shared_ptr<EventChannel> channel)
 {
     if (channel == nullptr) {
         return;
     }
 
     int channelFd = channel->fd();
-    auto channelEvnets = channel->events();
-    if (channelEvnets == ChannelEvent::NONE) {
+    auto channelEvnets = channel->eventsToHandle();
+    if (channelEvnets == enum_cast(EventType::NONE)) {
         removeChannel(channelFd);
         return;
     }
 
     epoll_event epollEvent = {};
-    epollEvent.events = detail::toEpollEvent(channelEvnets);
+    epollEvent.events = channelEvnets; // we assert the EventType is associated with EPOLL_EVENTS
     epollEvent.data.fd = channelFd;
     int ret = 0;
     if (channels_.count(channelFd) == 0) {

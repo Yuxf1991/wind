@@ -24,6 +24,7 @@
 #define WIND_EVENT_CHANNEL_H
 
 #include <functional>
+#include <memory>
 #include <sys/epoll.h>
 
 #include "TimeStamp.h"
@@ -31,17 +32,19 @@
 
 namespace wind {
 using EventCallback = std::function<void()>;
-using ReadCallback = std::function<void(TimeStamp)>();
+using EventCallbackWithStamp = std::function<void(TimeStamp)>;
+
+class EventPoller;
 
 // use EPOLL_EVENTS to define channel event types.
-enum class ChannelEvent : uint32_t {
+enum class EventType : uint32_t {
     NONE = 0x0,
     READ_EVNET = EPOLLIN | EPOLLPRI,
     WRITE_EVENT = EPOLLOUT,
     EDGE_EVENT= EPOLLET,
 };
 
-class EventChannel : NonCopyable {
+class EventChannel : public std::enable_shared_from_this<EventChannel>, NonCopyable {
 public:
     EventChannel(int fd);
     virtual ~EventChannel() noexcept;
@@ -51,15 +54,59 @@ public:
         return fd_.get();
     }
 
-    ChannelEvent events() const
+    void enableReading();
+    void disableReading();
+    void enableWriting();
+    void disableWriting();
+
+    void setReadCallback(EventCallbackWithStamp cb)
     {
-        return events_;
+        readCallback_ = std::move(cb);
+        update();
     }
-    virtual void dispatch() const;
+
+    void setWriteCallback(EventCallback cb)
+    {
+        writeCallback_ = std::move(cb);
+        update();
+    }
+
+    void setErrorCallback(EventCallback cb)
+    {
+        errorCallback_ = std::move(cb);
+        update();
+    }
+
+    void setCloseCallback(EventCallback cb)
+    {
+        closeCallback_ = std::move(cb);
+        update();
+    }
+
+    virtual void handleEvent(TimeStamp receivedTime) const;
 
 protected:
+    friend class EventPoller;
+    uint32_t eventsToHandle() const
+    {
+        return eventsToHandle_;
+    }
+
+    void setRecevicedEvents(uint32_t events)
+    {
+        receivedEvents_ = events;
+    }
+
+    void update();
+
     UniqueFd fd_;
-    ChannelEvent eventsToHandle_ = ChannelEvent::NONE;
+    uint32_t eventsToHandle_ = enum_cast(EventType::NONE);
+    uint32_t receivedEvents_ = enum_cast(EventType::NONE);
+
+    EventCallbackWithStamp readCallback_;
+    EventCallback writeCallback_;
+    EventCallback errorCallback_;
+    EventCallback closeCallback_;
 };
 } // namespace wind
 #endif // WIND_EVENT_CHANNEL_H

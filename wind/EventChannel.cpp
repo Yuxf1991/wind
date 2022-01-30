@@ -21,19 +21,74 @@
 // SOFTWARE.
 
 #include "EventChannel.h"
-#include <algorithm>
+#include <sys/epoll.h>
 
 namespace wind {
-EventChannel::EventChannel(int fd, ChannelCallback callback) : fd_(fd), callback_(std::move(callback))
+EventChannel::EventChannel(int fd) : fd_(fd)
 {}
 
 EventChannel::~EventChannel() noexcept
 {}
 
-void EventChannel::dispatch() const
+void EventChannel::enableReading()
 {
-    if (callback_ != nullptr) {
-        callback_();
+    eventsToHandle_ |= enum_cast(EventType::READ_EVNET);
+}
+
+void EventChannel::disableReading()
+{
+    eventsToHandle_ &= (~enum_cast(EventType::READ_EVNET));
+}
+
+void EventChannel::enableWriting()
+{
+    eventsToHandle_ |= enum_cast(EventType::WRITE_EVENT);
+}
+
+void EventChannel::disableWriting()
+{
+    eventsToHandle_ &= (~enum_cast(EventType::WRITE_EVENT));
+}
+
+void EventChannel::update()
+{
+    if (readCallback_ == nullptr) {
+        disableReading();
+    } else {
+        enableReading();
+    }
+
+    if (writeCallback_ == nullptr) {
+        disableWriting();
+    } else {
+        enableWriting();
+    }
+}
+
+void EventChannel::handleEvent(TimeStamp receivedTime) const
+{
+    if ((receivedEvents_ & EPOLLHUP) && !(receivedEvents_ & EPOLLIN)) {
+        if (closeCallback_ != nullptr) {
+            closeCallback_();
+        }
+    }
+
+    if (receivedEvents_ & EPOLLERR) {
+        if (errorCallback_ != nullptr) {
+            errorCallback_();
+        }
+    }
+
+    if (receivedEvents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
+        if (readCallback_ != nullptr) {
+            readCallback_(receivedTime);
+        }
+    }
+
+    if (receivedEvents_ & EPOLLOUT) {
+        if (writeCallback_ != nullptr) {
+            writeCallback_();
+        }
     }
 }
 } // namespace wind

@@ -23,13 +23,13 @@
 #ifndef WIND_EVENT_POLLER_H
 #define WIND_EVENT_POLLER_H
 
+#include <cstddef>
 #include <memory>
 #include <sys/epoll.h>
 #include <unordered_map>
 #include <vector>
 
 #include "EventChannel.h"
-#include "NonCopyable.h"
 
 namespace wind {
 class EventPoller : NonCopyable {
@@ -37,13 +37,13 @@ public:
     EventPoller();
     ~EventPoller() noexcept;
 
-    void pollOnce(int timeOutMs, std::vector<std::weak_ptr<EventChannel>> &activeChannels);
+    TimeStamp pollOnce(std::vector<std::shared_ptr<EventChannel>> &activeChannels, int timeOutMs);
     void updateChannel(std::shared_ptr<EventChannel> channel);
     void removeChannel(int fd);
 
 private:
     UniqueFd epollFd_;
-    static int eventSize_;
+    static size_t eventSize_;
     std::vector<epoll_event> activeEvents_; // to receive events from epoll_wait. 
     std::unordered_map<int, std::shared_ptr<EventChannel>> channels_;
 };
