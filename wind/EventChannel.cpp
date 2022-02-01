@@ -56,6 +56,7 @@ void EventChannel::disableWriting()
 
 void EventChannel::update()
 {
+    uint32_t oldEventsToHandle = eventsToHandle_;
     if (readCallback_ == nullptr) {
         disableReading();
     } else {
@@ -68,7 +69,9 @@ void EventChannel::update()
         enableWriting();
     }
 
-    eventLoop_->updateChannel(shared_from_this());
+    if (oldEventsToHandle != eventsToHandle_) {
+        eventLoop_->updateChannel(shared_from_this());
+    }
 }
 
 void EventChannel::handleEvent(TimeStamp receivedTime) const
