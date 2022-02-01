@@ -110,7 +110,7 @@ BreakStringLiterals: false
 # 每行字符的限制，0表示没有限制
 ColumnLimit: 120
 
-CompactNamespaces: true
+CompactNamespaces: false
 
 # 构造函数的初始化列表要么都在同一行，要么都各自一行
 ConstructorInitializerAllOnOneLineOrOnePerLine: false

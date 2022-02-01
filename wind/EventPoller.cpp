@@ -22,14 +22,18 @@
 
 #include "EventPoller.h"
 
+#include "EventLoop.h"
+#include "Utils.h"
+
 namespace wind {
-namespace detail {
-
-} // namespace detail
-
 size_t EventPoller::eventSize_ = 32;
 
-EventPoller::EventPoller() : epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_) {}
+EventPoller::EventPoller(EventLoop *eventLoop) :
+    eventLoop_(eventLoop), epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_)
+{
+    // TODO: LOG_FATAL_IF(eventLoop_ == nullptr)
+    ASSERT(eventLoop_ != nullptr);
+}
 
 EventPoller::~EventPoller() noexcept {}
 
@@ -71,7 +75,7 @@ void EventPoller::updateChannel(std::shared_ptr<EventChannel> channel)
     int channelFd = channel->fd();
     auto channelEvnets = channel->eventsToHandle();
     if (channelEvnets == enum_cast(EventType::NONE)) {
-        removeChannel(channelFd);
+        eventLoop_->removeChannel(channelFd);
         return;
     }
 

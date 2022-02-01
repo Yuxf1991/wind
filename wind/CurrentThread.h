@@ -23,15 +23,10 @@
 #ifndef WIND_CURRENTTHREAD_H
 #define WIND_CURRENTTHREAD_H
 
-#include <unistd.h>
-
 #include "Types.h"
 #include "Utils.h"
 
 namespace wind {
-typedef pid_t ThreadId;
-typedef pid_t ProcessId;
-
 namespace CurrentThread {
 struct TLS {
     ThreadId tid;

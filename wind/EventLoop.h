@@ -23,7 +23,10 @@
 #ifndef WIND_EVENT_LOOP_H
 #define WIND_EVENT_LOOP_H
 
+#include <atomic>
+
 #include "EventPoller.h"
+#include "Types.h"
 
 namespace wind {
 class EventLoop : NonCopyable {
@@ -31,12 +34,24 @@ public:
     EventLoop();
     ~EventLoop() noexcept;
     void run();
+    void stop();
+    void updateChannel(const std::shared_ptr<EventChannel> &channel);
+    void removeChannel(int channelFd);
 
     static EventLoop *eventLoopOfCurrThread();
+    void assertInLoopThread();
+    void assertNotInLoopThread();
 
 private:
+    void wakeUp();
+    void wakeUpCallback();
+    std::atomic<bool> running_ = false;
+
     std::unique_ptr<EventPoller> poller_;
-    UniqueFd wakeUpFd_;
+    std::shared_ptr<EventChannel> wakeUpChannel_;
+
+    ThreadId tid_ = -1; // indicates which thread is this loop in.
+    std::unordered_map<int, std::shared_ptr<EventChannel>> holdChannels_;
 };
 } // namespace wind
 #endif // WIND_EVENT_LOOP_H

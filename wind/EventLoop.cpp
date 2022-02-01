@@ -22,29 +22,101 @@
 
 #include "EventLoop.h"
 
-#include <sys/eventfd.h>
+#include <vector>
+
+#include "CurrentThread.h"
+#include "Utils.h"
 
 namespace wind {
 __thread EventLoop *t_currLoop = nullptr; // current thread's event_loop
 
-namespace detail {
-int createEventFd()
+EventLoop::EventLoop() :
+    poller_(std::make_unique<EventPoller>(this)),
+    wakeUpChannel_(std::make_shared<EventChannel>(utils::createEventFd(), this))
 {
-    int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-    if (eventFd < 0) {
-        // TODO: ERR LOG
-        abort();
-    }
-
-    return eventFd;
+    wakeUpChannel_->setReadCallback([this](TimeStamp) { wakeUpCallback(); });
+    t_currLoop = this;
 }
-} // namespace detail
-
-EventLoop::EventLoop() : poller_(std::make_unique<EventPoller>()), wakeUpFd_(detail::createEventFd()) {}
 
 EventLoop::~EventLoop() noexcept {}
 
-void EventLoop::run() {}
+void EventLoop::stop()
+{
+    running_ = false;
+    wakeUp();
+}
+
+void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)
+{
+    if (channel == nullptr) {
+        // TODO: log
+        return;
+    }
+
+    int channelFd = channel->fd();
+    if (holdChannels_.count(channelFd) > 0 && holdChannels_[channelFd] != channel) {
+        // remove old channel first
+        removeChannel(channelFd);
+    }
+
+    holdChannels_[channelFd] = channel;
+    poller_->updateChannel(channel);
+}
+
+void EventLoop::removeChannel(int channelFd)
+{
+    poller_->removeChannel(channelFd);
+    holdChannels_.erase(channelFd);
+}
+
+void EventLoop::run()
+{
+    running_ = true;
+    tid_ = CurrentThread::tid();
+    while (running_) {
+        std::vector<std::shared_ptr<EventChannel>> activeChannels;
+        TimeStamp pollTime = poller_->pollOnce(activeChannels, -1);
+        for (auto &channel : activeChannels) {
+            if (channel != nullptr) {
+                channel->handleEvent(pollTime);
+            }
+        }
+    }
+}
+
+void EventLoop::assertInLoopThread()
+{
+    if (CurrentThread::tid() != tid_) {
+        // TODO: ERR LOG
+        abort();
+    }
+}
+
+void EventLoop::assertNotInLoopThread()
+{
+    if (CurrentThread::tid() == tid_) {
+        // TODO: ERR LOG
+        abort();
+    }
+}
+
+void EventLoop::wakeUp()
+{
+    uint64_t buf = 1;
+    int len = TEMP_FAILURE_RETRY(::write(wakeUpChannel_->fd(), &buf, sizeof(buf)));
+    if (len != sizeof(buf)) {
+        // TODO: ERR LOG
+    }
+}
+
+void EventLoop::wakeUpCallback()
+{
+    uint64_t buf = 0;
+    int len = TEMP_FAILURE_RETRY(::read(wakeUpChannel_->fd(), &buf, sizeof(buf)));
+    if (len != sizeof(buf)) {
+        // TODO: ERR LOG
+    }
+}
 
 EventLoop *EventLoop::eventLoopOfCurrThread()
 {

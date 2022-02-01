@@ -25,7 +25,9 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/eventfd.h>
 
 #ifdef NDEBUG
 #define ASSERT(exp)
@@ -41,10 +43,23 @@
 #define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
 #endif
 
-namespace wind { namespace utils {
+namespace wind {
+namespace utils {
 inline void memZero(uint8_t *data, size_t len)
 {
     ::memset(data, 0, len);
 }
-}}     // namespace wind::utils
+
+inline int createEventFd()
+{
+    int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if (eventFd < 0) {
+        // TODO: ERR LOG
+        abort();
+    }
+
+    return eventFd;
+}
+} // namespace utils
+} // namespace wind
 #endif // WIND_UTILS_H

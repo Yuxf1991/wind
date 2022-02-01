@@ -35,6 +35,7 @@ using EventCallback = std::function<void()>;
 using EventCallbackWithStamp = std::function<void(TimeStamp)>;
 
 class EventPoller;
+class EventLoop;
 
 // use EPOLL_EVENTS to define channel event types.
 enum class EventType : uint32_t {
@@ -46,15 +47,10 @@ enum class EventType : uint32_t {
 
 class EventChannel : public std::enable_shared_from_this<EventChannel>, NonCopyable {
 public:
-    EventChannel(int fd);
+    EventChannel(int fd, EventLoop *eventLoop);
     virtual ~EventChannel() noexcept;
 
     int fd() const { return fd_.get(); }
-
-    void enableReading();
-    void disableReading();
-    void enableWriting();
-    void disableWriting();
 
     void setReadCallback(EventCallbackWithStamp cb)
     {
@@ -89,8 +85,13 @@ protected:
     void setRecevicedEvents(uint32_t events) { receivedEvents_ = events; }
 
     void update();
+    void enableReading();
+    void disableReading();
+    void enableWriting();
+    void disableWriting();
 
     UniqueFd fd_;
+    EventLoop *eventLoop_ = nullptr;
     uint32_t eventsToHandle_ = enum_cast(EventType::NONE);
     uint32_t receivedEvents_ = enum_cast(EventType::NONE);
 

@@ -25,9 +25,12 @@
 
 #include <string>
 #include <type_traits>
+#include <unistd.h>
 
 namespace wind {
 using TimeType = std::uint64_t;
+using ThreadId = pid_t;
+using ProcessId = pid_t;
 using std::string;
 using std::size_t;
 

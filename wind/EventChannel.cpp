@@ -22,8 +22,15 @@
 
 #include "EventChannel.h"
 
+#include "EventLoop.h"
+#include "Utils.h"
+
 namespace wind {
-EventChannel::EventChannel(int fd) : fd_(fd) {}
+EventChannel::EventChannel(int fd, EventLoop *eventLoop) : fd_(fd), eventLoop_(eventLoop)
+{
+    // TODO: LOG_FATAL_IF(eventLoop_ == nullptr)
+    ASSERT(eventLoop_ != nullptr);
+}
 
 EventChannel::~EventChannel() noexcept {}
 
@@ -60,10 +67,14 @@ void EventChannel::update()
     } else {
         enableWriting();
     }
+
+    eventLoop_->updateChannel(shared_from_this());
 }
 
 void EventChannel::handleEvent(TimeStamp receivedTime) const
 {
+    eventLoop_->assertInLoopThread();
+
     if ((receivedEvents_ & EPOLLHUP) && !(receivedEvents_ & EPOLLIN)) {
         if (closeCallback_ != nullptr) {
             closeCallback_();

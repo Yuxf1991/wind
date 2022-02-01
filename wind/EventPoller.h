@@ -29,9 +29,11 @@
 #include "EventChannel.h"
 
 namespace wind {
+class EventLoop;
+
 class EventPoller : NonCopyable {
 public:
-    EventPoller();
+    explicit EventPoller(EventLoop *eventLoop);
     ~EventPoller() noexcept;
 
     TimeStamp pollOnce(std::vector<std::shared_ptr<EventChannel>> &activeChannels, int timeOutMs);
@@ -39,6 +41,7 @@ public:
     void removeChannel(int fd);
 
 private:
+    EventLoop *eventLoop_;
     UniqueFd epollFd_;
     static size_t eventSize_;
     std::vector<epoll_event> activeEvents_; // to receive events from epoll_wait.
