@@ -46,45 +46,25 @@ private:
 TEST(SingletonTest, normalTest)
 {
     WIND_TEST_BEGIN(SingletonTest, normalTest);
-    auto bookStore1 = BookStore::instance();
-    auto bookStore2 = BookStore::instance();
-    if (bookStore1 == nullptr || bookStore2 == nullptr) {
-        std::cout << "Error: can't get book store instance!" << std::endl;
-        return;
-    }
-    EXPECT_EQ(bookStore1, bookStore2);
+    auto &bookStore1 = BookStore::instance();
+    auto &bookStore2 = BookStore::instance();
 
-    std::cout << "bookStore1 bookCnt: " << bookStore1->bookCnt() << std::endl;
-    std::cout << "bookStore2 bookCnt: " << bookStore2->bookCnt() << std::endl;
-    EXPECT_EQ(bookStore1->bookCnt(), bookStore2->bookCnt());
+    std::cout << "bookStore1 bookCnt: " << bookStore1.bookCnt() << std::endl;
+    std::cout << "bookStore2 bookCnt: " << bookStore2.bookCnt() << std::endl;
+    EXPECT_EQ(bookStore1.bookCnt(), bookStore2.bookCnt());
 
     string book1("Hello world!");
     std::cout << "Add book " << book1 << "to book store1.\n";
-    bookStore1->addBook(book1);
-    std::cout << "bookStore1 bookCnt: " << bookStore1->bookCnt() << std::endl;
-    std::cout << "bookStore2 bookCnt: " << bookStore2->bookCnt() << std::endl;
-    EXPECT_EQ(bookStore1->bookCnt(), bookStore2->bookCnt());
+    bookStore1.addBook(book1);
+    std::cout << "bookStore1 bookCnt: " << bookStore1.bookCnt() << std::endl;
+    std::cout << "bookStore2 bookCnt: " << bookStore2.bookCnt() << std::endl;
+    EXPECT_EQ(bookStore1.bookCnt(), bookStore2.bookCnt());
 
     string book2("Hello world 2!");
     std::cout << "Add book " << book2 << "to book store2.\n";
-    bookStore2->addBook(book2);
-    std::cout << "bookStore1 bookCnt: " << bookStore1->bookCnt() << std::endl;
-    std::cout << "bookStore2 bookCnt: " << bookStore2->bookCnt() << std::endl;
-    EXPECT_EQ(bookStore1->bookCnt(), bookStore2->bookCnt());
-}
-
-void GetBookStoreTest(const std::shared_ptr<BookStore> &bookStore)
-{
-    EXPECT_EQ(bookStore, BookStore::instance());
-}
-
-TEST(SingletonTest, multiThreadTest)
-{
-    WIND_TEST_BEGIN(SingletonTest, multiThreadTest);
-
-    for (auto i = 0; i < 100000; ++i) {
-        auto t = std::thread{[&]() { GetBookStoreTest(BookStore::instance()); }};
-        t.detach();
-    }
+    bookStore2.addBook(book2);
+    std::cout << "bookStore1 bookCnt: " << bookStore1.bookCnt() << std::endl;
+    std::cout << "bookStore2 bookCnt: " << bookStore2.bookCnt() << std::endl;
+    EXPECT_EQ(bookStore1.bookCnt(), bookStore2.bookCnt());
 }
 } // namespace wind

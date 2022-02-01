@@ -31,9 +31,9 @@ namespace wind {
 template <typename T>
 class Singleton : NonCopyable {
 public:
-    static std::shared_ptr<T> instance()
+    static T &instance()
     {
-        static std::shared_ptr<T> instance(new T());
+        static T instance;
         return instance;
     }
 
