@@ -21,14 +21,11 @@
 // SOFTWARE.
 
 #include "EventChannel.h"
-#include <sys/epoll.h>
 
 namespace wind {
-EventChannel::EventChannel(int fd) : fd_(fd)
-{}
+EventChannel::EventChannel(int fd) : fd_(fd) {}
 
-EventChannel::~EventChannel() noexcept
-{}
+EventChannel::~EventChannel() noexcept {}
 
 void EventChannel::enableReading()
 {

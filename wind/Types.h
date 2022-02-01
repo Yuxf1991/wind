@@ -24,36 +24,14 @@
 #define WIND_TYPES_H
 
 #include <string>
-#include <cassert>
-#include <cstring>
-#include <ctime>
 #include <type_traits>
 
 namespace wind {
-using TimeType = std::time_t;
+using TimeType = std::uint64_t;
 using std::string;
 using std::size_t;
 
-#ifdef NDEBUG
-#define ASSERT(exp)
-#else
-#define ASSERT(exp) assert(exp)
-#endif
-
-inline void memZero(uint8_t *data, size_t len)
-{
-    ::memset(data, 0, len);
-}
-
-#ifdef __cplusplus
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))
-#else
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), 1))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-#endif
-
-template<typename EnumType>
+template <typename EnumType>
 inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)
 {
     return static_cast<typename std::underlying_type<EnumType>::type>(e);

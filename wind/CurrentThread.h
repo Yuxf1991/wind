@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "Types.h"
+#include "Utils.h"
 
 namespace wind {
 typedef pid_t ThreadId;

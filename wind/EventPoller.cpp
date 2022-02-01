@@ -21,13 +21,6 @@
 // SOFTWARE.
 
 #include "EventPoller.h"
-#include "EventChannel.h"
-#include "TimeStamp.h"
-
-#include <cstddef>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <unordered_map>
 
 namespace wind {
 namespace detail {
@@ -38,12 +31,10 @@ size_t EventPoller::eventSize_ = 32;
 
 EventPoller::EventPoller() : epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_) {}
 
-EventPoller::~EventPoller() noexcept
-{    
-}
+EventPoller::~EventPoller() noexcept {}
 
-TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>>& activeChannels, int timeOutMs)
-{  
+TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &activeChannels, int timeOutMs)
+{
     auto cnt = TEMP_FAILURE_RETRY(::epoll_wait(epollFd_.get(), activeEvents_.data(), eventSize_, timeOutMs));
     auto pollTime = TimeStamp::now();
     if (cnt <= 0) {
@@ -89,7 +80,7 @@ void EventPoller::updateChannel(std::shared_ptr<EventChannel> channel)
     epollEvent.data.fd = channelFd;
     int ret = 0;
     if (channels_.count(channelFd) == 0) {
-        // new channel    
+        // new channel
         ret = TEMP_FAILURE_RETRY(::epoll_ctl(epollFd_.get(), EPOLL_CTL_ADD, channelFd, &epollEvent));
     } else {
         // modify channel

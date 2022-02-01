@@ -23,7 +23,7 @@
 #include "TimeStamp.h"
 
 #include <chrono>
-#include <cinttypes>
+#include <inttypes.h>
 
 namespace wind {
 namespace detail {
@@ -76,7 +76,7 @@ std::string TimeStamp::toString(TimePrecision precision) const noexcept
 std::string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
 {
     char buf[64] = {};
-    TimeType seconds = nanoSecondsSinceEpoch_ / NANO_SECS_PER_SECOND;
+    time_t seconds = nanoSecondsSinceEpoch_ / NANO_SECS_PER_SECOND;
     struct tm *tm_time = std::localtime(&seconds);
     switch (precision) {
     case TimePrecision::SECOND: {

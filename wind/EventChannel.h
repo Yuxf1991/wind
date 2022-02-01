@@ -41,7 +41,7 @@ enum class EventType : uint32_t {
     NONE = 0x0,
     READ_EVNET = EPOLLIN | EPOLLPRI,
     WRITE_EVENT = EPOLLOUT,
-    EDGE_EVENT= EPOLLET,
+    EDGE_EVENT = EPOLLET,
 };
 
 class EventChannel : public std::enable_shared_from_this<EventChannel>, NonCopyable {
@@ -49,10 +49,7 @@ public:
     EventChannel(int fd);
     virtual ~EventChannel() noexcept;
 
-    int fd() const
-    {
-        return fd_.get();
-    }
+    int fd() const { return fd_.get(); }
 
     void enableReading();
     void disableReading();
@@ -87,15 +84,9 @@ public:
 
 protected:
     friend class EventPoller;
-    uint32_t eventsToHandle() const
-    {
-        return eventsToHandle_;
-    }
+    uint32_t eventsToHandle() const { return eventsToHandle_; }
 
-    void setRecevicedEvents(uint32_t events)
-    {
-        receivedEvents_ = events;
-    }
+    void setRecevicedEvents(uint32_t events) { receivedEvents_ = events; }
 
     void update();
 

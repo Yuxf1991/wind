@@ -19,3 +19,35 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+#include "EventLoop.h"
+
+#include <sys/eventfd.h>
+
+namespace wind {
+__thread EventLoop *t_currLoop = nullptr; // current thread's event_loop
+
+namespace detail {
+int createEventFd()
+{
+    int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if (eventFd < 0) {
+        // TODO: ERR LOG
+        abort();
+    }
+
+    return eventFd;
+}
+} // namespace detail
+
+EventLoop::EventLoop() : poller_(std::make_unique<EventPoller>()), wakeUpFd_(detail::createEventFd()) {}
+
+EventLoop::~EventLoop() noexcept {}
+
+void EventLoop::run() {}
+
+EventLoop *EventLoop::eventLoopOfCurrThread()
+{
+    return t_currLoop;
+}
+} // namespace wind

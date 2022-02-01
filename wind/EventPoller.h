@@ -23,9 +23,6 @@
 #ifndef WIND_EVENT_POLLER_H
 #define WIND_EVENT_POLLER_H
 
-#include <cstddef>
-#include <memory>
-#include <sys/epoll.h>
 #include <unordered_map>
 #include <vector>
 
@@ -44,7 +41,7 @@ public:
 private:
     UniqueFd epollFd_;
     static size_t eventSize_;
-    std::vector<epoll_event> activeEvents_; // to receive events from epoll_wait. 
+    std::vector<epoll_event> activeEvents_; // to receive events from epoll_wait.
     std::unordered_map<int, std::shared_ptr<EventChannel>> channels_;
 };
 } // namespace wind

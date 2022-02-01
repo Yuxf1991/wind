@@ -21,13 +21,10 @@
 // SOFTWARE.
 
 #include "EventPoller.h"
-#include "TimeStamp.h"
 
-#include <cstring>
-#include <memory>
 #include <netinet/in.h>
+#include <string.h>
 #include <sys/socket.h>
-#include <unistd.h>
 
 using namespace wind;
 
@@ -39,12 +36,13 @@ void echoFunc(int fd, TimeStamp receivedTime)
     int len = TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)));
     if (len < 0) {
         std::cout << receivedTime.toFormattedString() << " recv msg err: " << strerror(errno) << std::endl;
-    } else if(len == 0) {
-        std::cout << receivedTime.toFormattedString() << " client " << fd << " closed, remove this channel." << std::endl;
+    } else if (len == 0) {
+        std::cout << receivedTime.toFormattedString() << " client " << fd << " closed, remove this channel."
+                  << std::endl;
         if (g_poller != nullptr) {
             g_poller->removeChannel(fd);
         }
-    }else {
+    } else {
         std::cout << receivedTime.toFormattedString() << " recv msg: " << buf << std::endl;
         int ret = TEMP_FAILURE_RETRY(write(fd, buf, len));
         if (ret < 0) {
@@ -63,9 +61,7 @@ void acceptFunc(int fd, TimeStamp receivedTime)
     std::cout << receivedTime.toFormattedString() << " accept client: " << clientFd << std::endl;
 
     auto channel = std::make_shared<EventChannel>(clientFd);
-    channel->setReadCallback([clientFd](TimeStamp receivedTime) {
-        echoFunc(clientFd, receivedTime);
-    });
+    channel->setReadCallback([clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
     if (g_poller != nullptr) {
         g_poller->updateChannel(channel);
     }
@@ -89,9 +85,7 @@ int main()
 
     g_poller = std::make_unique<EventPoller>();
     auto channel = std::make_shared<EventChannel>(fd);
-    channel->setReadCallback([fd](TimeStamp receivedTime) {
-        acceptFunc(fd, receivedTime);
-    });
+    channel->setReadCallback([fd](TimeStamp receivedTime) { acceptFunc(fd, receivedTime); });
     channel->enableReading();
     g_poller->updateChannel(channel);
 

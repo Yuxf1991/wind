@@ -25,6 +25,7 @@
 
 #include "NonCopyable.h"
 #include "Types.h"
+#include "Utils.h"
 
 namespace wind {
 constexpr size_t DEFAULT_BUFFER_SIZE = 4096;
