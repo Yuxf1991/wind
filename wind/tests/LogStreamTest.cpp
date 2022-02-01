@@ -20,46 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_UTILS_H
-#define WIND_UTILS_H
+#include "LogStream.h"
 
-#include <assert.h>
-#include <inttypes.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/eventfd.h>
+using namespace wind;
 
-#ifdef NDEBUG
-#define ASSERT(exp)
-#else
-#define ASSERT(exp) assert((exp))
-#endif
-
-#ifdef __cplusplus
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))
-#else
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), 1))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-#endif
-
-namespace wind {
-namespace utils {
-inline void memZero(uint8_t *data, size_t len)
+int main()
 {
-    ::memset(data, 0, len);
-}
+    LogStream ss;
+    ss << "hello world, my name is robot!\n";
 
-inline int createEventFd()
-{
-    int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-    if (eventFd < 0) {
-        // TODO: ERR LOG
-        abort();
-    }
+    string s2("what is your name? please tell me.\n");
+    ss << s2;
 
-    return eventFd;
+    ss << Fmt("%.12g, %s", 15674.1545, "huighaskdhasuifghqwepfmwef[paiojhzndckihbfciuabvsaklnhbackuy") << "hhhhhh\n";
+    return 0;
 }
-} // namespace utils
-} // namespace wind
-#endif // WIND_UTILS_H

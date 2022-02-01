@@ -30,7 +30,7 @@
 namespace wind {
 constexpr size_t DEFAULT_BUFFER_SIZE = 4096;
 
-template <size_t N>
+template <size_t BUF_SIZE>
 class FixedSizeBuffer : NonCopyable {
 public:
     FixedSizeBuffer() = default;
@@ -69,7 +69,7 @@ public:
     string toString() const { return string(data_, length()); }
 
 private:
-    char data_[N];
+    char data_[BUF_SIZE];
     char *curr_ = data_;
 };
 

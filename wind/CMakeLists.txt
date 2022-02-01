@@ -30,6 +30,7 @@ set(WIND_SRC
     CurrentThread.h
     CurrentThread.cpp
     Buffer.cpp
+    LogStream.cpp
     EventChannel.cpp
     EventPoller.cpp
     EventLoop.cpp)
