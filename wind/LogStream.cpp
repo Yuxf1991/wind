@@ -22,6 +22,8 @@
 
 #include "LogStream.h"
 
+#include <algorithm>
+
 namespace wind {
 namespace detail {
 void defaultOuput(const char *buf, size_t len)
@@ -32,6 +34,39 @@ void defaultOuput(const char *buf, size_t len)
 void defaultFlush()
 {
     (void)::fflush(stdout);
+}
+
+constexpr size_t MAX_NUMERIC_SIZE = 32;
+
+inline char digitToChar(int idx)
+{
+    static char digits[20] = "9876543210123456789";
+    static int zeroIdx = 9;
+    static_assert(sizeof(digits) == 20, "digits number err!");
+    ASSERT((idx > -10) && (idx < 10));
+    return digits[zeroIdx + idx];
+}
+
+// ensure the out buf's capacity is bigger than MAX_NUMERIC_SIZE.
+// return the real buf size after converting.
+template <typename T>
+size_t convertDigitToString(char *outBuf, T inValue)
+{
+    static_assert(std::is_integral<T>::value, "input type is not an integral type!");
+    char *start = outBuf;
+    char *end = outBuf;
+    auto tmp = inValue;
+    do {
+        int remainder = tmp % 10;
+        tmp /= 10;
+        *end++ = digitToChar(remainder);
+    } while (tmp != 0);
+    if (inValue < 0) {
+        *end++ = '-';
+    }
+
+    std::reverse(start, end);
+    return end - start;
 }
 } // namespace detail
 
@@ -54,6 +89,11 @@ LogStream::~LogStream() noexcept
     output();
 }
 
+void LogStream::output(LogStream &stream)
+{
+    stream.output();
+}
+
 void LogStream::output()
 {
     if (WIND_UNLIKELY(outputFunc_ == nullptr)) {
@@ -62,6 +102,11 @@ void LogStream::output()
 
     outputFunc_(buf_.data(), buf_.length());
     buf_.reset();
+}
+
+void LogStream::flush(LogStream &stream)
+{
+    stream.flush();
 }
 
 void LogStream::flush()
@@ -74,6 +119,43 @@ void LogStream::flush()
     }
 
     flushFunc_();
+}
+
+LogStream &LogStream::operator<<(LogStream &(*func)(LogStream &))
+{
+    return func(self());
+}
+
+void LogStream::preProcessWithNumericInput()
+{
+    ASSERT(buf_.capacity() > detail::MAX_NUMERIC_SIZE);
+    if (buf_.available() < detail::MAX_NUMERIC_SIZE) {
+        output();
+    }
+}
+
+LogStream &LogStream::operator<<(int64_t val)
+{
+    preProcessWithNumericInput();
+    auto len = detail::convertDigitToString(buf_.curr(), val);
+    buf_.grow(len);
+    return self();
+}
+
+LogStream &LogStream::operator<<(uint64_t val)
+{
+    preProcessWithNumericInput();
+    auto len = detail::convertDigitToString(buf_.curr(), val);
+    buf_.grow(len);
+    return self();
+}
+
+LogStream &LogStream::operator<<(double val)
+{
+    preProcessWithNumericInput();
+    size_t len = snprintf(buf_.curr(), buf_.available(), "%.12g", val);
+    buf_.grow(len);
+    return self();
 }
 
 void LogStream::append(const char *data, size_t len)

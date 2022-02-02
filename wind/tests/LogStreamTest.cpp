@@ -33,5 +33,10 @@ int main()
     ss << s2;
 
     ss << Fmt("%.12g, %s", 15674.1545, "huighaskdhasuifghqwepfmwef[paiojhzndckihbfciuabvsaklnhbackuy") << "hhhhhh\n";
+
+    ss << 0 << ", " << -0 << ", " << 154757 << ", " << -3829732 << ", " << 786283232u << endl;
+
+    ss << 124545.6 << ", " << -2121.5f << endl;
+
     return 0;
 }

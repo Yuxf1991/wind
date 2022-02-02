@@ -30,6 +30,7 @@
 namespace wind {
 using OutputFunc = std::function<void(const char *buf, size_t len)>;
 using FlushFunc = std::function<void()>;
+class Logger;
 
 class Fmt {
 public:
@@ -57,22 +58,50 @@ public:
     ~LogStream() noexcept;
 
     LogStream &self() { return *this; }
+    LogStream &operator<<(int64_t val);
+    LogStream &operator<<(uint64_t val);
+    template <typename IntType>
+    LogStream &operator<<(IntType val)
+    {
+        static_assert(std::is_integral<IntType>::value, "input type is not an integral type!");
+        if (std::is_signed<IntType>::value) {
+            return self() << static_cast<int64_t>(val);
+        } else {
+            return self() << static_cast<uint64_t>(val);
+        }
+    }
+
+    LogStream &operator<<(double val);
+    LogStream &operator<<(float val) { return self() << static_cast<double>(val); }
+
+    LogStream &operator<<(LogStream &(*func)(LogStream &));
     LogStream &operator<<(const string &s);
     LogStream &operator<<(const char *s);
     LogStream &operator<<(const Fmt &fmt);
+    void append(const char *data, size_t len);
 
     static void setOutputFunc(OutputFunc func);
+    static void output(LogStream &stream);
     static void setFlushFunc(FlushFunc func);
+    static void flush(LogStream &stream);
 
 private:
-    void append(const char *data, size_t len);
+    friend class Logger;
     void output();
     void flush();
+    void preProcessWithNumericInput();
     DefaultFixedBuffer buf_;
     // FixedSizeBuffer<8> buf_; // use a small size of buffer to test LogStream::append()
 
     static OutputFunc outputFunc_;
     static FlushFunc flushFunc_;
 };
+
+inline LogStream &endl(LogStream &stream)
+{
+    stream.append("\n", 1);
+    LogStream::flush(stream);
+    return stream;
+}
 } // namespace wind
 #endif // WIND_LOGSTREAM_H
