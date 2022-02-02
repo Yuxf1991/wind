@@ -30,7 +30,6 @@
 namespace wind {
 using OutputFunc = std::function<void(const char *buf, size_t len)>;
 using FlushFunc = std::function<void()>;
-class Logger;
 
 class Fmt {
 public:
@@ -86,7 +85,6 @@ public:
     static void flush(LogStream &stream);
 
 private:
-    friend class Logger;
     void output();
     void flush();
     void preProcessWithNumericInput();
