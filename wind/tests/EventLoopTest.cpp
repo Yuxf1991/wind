@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#define LOG_TAG "EventLoopTest"
 #include "EventLoop.h"
 
 #include <netinet/in.h>
@@ -35,22 +36,20 @@ void echoFunc(int fd, TimeStamp receivedTime)
     char buf[1024] = {0};
     int len = TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)));
     if (len < 0) {
-        std::cout << receivedTime.toFormattedString() << " recv msg err from client " << fd << ": " << strerror(errno)
-                  << std::endl;
+        LOG_INFO << " recv msg err from client " << fd << ": " << strerror(errno);
     } else if (len == 0) {
-        std::cout << receivedTime.toFormattedString() << " client " << fd << " closed, remove this channel."
-                  << std::endl;
+        LOG_INFO << receivedTime.toFormattedString() << " client " << fd << " closed, remove this channel.";
         if (g_loop != nullptr) {
             g_loop->removeChannel(fd);
         }
     } else {
-        std::cout << receivedTime.toFormattedString() << " recv msg from client " << fd << ": " << buf << std::endl;
+        LOG_INFO << receivedTime.toFormattedString() << " recv msg from client " << fd << ": " << buf;
         int ret = TEMP_FAILURE_RETRY(write(fd, buf, len));
         if (ret < 0) {
-            std::cout << receivedTime.toFormattedString() << " send msg err from client " << fd << ": "
-                      << strerror(errno) << std::endl;
+            LOG_INFO << receivedTime.toFormattedString() << " send msg err from client " << fd << ": "
+                     << strerror(errno);
         } else {
-            std::cout << receivedTime.toFormattedString() << " send msg from client " << fd << ": " << buf << std::endl;
+            LOG_INFO << receivedTime.toFormattedString() << " send msg from client " << fd << ": " << buf;
         }
     }
 }
@@ -60,7 +59,7 @@ void acceptFunc(int fd, TimeStamp receivedTime)
     sockaddr_in clientSockAddr = {};
     socklen_t len;
     int clientFd = ::accept(fd, (sockaddr *)(&clientSockAddr), &len);
-    std::cout << receivedTime.toFormattedString() << " accept client: " << clientFd << std::endl;
+    LOG_INFO << receivedTime.toFormattedString() << " accept client: " << clientFd;
 
     auto channel = std::make_shared<EventChannel>(clientFd, g_loop.get());
     channel->setReadCallback([clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
@@ -68,6 +67,9 @@ void acceptFunc(int fd, TimeStamp receivedTime)
 
 int main()
 {
+    // testChannel may generate a core dump in EventChannel's constructor.
+    // auto testChannel = std::make_shared<EventChannel>(2, g_loop.get());
+
     g_loop = std::make_unique<EventLoop>();
 
     // init socket
@@ -78,7 +80,7 @@ int main()
     sockAddr.sin_port = htons(4567);
     int ret = TEMP_FAILURE_RETRY(::bind(fd, (sockaddr *)(&sockAddr), sizeof(sockAddr)));
     if (ret < 0) {
-        std::cout << "bind: " << fd << "err!" << std::endl;
+        LOG_INFO << "bind: " << fd << "err!";
         return -1;
     }
     listen(fd, 5);

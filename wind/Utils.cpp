@@ -20,37 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_UTILS_H
-#define WIND_UTILS_H
+#include "Utils.h"
 
-#include <assert.h>
-#include <inttypes.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/eventfd.h>
-
-#ifdef NDEBUG
-#define ASSERT(exp)
-#else
-#define ASSERT(exp) assert((exp))
-#endif
-
-#ifdef __cplusplus
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))
-#else
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), 1))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-#endif
+#ifdef LOG_TAG
+#undef LOG_TAG
+#define LOG_TAG "WindUtils"
+#endif // LOG_TAG
+#include "Log.h"
 
 namespace wind {
 namespace utils {
-inline void memZero(uint8_t *data, size_t len)
+int createEventFd()
 {
-    ::memset(data, 0, len);
-}
+    int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    LOG_FATAL_IF(eventFd < 0) << "Failed to create eventfd!";
 
-int createEventFd();
+    return eventFd;
+}
 } // namespace utils
 } // namespace wind
-#endif // WIND_UTILS_H

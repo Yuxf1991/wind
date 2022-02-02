@@ -59,18 +59,18 @@ inline LogLevel getLogLevelFromEnv()
     char *env = ::getenv("WIND_LOG_LEVEL");
     if (env == NULL) {
         return defaultLogLevel();
-    } else {
-        if (stringToLogLevelMap.count(env) == 0) {
-            int envVal = ::atoi(env);
-            if (envVal < static_cast<int>(LogLevel::TRACE) || envVal > static_cast<int>(LogLevel::ERROR)) {
-                return defaultLogLevel();
-            } else {
-                return static_cast<LogLevel>(envVal);
-            }
-        } else {
-            return stringToLogLevelMap[env];
-        }
     }
+
+    if (stringToLogLevelMap.count(env) == 0) {
+        int envVal = ::atoi(env);
+        if (envVal < static_cast<int>(LogLevel::TRACE) || envVal > static_cast<int>(LogLevel::ERROR)) {
+            return defaultLogLevel();
+        }
+
+        return static_cast<LogLevel>(envVal);
+    }
+
+    return stringToLogLevelMap[env];
 }
 } // namespace detail
 

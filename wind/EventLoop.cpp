@@ -25,6 +25,11 @@
 #include <vector>
 
 #include "CurrentThread.h"
+#ifdef LOG_TAG
+#undef LOG_TAG
+#define LOG_TAG "EventLoop"
+#endif // LOG_TAG
+#include "Log.h"
 #include "Utils.h"
 
 namespace wind {
@@ -49,7 +54,7 @@ void EventLoop::stop()
 void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)
 {
     if (channel == nullptr) {
-        // TODO: log
+        LOG_WARN << "EventLoop::" << __func__ << ": channel is null!";
         return;
     }
 
@@ -87,16 +92,14 @@ void EventLoop::run()
 void EventLoop::assertInLoopThread()
 {
     if (CurrentThread::tid() != tid_) {
-        // TODO: ERR LOG
-        abort();
+        LOG_SYS_FATAL << "assertInLoopThread failed!";
     }
 }
 
 void EventLoop::assertNotInLoopThread()
 {
     if (CurrentThread::tid() == tid_) {
-        // TODO: ERR LOG
-        abort();
+        LOG_SYS_FATAL << "assertNotInLoopThread failed!";
     }
 }
 
@@ -105,7 +108,7 @@ void EventLoop::wakeUp()
     uint64_t buf = 1;
     int len = TEMP_FAILURE_RETRY(::write(wakeUpChannel_->fd(), &buf, sizeof(buf)));
     if (len != sizeof(buf)) {
-        // TODO: ERR LOG
+        LOG_WARN << "should write " << sizeof(buf) << " bytes, but " << len << " wrote.";
     }
 }
 
@@ -114,7 +117,7 @@ void EventLoop::wakeUpCallback()
     uint64_t buf = 0;
     int len = TEMP_FAILURE_RETRY(::read(wakeUpChannel_->fd(), &buf, sizeof(buf)));
     if (len != sizeof(buf)) {
-        // TODO: ERR LOG
+        LOG_WARN << "should read " << sizeof(buf) << " bytes, but " << len << " read.";
     }
 }
 

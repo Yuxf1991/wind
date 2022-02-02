@@ -25,10 +25,7 @@
 
 #include <unistd.h>
 
-#include "NonCopyable.h"
-
-// TODO: use our own logging
-#include <iostream>
+#include "Log.h"
 
 namespace wind {
 inline constexpr bool INVALID_FD(int fd)
@@ -44,10 +41,7 @@ inline constexpr int INVALID_FD()
 struct DefaultFdCloser {
     void operator()(int fd)
     {
-#ifndef NDEBUG
-        // TODO: use our own logging
-        std::cout << "DefaultFdCloser::operator(int): closing... fd " << fd << std::endl;
-#endif
+        LOG_DEBUG << "DefaultFdCloser::operator(int): closing... fd " << fd;
         TEMP_FAILURE_RETRY(::close(fd));
     }
 };

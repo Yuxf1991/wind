@@ -29,6 +29,7 @@ set(WIND_SRC
     TimeStamp.cpp
     CurrentThread.h
     CurrentThread.cpp
+    Utils.cpp
     Buffer.cpp
     LogStream.cpp
     Log.cpp

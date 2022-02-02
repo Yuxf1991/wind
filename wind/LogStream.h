@@ -76,6 +76,7 @@ public:
     LogStream &operator<<(LogStream &(*func)(LogStream &));
     LogStream &operator<<(const string &s);
     LogStream &operator<<(const char *s);
+    LogStream &operator<<(char *s) { return self() << static_cast<const char *>(s); }
     LogStream &operator<<(const Fmt &fmt);
     void append(const char *data, size_t len);
 

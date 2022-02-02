@@ -23,13 +23,17 @@
 #include "EventChannel.h"
 
 #include "EventLoop.h"
+#ifdef LOG_TAG
+#undef LOG_TAG
+#define LOG_TAG "EventChannel"
+#endif // LOG_TAG
+#include "Log.h"
 #include "Utils.h"
 
 namespace wind {
 EventChannel::EventChannel(int fd, EventLoop *eventLoop) : fd_(fd), eventLoop_(eventLoop)
 {
-    // TODO: LOG_FATAL_IF(eventLoop_ == nullptr)
-    ASSERT(eventLoop_ != nullptr);
+    LOG_FATAL_IF(eventLoop_ == nullptr) << "EventLoop is null!";
 }
 
 EventChannel::~EventChannel() noexcept {}

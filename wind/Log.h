@@ -122,4 +122,7 @@ private:
     wind::Logger(__FILE__, __LINE__, wind::LogLevel::WARN, LOG_TAG, false).stream()
 #define LOG_ERROR wind::Logger(__FILE__, __LINE__, wind::LogLevel::ERROR, LOG_TAG, false).stream()
 #define LOG_SYS_FATAL wind::Logger(__FILE__, __LINE__, wind::LogLevel::ERROR, LOG_TAG, true).stream()
+#define LOG_FATAL_IF(expr)                                                                                             \
+    if ((expr))                                                                                                        \
+    wind::Logger(__FILE__, __LINE__, wind::LogLevel::ERROR, LOG_TAG, true).stream()
 #endif // WIND_LOG_H

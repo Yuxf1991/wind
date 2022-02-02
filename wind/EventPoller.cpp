@@ -23,6 +23,11 @@
 #include "EventPoller.h"
 
 #include "EventLoop.h"
+#ifdef LOG_TAG
+#undef LOG_TAG
+#define LOG_TAG "EventPoller"
+#endif // LOG_TAG
+#include "Log.h"
 #include "Utils.h"
 
 namespace wind {
@@ -31,8 +36,7 @@ size_t EventPoller::eventSize_ = 32;
 EventPoller::EventPoller(EventLoop *eventLoop) :
     eventLoop_(eventLoop), epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_)
 {
-    // TODO: LOG_FATAL_IF(eventLoop_ == nullptr)
-    ASSERT(eventLoop_ != nullptr);
+    LOG_FATAL_IF(eventLoop_ == nullptr) << "EventLoop is null!";
 }
 
 EventPoller::~EventPoller() noexcept {}
@@ -42,13 +46,13 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
     auto cnt = TEMP_FAILURE_RETRY(::epoll_wait(epollFd_.get(), activeEvents_.data(), eventSize_, timeOutMs));
     auto pollTime = TimeStamp::now();
     if (cnt <= 0) {
-        // TODO: err log
+        LOG_WARN << "epoll_wait returned negetive count events.";
     } else {
         for (int i = 0; i < cnt; ++i) {
             const auto &event = activeEvents_[i];
             int fd = event.data.fd;
             if (channels_.count(fd) == 0 && channels_.at(fd) == nullptr) {
-                // TODO: log
+                LOG_WARN << "epoll_wait returned a channel that is not in poller " << epollFd_.get() << ".";
                 continue;
             }
 
@@ -56,11 +60,11 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
             channel->setRecevicedEvents(event.events);
             activeChannels.emplace_back(channels_.at(fd));
         }
-    }
 
-    if (static_cast<size_t>(cnt) == eventSize_) {
-        eventSize_ *= 2;
-        activeEvents_.resize(eventSize_);
+        if (static_cast<size_t>(cnt) == eventSize_) {
+            eventSize_ *= 2;
+            activeEvents_.resize(eventSize_);
+        }
     }
 
     return pollTime;
@@ -92,7 +96,7 @@ void EventPoller::updateChannel(std::shared_ptr<EventChannel> channel)
     }
 
     if (ret != 0) {
-        // TODO: err log.
+        LOG_ERROR << "epoll_ctl(EPOLL_CTL_MOD) failed: " << strerror(errno) << ".";
     } else {
         channels_[channelFd] = std::move(channel);
     }
@@ -101,13 +105,13 @@ void EventPoller::updateChannel(std::shared_ptr<EventChannel> channel)
 void EventPoller::removeChannel(int fd)
 {
     if (channels_.count(fd) == 0) {
-        // TODO: log
+        LOG_WARN << "Can't find channel " << fd << " in poller " << epollFd_.get() << ".";
         return;
     }
 
     int ret = TEMP_FAILURE_RETRY(::epoll_ctl(epollFd_.get(), EPOLL_CTL_DEL, fd, nullptr));
     if (ret < 0) {
-        // TODO: err log
+        LOG_ERROR << "epoll_ctl(EPOLL_CTL_DEL) failed: " << strerror(errno) << ".";
     }
     channels_.erase(fd);
 }
