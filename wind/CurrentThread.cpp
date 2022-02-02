@@ -26,6 +26,9 @@
 
 namespace wind {
 namespace detail {
+static ProcessId pid = 0;
+static char pidString[16];
+
 ThreadId getThreadId()
 {
     return static_cast<ThreadId>(::syscall(SYS_gettid));
@@ -35,6 +38,9 @@ void mainThreadInit()
 {
     CurrentThread::cacheTid();
     CurrentThread::t_tls.name = "main";
+    pid = CurrentThread::pid();
+    int len = ::snprintf(pidString, sizeof(pidString), "%d", pid);
+    ASSERT(static_cast<size_t>(len) < sizeof(pidString));
 }
 
 struct MainThreadInitializer {
@@ -47,12 +53,39 @@ struct MainThreadInitializer {
 namespace CurrentThread {
 __thread TLS t_tls = {.tid = 0, .name = "unknown"};
 
+ThreadId tid()
+{
+    if (WIND_UNLIKELY(t_tls.tid == 0)) {
+        cacheTid();
+    }
+
+    return t_tls.tid;
+}
+
+ProcessId pid()
+{
+    return ::getpid();
+}
+
 void cacheTid()
 {
     if (t_tls.tid == 0) {
         t_tls.tid = detail::getThreadId();
     }
+
+    int len = ::snprintf(t_tls.tidString, sizeof(t_tls.tidString), "%d", t_tls.tid);
+    ASSERT(static_cast<size_t>(len) < sizeof(t_tls.tidString));
 }
 
+const char *tidString()
+{
+    (void)tid();
+    return t_tls.tidString;
+}
+
+const char *pidString()
+{
+    return detail::pidString;
+}
 } // namespace CurrentThread
 } // namespace wind

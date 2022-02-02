@@ -31,29 +31,27 @@ namespace CurrentThread {
 struct TLS {
     ThreadId tid;
     const char *name;
+    char tidString[16]; // current tid string
 };
 extern __thread TLS t_tls;
 
 void cacheTid();
 
-inline ThreadId tid()
-{
-    if (WIND_UNLIKELY(t_tls.tid == 0)) {
-        cacheTid();
-    }
-
-    return t_tls.tid;
-}
+ThreadId tid();
+ProcessId pid();
 
 inline bool isMainThread()
 {
-    return tid() == ::getpid();
+    return tid() == pid();
 }
 
 inline const char *name()
 {
     return t_tls.name;
 }
+
+const char *tidString();
+const char *pidString();
 } // namespace CurrentThread
 } // namespace wind
 #endif // WIND_CURRENTTHREAD_H

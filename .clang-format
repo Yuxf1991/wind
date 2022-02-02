@@ -6,7 +6,7 @@ Language: Cpp
 AccessModifierOffset: -4
 
 # 开括号(开圆括号、开尖括号、开方括号)后的对齐: Align, DontAlign, AlwaysBreak(总是在开括号后换行)
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: AlwaysBreak
 
 # 连续赋值时，对齐所有等号
 AlignConsecutiveAssignments: false
@@ -131,7 +131,7 @@ DerivePointerAlignment: false
 FixNamespaceComments: true
 
 # 缩进case标签
-IndentCaseLabels: false
+IndentCaseLabels: true
 
 IndentPPDirectives: None
 

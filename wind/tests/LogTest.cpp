@@ -20,18 +20,51 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <iostream>
+#include <thread>
+
+#define LOG_TAG "LogTest"
 #include "Log.h"
 
 using namespace wind;
 
+bool g_stop = false;
+
+void subThreadFunc()
+{
+    while (!g_stop) {
+        LOG_TRACE << "Hello this is a trace log";
+        LOG_DEBUG << "Hello this is a debug log";
+        LOG_INFO << "Hello this is an info log";
+        LOG_WARN << "Hello this is a warning log";
+        LOG_ERROR << "Hello this is an error log";
+        ::sleep(2);
+    }
+}
+
 int main()
 {
-    LOG_TRACE << "Hello this is a trace log";
-    LOG_DEBUG << "Hello this is a debug log";
-    LOG_INFO << "Hello this is an info log";
-    LOG_WARN << "Hello this is a warning log";
-    LOG_ERROR << "Hello this is an error log";
-    // LOG_SYS_FATAL << "Hello this is a sys fatal log";
+    std::thread t{subThreadFunc};
+
+    while (true) {
+        LOG_TRACE << "Hello this is a trace log";
+        LOG_DEBUG << "Hello this is a debug log";
+        LOG_INFO << "Hello this is an info log";
+        LOG_WARN << "Hello this is a warning log";
+        LOG_ERROR << "Hello this is an error log";
+        // LOG_SYS_FATAL << "Hello this is a sys fatal log";
+
+        string tmp;
+        std::getline(std::cin, tmp);
+        if (tmp.size() == 1 && std::toupper(tmp[0]) == 'Q') {
+            g_stop = true;
+            break;
+        }
+    }
+
+    if (t.joinable()) {
+        t.join();
+    }
 
     return 0;
 }

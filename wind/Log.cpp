@@ -39,21 +39,23 @@ inline LogLevel defaultLogLevel()
 
 inline string logLevelToString(LogLevel level)
 {
-    static std::unordered_map<LogLevel, string> logLevelToStringMap = {{LogLevel::TRACE, "TRACE"},
-                                                                       {LogLevel::INFO, "INFO"},
-                                                                       {LogLevel::DEBUG, "DEBUG"},
-                                                                       {LogLevel::WARN, "WARN"},
-                                                                       {LogLevel::ERROR, "ERROR"}};
+    static std::unordered_map<LogLevel, string> logLevelToStringMap = {
+        {LogLevel::TRACE, "TRACE"},
+        {LogLevel::INFO, "INFO"},
+        {LogLevel::DEBUG, "DEBUG"},
+        {LogLevel::WARN, "WARN"},
+        {LogLevel::ERROR, "ERROR"}};
     return logLevelToStringMap[level];
 }
 
 inline LogLevel getLogLevelFromEnv()
 {
-    static std::unordered_map<string, LogLevel> stringToLogLevelMap = {{"TRACE", LogLevel::TRACE},
-                                                                       {"INFO", LogLevel::INFO},
-                                                                       {"DEBUG", LogLevel::DEBUG},
-                                                                       {"WARN", LogLevel::WARN},
-                                                                       {"ERROR", LogLevel::ERROR}};
+    static std::unordered_map<string, LogLevel> stringToLogLevelMap = {
+        {"TRACE", LogLevel::TRACE},
+        {"INFO", LogLevel::INFO},
+        {"DEBUG", LogLevel::DEBUG},
+        {"WARN", LogLevel::WARN},
+        {"ERROR", LogLevel::ERROR}};
     char *env = ::getenv("WIND_LOG_LEVEL");
     if (env == NULL) {
         return defaultLogLevel();
@@ -82,11 +84,11 @@ LogLevel currentLogLevel()
 #endif // NDEBUG
 }
 
-Logger::Logger(LogFileName fileName, int line, LogLevel level, bool isFatal) :
-    fileName_(fileName), line_(line), level_(level), isFatal_(isFatal)
+Logger::Logger(LogFileName fileName, int line, LogLevel level, std::string tag, bool isFatal) :
+    fileName_(fileName), line_(line), level_(level), tag_(std::move(tag)), isFatal_(isFatal)
 {
-    stream_ << TimeStamp::now().toFormattedString() << " " << CurrentThread::tid() << " "
-            << detail::logLevelToString(level_) << ": ";
+    stream_ << TimeStamp::now().toFormattedString() << " " << CurrentThread::pidString() << " "
+            << CurrentThread::tidString() << " " << tag_ << " " << detail::logLevelToString(level_) << ": ";
 }
 
 Logger::~Logger() noexcept
