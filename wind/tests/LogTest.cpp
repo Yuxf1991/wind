@@ -44,6 +44,10 @@ void subThreadFunc()
 
 int main()
 {
+    uint64_t v1 = 2890283;
+    uint64_t v2 = 3232323;
+    int64_t vDiff = v1 - v2;
+    std::cout << vDiff << std::endl;
     std::thread t{subThreadFunc};
 
     while (true) {

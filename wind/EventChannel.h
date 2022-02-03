@@ -45,7 +45,7 @@ enum class EventType : uint32_t {
     EDGE_EVENT = EPOLLET,
 };
 
-class EventChannel : public std::enable_shared_from_this<EventChannel>, NonCopyable {
+class EventChannel : NonCopyable {
 public:
     EventChannel(int fd, EventLoop *eventLoop);
     virtual ~EventChannel() noexcept;

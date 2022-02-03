@@ -41,9 +41,7 @@ void subThreadFunc()
 
     while (!g_stop) {
         if (g_loop != nullptr) {
-            g_loop->runInLoop([]() {
-                LOG_INFO << "sub thread tick 2.";
-            });
+            g_loop->runInLoop([]() { LOG_INFO << "sub thread tick 2."; });
             sleep(2);
         }
     }
@@ -95,8 +93,10 @@ int main()
     std::thread t{&subThreadFunc};
 
     // tick every 2s, delayed 3s.
-    g_loop->runEvery([]() { LOG_INFO << "main thread tick."; },
-        2000 * MICRO_SECS_PER_MILLISECOND, 3000 * MICRO_SECS_PER_MILLISECOND);
+    g_loop->runEvery(
+        []() { LOG_INFO << "main thread tick."; },
+        2000 * MICRO_SECS_PER_MILLISECOND,
+        3000 * MICRO_SECS_PER_MILLISECOND);
 
     // run after 5s.
     g_loop->runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);

@@ -42,6 +42,7 @@ public:
 
     void runInLoop(Functor func);
 
+    void runAt(Functor func, TimeStamp dstTime);
     // delay in micro seconds, 0 means run immediately
     // interval in micro seconds, -1 means only run once.
     void runAfter(Functor func, TimeType delay);
@@ -69,6 +70,7 @@ private:
     ThreadId tid_ = -1; // indicates which thread is this loop in.
     std::unordered_map<int, std::shared_ptr<EventChannel>> holdChannels_;
 
+    std::atomic<bool> executingPendingFunctors_ = false;
     std::vector<Functor> pendingFunctors_;
 };
 } // namespace wind

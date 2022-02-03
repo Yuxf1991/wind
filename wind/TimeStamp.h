@@ -54,6 +54,41 @@ public:
 private:
     TimeType nanoSecondsSinceEpoch_;
 };
+
+inline bool operator==(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.get() == rhs.get();
+}
+
+inline bool operator<(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.get() < rhs.get();
+}
+
+inline bool operator<=(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.get() <= rhs.get();
+}
+
+inline bool operator>(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.get() > rhs.get();
+}
+
+inline bool operator>=(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.get() >= rhs.get();
+}
+
+inline bool operator!=(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.get() != rhs.get();
+}
+
+inline int64_t timeDiff(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.get() - rhs.get();
+}
 } // namespace wind
 
 #endif // WIND_TIMESTAMP_H

@@ -105,6 +105,7 @@ void EventLoop::execPendingFunctors()
 {
     assertInLoopThread();
 
+    executingPendingFunctors_ = true;
     std::vector<Functor> funcs;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -114,6 +115,7 @@ void EventLoop::execPendingFunctors()
     for (const auto &func : funcs) {
         func();
     }
+    executingPendingFunctors_ = false;
 }
 
 void EventLoop::queueToPendingFunctors(Functor func)
@@ -123,10 +125,8 @@ void EventLoop::queueToPendingFunctors(Functor func)
         pendingFunctors_.push_back(std::move(func));
     }
 
-    if (!isInLoopThread()) {
+    if (!isInLoopThread() || executingPendingFunctors_) {
         wakeUp();
-    } else {
-        execPendingFunctors();
     }
 }
 
@@ -136,6 +136,17 @@ void EventLoop::runInLoop(Functor func)
         func();
     } else {
         queueToPendingFunctors(func);
+    }
+}
+
+void EventLoop::runAt(Functor func, TimeStamp dstTime)
+{
+    auto now = TimeStamp::now();
+    auto diff = timeDiff(dstTime, now);
+    if (diff < 0) {
+        runInLoop(func);
+    } else {
+        runAfter(func, static_cast<TimeType>(diff));
     }
 }
 
@@ -170,7 +181,7 @@ void EventLoop::start()
     while (running_) {
         std::vector<std::shared_ptr<EventChannel>> activeChannels;
         TimeStamp pollTime = poller_->pollOnce(activeChannels, -1);
-        for (auto &channel : activeChannels) {
+        for (const auto &channel : activeChannels) {
             if (channel != nullptr) {
                 channel->handleEvent(pollTime);
             }
