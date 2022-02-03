@@ -61,8 +61,9 @@ void acceptFunc(int fd, TimeStamp receivedTime)
     int clientFd = ::accept(fd, (sockaddr *)(&clientSockAddr), &len);
     LOG_INFO << receivedTime.toFormattedString() << " accept client: " << clientFd;
 
-    auto channel = std::make_shared<EventChannel>(clientFd, g_loop.get());
-    channel->setReadCallback([clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
+    auto echoChannel = std::make_shared<EventChannel>(clientFd, g_loop.get());
+    echoChannel->setReadCallback([clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
+    g_loop->updateChannel(echoChannel);
 }
 
 int main()
@@ -93,6 +94,7 @@ int main()
 
     auto acceptChannel = std::make_shared<EventChannel>(fd, g_loop.get());
     acceptChannel->setReadCallback([fd](TimeStamp receivedTime) { acceptFunc(fd, receivedTime); });
+    g_loop->updateChannel(acceptChannel);
 
     g_loop->run();
 
