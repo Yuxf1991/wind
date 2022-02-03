@@ -60,12 +60,22 @@ EventLoop::EventLoop() :
     t_currLoop = this;
 }
 
-EventLoop::~EventLoop() noexcept {}
+EventLoop::~EventLoop() noexcept
+{
+    stop();
+
+    for (auto &[fd, channel] : holdChannels_) {
+        poller_->removeChannel(fd);
+    }
+    holdChannels_.clear();
+}
 
 void EventLoop::stop()
 {
-    running_ = false;
-    wakeUp();
+    if (!isInLoopThread()) {
+        running_ = false;
+        wakeUp();
+    }
 }
 
 void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)

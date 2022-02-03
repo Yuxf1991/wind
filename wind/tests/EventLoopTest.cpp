@@ -75,6 +75,9 @@ int main()
     // tick every 333 ms.
     g_loop->runEvery([]() { LOG_INFO << "tick."; }, 333 * MICRO_SECS_PER_MILLISECOND);
 
+    // run at 3s later
+    g_loop->runAt([]() { LOG_INFO << "hahahahaha."; }, 3000 * MICRO_SECS_PER_MILLISECOND);
+
     // init socket
     auto fd = ::socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in sockAddr = {};
