@@ -26,10 +26,28 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <thread>
 
 using namespace wind;
 
 std::unique_ptr<EventLoop> g_loop;
+bool g_stop = false;
+
+void subThreadFunc()
+{
+    if (g_loop != nullptr) {
+        g_loop->runEvery([]() { LOG_INFO << "sub thread tick 1."; }, 2000 * MICRO_SECS_PER_MILLISECOND);
+    }
+
+    while (!g_stop) {
+        if (g_loop != nullptr) {
+            g_loop->runInLoop([]() {
+                LOG_INFO << "sub thread tick 2.";
+            });
+            sleep(2);
+        }
+    }
+}
 
 void echoFunc(int fd, TimeStamp receivedTime)
 {
@@ -71,13 +89,17 @@ int main()
     // testChannel may generate a core dump in EventChannel's constructor.
     // auto testChannel = std::make_shared<EventChannel>(2, g_loop.get());
 
+    LOG_INFO << "EventLoopTest started.";
+
     g_loop = std::make_unique<EventLoop>();
+    std::thread t{&subThreadFunc};
 
-    // tick every 333 ms.
-    g_loop->runEvery([]() { LOG_INFO << "tick."; }, 333 * MICRO_SECS_PER_MILLISECOND);
+    // tick every 2s, delayed 3s.
+    g_loop->runEvery([]() { LOG_INFO << "main thread tick."; },
+        2000 * MICRO_SECS_PER_MILLISECOND, 3000 * MICRO_SECS_PER_MILLISECOND);
 
-    // run at 3s later
-    g_loop->runAt([]() { LOG_INFO << "hahahahaha."; }, 3000 * MICRO_SECS_PER_MILLISECOND);
+    // run after 5s.
+    g_loop->runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
 
     // init socket
     auto fd = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -96,7 +118,12 @@ int main()
     acceptChannel->setReadCallback([fd](TimeStamp receivedTime) { acceptFunc(fd, receivedTime); });
     g_loop->updateChannel(acceptChannel);
 
-    g_loop->run();
+    g_loop->start();
+
+    g_stop = true;
+    if (t.joinable()) {
+        t.join();
+    }
 
     return 0;
 }

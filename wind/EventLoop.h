@@ -24,23 +24,28 @@
 #define WIND_EVENT_LOOP_H
 
 #include <atomic>
+#include <mutex>
 
 #include "EventPoller.h"
 
 namespace wind {
+using Functor = std::function<void()>;
+
 class EventLoop : NonCopyable {
 public:
     EventLoop();
     ~EventLoop() noexcept;
-    void run();
+    void start();
     void stop();
     void updateChannel(const std::shared_ptr<EventChannel> &channel);
     void removeChannel(int channelFd);
 
+    void runInLoop(Functor func);
+
     // delay in micro seconds, 0 means run immediately
     // interval in micro seconds, -1 means only run once.
-    void runAt(EventCallback cb, TimeType delay = 0);
-    void runEvery(EventCallback cb, TimeType interval = 0, TimeType delay = 0);
+    void runAfter(Functor func, TimeType delay);
+    void runEvery(Functor func, TimeType interval, TimeType delay = 0);
 
     static EventLoop *eventLoopOfCurrThread();
 
@@ -51,6 +56,11 @@ private:
     bool isInLoopThread();
     void wakeUp();
     void wakeUpCallback();
+
+    void queueToPendingFunctors(Functor func);
+    void execPendingFunctors();
+
+    mutable std::mutex mutex_;
     std::atomic<bool> running_ = false;
 
     std::unique_ptr<EventPoller> poller_;
@@ -58,6 +68,8 @@ private:
 
     ThreadId tid_ = -1; // indicates which thread is this loop in.
     std::unordered_map<int, std::shared_ptr<EventChannel>> holdChannels_;
+
+    std::vector<Functor> pendingFunctors_;
 };
 } // namespace wind
 #endif // WIND_EVENT_LOOP_H

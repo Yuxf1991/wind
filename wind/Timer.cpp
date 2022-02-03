@@ -37,8 +37,8 @@ itimerspec generateTimerSpec(TimeType delay, TimeType interval)
 {
     itimerspec newValue;
     if (delay == 0) {
-        // use 1 nano second to make sure it can be triggerd.
-        newValue.it_value.tv_nsec = 1;
+        // set it_value to 1000 nanoseconds(1 us) to make sure it can be triggerd.
+        newValue.it_value.tv_nsec = 1000;
     } else {
         int seconds = delay / MICRO_SECS_PER_SECOND;
         newValue.it_value.tv_sec = seconds;
@@ -57,7 +57,8 @@ Timer::Timer(EventLoop *eventLoop, TimeType delay, TimeType interval) :
     EventChannel(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC), eventLoop), delay_(delay), interval_(interval)
 {
     itimerspec newValue = detail::generateTimerSpec(delay_, interval_);
-    timerfd_settime(fd_.get(), 0, &newValue, NULL);
+    int ret = TEMP_FAILURE_RETRY(::timerfd_settime(fd_.get(), 0, &newValue, NULL));
+    LOG_FATAL_IF(ret == -1) << "timerfd_settime failed: " << strerror(errno) << ".";
 }
 
 void Timer::handleEvent(TimeStamp receivedTime)

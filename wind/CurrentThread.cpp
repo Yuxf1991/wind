@@ -29,7 +29,7 @@ namespace detail {
 static ProcessId pid = 0;
 static char pidString[16];
 
-ThreadId getThreadId()
+inline ThreadId getThreadId()
 {
     return static_cast<ThreadId>(::syscall(SYS_gettid));
 }

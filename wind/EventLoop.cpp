@@ -34,11 +34,11 @@
 
 namespace wind {
 namespace detail {
-EventCallbackWithStamp toTimerCb(EventCallback cb, int timerFd)
+EventCallbackWithStamp toTimerCb(Functor func, int timerFd)
 {
-    auto newCb = [oldCb(std::move(cb)), timerFd](TimeStamp) {
+    auto newCb = [oldCb(std::move(func)), timerFd](TimeStamp) {
         uint64_t one;
-        int len = TEMP_FAILURE_RETRY(read(timerFd, &one, sizeof(one)));
+        int len = TEMP_FAILURE_RETRY(::read(timerFd, &one, sizeof(one)));
         if (len != sizeof(one)) {
             LOG_WARN << "Read from timerfd " << timerFd << " " << len << " bytes, should be " << sizeof(one)
                      << " bytes.";
@@ -93,10 +93,6 @@ void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)
 
     holdChannels_[channelFd] = channel;
     poller_->updateChannel(channel);
-
-    if (!isInLoopThread()) {
-        wakeUp();
-    }
 }
 
 void EventLoop::removeChannel(int channelFd)
@@ -105,21 +101,68 @@ void EventLoop::removeChannel(int channelFd)
     holdChannels_.erase(channelFd);
 }
 
-void EventLoop::runAt(EventCallback cb, TimeType delay)
+void EventLoop::execPendingFunctors()
 {
-    auto newTimer = std::make_shared<Timer>(this, delay);
-    newTimer->setReadCallback(detail::toTimerCb(cb, newTimer->fd()));
-    updateChannel(newTimer);
+    assertInLoopThread();
+
+    std::vector<Functor> funcs;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        funcs.swap(pendingFunctors_);
+    }
+
+    for (const auto &func : funcs) {
+        func();
+    }
 }
 
-void EventLoop::runEvery(EventCallback cb, TimeType interval, TimeType delay)
+void EventLoop::queueToPendingFunctors(Functor func)
 {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        pendingFunctors_.push_back(std::move(func));
+    }
+
+    if (!isInLoopThread()) {
+        wakeUp();
+    } else {
+        execPendingFunctors();
+    }
+}
+
+void EventLoop::runInLoop(Functor func)
+{
+    if (isInLoopThread()) {
+        func();
+    } else {
+        queueToPendingFunctors(func);
+    }
+}
+
+void EventLoop::runAfter(Functor func, TimeType delay)
+{
+    if (delay == 0) {
+        runInLoop(func);
+    } else {
+        auto newTimer = std::make_shared<Timer>(this, delay);
+        newTimer->setReadCallback(detail::toTimerCb(func, newTimer->fd()));
+        updateChannel(newTimer);
+    }
+}
+
+void EventLoop::runEvery(Functor func, TimeType interval, TimeType delay)
+{
+    if (delay == 0) {
+        runInLoop(func);
+        delay = interval;
+    }
+
     auto newTimer = std::make_shared<Timer>(this, delay, interval);
-    newTimer->setReadCallback(detail::toTimerCb(cb, newTimer->fd()));
+    newTimer->setReadCallback(detail::toTimerCb(func, newTimer->fd()));
     updateChannel(newTimer);
 }
 
-void EventLoop::run()
+void EventLoop::start()
 {
     assertInLoopThread();
 
@@ -132,6 +175,8 @@ void EventLoop::run()
                 channel->handleEvent(pollTime);
             }
         }
+
+        execPendingFunctors();
     }
 }
 
