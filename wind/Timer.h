@@ -23,12 +23,21 @@
 #ifndef WIND_TIMER_H
 #define WIND_TIMER_H
 
-#include "NonCopyable.h"
+#include "EventChannel.h"
 
 namespace wind {
-class Timer : NonCopyable {
+class Timer : public EventChannel {
 public:
+    // delay in micro seconds, 0 means run immediately
+    // interval in micro seconds, 0 means only run once.
+    Timer(EventLoop *eventLoop, TimeType delay = 0, TimeType interval = 0);
+    ~Timer() noexcept override = default;
+
+    void handleEvent(TimeStamp receivedTime) override;
+
 private:
+    TimeType delay_ = 0;
+    TimeType interval_ = -1;
 };
 } // namespace wind
 #endif // WIND_TIMER_H

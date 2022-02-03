@@ -60,7 +60,6 @@ void EventChannel::disableWriting()
 
 void EventChannel::update()
 {
-    uint32_t oldEventsToHandle = eventsToHandle_;
     if (readCallback_ == nullptr) {
         disableReading();
     } else {
@@ -72,35 +71,41 @@ void EventChannel::update()
     } else {
         enableWriting();
     }
-
-    if (oldEventsToHandle != eventsToHandle_) {
-        eventLoop_->updateChannel(shared_from_this());
-    }
 }
 
-void EventChannel::handleEvent(TimeStamp receivedTime) const
+void EventChannel::handleEvent(TimeStamp receivedTime)
 {
     eventLoop_->assertInLoopThread();
 
     if ((receivedEvents_ & EPOLLHUP) && !(receivedEvents_ & EPOLLIN)) {
+        LOG_DEBUG << "close event in channel " << fd_.get() << ".";
         if (closeCallback_ != nullptr) {
             closeCallback_();
+            LOG_DEBUG << "Remove channel fd " << fd_.get() << " from poller.";
+            eventLoop_->removeChannel(fd_.get());
+            return;
         }
     }
 
     if (receivedEvents_ & EPOLLERR) {
+        LOG_DEBUG << "error event in channel " << fd_.get() << ".";
         if (errorCallback_ != nullptr) {
             errorCallback_();
+            LOG_DEBUG << "Remove channel fd " << fd_.get() << " from poller.";
+            eventLoop_->removeChannel(fd_.get());
+            return;
         }
     }
 
     if (receivedEvents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
+        LOG_DEBUG << "read event in channel " << fd_.get() << ".";
         if (readCallback_ != nullptr) {
             readCallback_(receivedTime);
         }
     }
 
     if (receivedEvents_ & EPOLLOUT) {
+        LOG_DEBUG << "write event in channel " << fd_.get() << ".";
         if (writeCallback_ != nullptr) {
             writeCallback_();
         }

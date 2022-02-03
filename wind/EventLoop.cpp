@@ -25,21 +25,38 @@
 #include <vector>
 
 #include "CurrentThread.h"
+#include "Timer.h"
 #ifdef LOG_TAG
 #undef LOG_TAG
 #define LOG_TAG "EventLoop"
 #endif // LOG_TAG
 #include "Log.h"
-#include "Utils.h"
 
 namespace wind {
+namespace detail {
+EventCallbackWithStamp toTimerCb(EventCallback cb, int timerFd)
+{
+    auto newCb = [oldCb(std::move(cb)), timerFd](TimeStamp) {
+        uint64_t one;
+        int len = TEMP_FAILURE_RETRY(read(timerFd, &one, sizeof(one)));
+        if (len != sizeof(one)) {
+            LOG_WARN << "Read from timerfd " << timerFd << " " << len << " bytes, should be " << sizeof(one)
+                     << " bytes.";
+        }
+        oldCb();
+    };
+    return newCb;
+}
+} // namespace detail
+
 __thread EventLoop *t_currLoop = nullptr; // current thread's event_loop
 
 EventLoop::EventLoop() :
     poller_(std::make_unique<EventPoller>(this)),
-    wakeUpChannel_(std::make_shared<EventChannel>(utils::createEventFd(), this))
+    wakeUpChannel_(std::make_shared<EventChannel>(utils::createEventFd(), this)), tid_(CurrentThread::tid())
 {
     wakeUpChannel_->setReadCallback([this](TimeStamp) { wakeUpCallback(); });
+    updateChannel(wakeUpChannel_);
     t_currLoop = this;
 }
 
@@ -66,6 +83,10 @@ void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)
 
     holdChannels_[channelFd] = channel;
     poller_->updateChannel(channel);
+
+    if (!isInLoopThread()) {
+        wakeUp();
+    }
 }
 
 void EventLoop::removeChannel(int channelFd)
@@ -74,10 +95,25 @@ void EventLoop::removeChannel(int channelFd)
     holdChannels_.erase(channelFd);
 }
 
+void EventLoop::runAt(EventCallback cb, TimeType delay)
+{
+    auto newTimer = std::make_shared<Timer>(this, delay);
+    newTimer->setReadCallback(detail::toTimerCb(cb, newTimer->fd()));
+    updateChannel(newTimer);
+}
+
+void EventLoop::runEvery(EventCallback cb, TimeType interval, TimeType delay)
+{
+    auto newTimer = std::make_shared<Timer>(this, delay, interval);
+    newTimer->setReadCallback(detail::toTimerCb(cb, newTimer->fd()));
+    updateChannel(newTimer);
+}
+
 void EventLoop::run()
 {
+    assertInLoopThread();
+
     running_ = true;
-    tid_ = CurrentThread::tid();
     while (running_) {
         std::vector<std::shared_ptr<EventChannel>> activeChannels;
         TimeStamp pollTime = poller_->pollOnce(activeChannels, -1);
@@ -89,18 +125,19 @@ void EventLoop::run()
     }
 }
 
+bool EventLoop::isInLoopThread()
+{
+    return CurrentThread::tid() == tid_;
+}
+
 void EventLoop::assertInLoopThread()
 {
-    if (CurrentThread::tid() != tid_) {
-        LOG_SYS_FATAL << "assertInLoopThread failed!";
-    }
+    LOG_FATAL_IF(!isInLoopThread()) << "assertInLoopThread failed!";
 }
 
 void EventLoop::assertNotInLoopThread()
 {
-    if (CurrentThread::tid() == tid_) {
-        LOG_SYS_FATAL << "assertNotInLoopThread failed!";
-    }
+    LOG_FATAL_IF(isInLoopThread()) << "assertInLoopThread failed!";
 }
 
 void EventLoop::wakeUp()

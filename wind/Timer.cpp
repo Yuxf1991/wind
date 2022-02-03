@@ -19,3 +19,53 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+#include "Timer.h"
+
+#include <sys/timerfd.h>
+
+#include "EventLoop.h"
+#ifdef LOG_TAG
+#undef LOG_TAG
+#define LOG_TAG "WindTimer"
+#endif // LOG_TAG
+#include "Log.h"
+
+namespace wind {
+namespace detail {
+itimerspec generateTimerSpec(TimeType delay, TimeType interval)
+{
+    itimerspec newValue;
+    if (delay == 0) {
+        // use 1 nano second to make sure it can be triggerd.
+        newValue.it_value.tv_nsec = 1;
+    } else {
+        int seconds = delay / MICRO_SECS_PER_SECOND;
+        newValue.it_value.tv_sec = seconds;
+        newValue.it_value.tv_nsec = (delay % MICRO_SECS_PER_SECOND) * NANO_SECS_PER_MICROSECOND;
+    }
+
+    int intervalSecs = interval / MICRO_SECS_PER_SECOND;
+    newValue.it_interval.tv_sec = intervalSecs;
+    newValue.it_interval.tv_nsec = (interval % MICRO_SECS_PER_SECOND) * NANO_SECS_PER_MICROSECOND;
+
+    return newValue;
+}
+} // namespace detail
+
+Timer::Timer(EventLoop *eventLoop, TimeType delay, TimeType interval) :
+    EventChannel(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC), eventLoop), delay_(delay), interval_(interval)
+{
+    itimerspec newValue = detail::generateTimerSpec(delay_, interval_);
+    timerfd_settime(fd_.get(), 0, &newValue, NULL);
+}
+
+void Timer::handleEvent(TimeStamp receivedTime)
+{
+    EventChannel::handleEvent(receivedTime);
+    if (interval_ == 0) {
+        LOG_DEBUG << "Remove timer fd " << fd_.get() << " from poller.";
+        eventLoop_->removeChannel(fd_.get());
+    }
+}
+} // namespace wind

@@ -76,7 +76,7 @@ public:
         update();
     }
 
-    virtual void handleEvent(TimeStamp receivedTime) const;
+    virtual void handleEvent(TimeStamp receivedTime);
 
 protected:
     friend class EventPoller;

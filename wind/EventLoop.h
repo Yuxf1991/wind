@@ -26,7 +26,6 @@
 #include <atomic>
 
 #include "EventPoller.h"
-#include "Types.h"
 
 namespace wind {
 class EventLoop : NonCopyable {
@@ -38,11 +37,18 @@ public:
     void updateChannel(const std::shared_ptr<EventChannel> &channel);
     void removeChannel(int channelFd);
 
+    // delay in micro seconds, 0 means run immediately
+    // interval in micro seconds, -1 means only run once.
+    void runAt(EventCallback cb, TimeType delay = 0);
+    void runEvery(EventCallback cb, TimeType interval = 0, TimeType delay = 0);
+
     static EventLoop *eventLoopOfCurrThread();
+
     void assertInLoopThread();
     void assertNotInLoopThread();
 
 private:
+    bool isInLoopThread();
     void wakeUp();
     void wakeUpCallback();
     std::atomic<bool> running_ = false;

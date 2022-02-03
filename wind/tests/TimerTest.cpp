@@ -18,8 +18,8 @@ int main()
     int epollFd = epoll_create1(EPOLL_CLOEXEC);
     int timerFd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC);
     itimerspec newValue;
-    newValue.it_value.tv_sec = 1;
-    newValue.it_value.tv_nsec = 0;
+    newValue.it_value.tv_sec = 0;
+    newValue.it_value.tv_nsec = 1;
     newValue.it_interval.tv_sec = 5;
     newValue.it_interval.tv_nsec = 0;
     timerfd_settime(timerFd, 0, &newValue, NULL);

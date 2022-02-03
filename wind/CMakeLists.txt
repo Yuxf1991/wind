@@ -34,6 +34,7 @@ set(WIND_SRC
     LogStream.cpp
     Log.cpp
     EventChannel.cpp
+    Timer.cpp
     EventPoller.cpp
     EventLoop.cpp)
 
