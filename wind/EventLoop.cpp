@@ -63,15 +63,19 @@ EventLoop::EventLoop() :
 EventLoop::~EventLoop() noexcept
 {
     stop();
-
-    for (auto &[fd, channel] : holdChannels_) {
-        poller_->removeChannel(fd);
-    }
-    holdChannels_.clear();
 }
 
 void EventLoop::stop()
 {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        for (auto &[fd, channel] : holdChannels_) {
+            poller_->removeChannel(fd);
+        }
+        holdChannels_.clear();
+    }
+
     if (!isInLoopThread()) {
         running_ = false;
         wakeUp();
@@ -85,20 +89,29 @@ void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)
         return;
     }
 
+    std::lock_guard<std::mutex> lock(mutex_);
+
     int channelFd = channel->fd();
     if (holdChannels_.count(channelFd) > 0 && holdChannels_[channelFd] != channel) {
         // remove old channel first
-        removeChannel(channelFd);
+        removeChannelLocked(channelFd);
     }
 
     holdChannels_[channelFd] = channel;
     poller_->updateChannel(channel);
 }
 
-void EventLoop::removeChannel(int channelFd)
+void EventLoop::removeChannelLocked(int channelFd)
 {
     poller_->removeChannel(channelFd);
     holdChannels_.erase(channelFd);
+}
+
+void EventLoop::removeChannel(int channelFd)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    removeChannelLocked(channelFd);
 }
 
 void EventLoop::execPendingFunctors()
@@ -203,7 +216,7 @@ void EventLoop::assertInLoopThread()
 
 void EventLoop::assertNotInLoopThread()
 {
-    LOG_FATAL_IF(isInLoopThread()) << "assertInLoopThread failed!";
+    LOG_FATAL_IF(isInLoopThread()) << "assertNotInLoopThread failed!";
 }
 
 void EventLoop::wakeUp()

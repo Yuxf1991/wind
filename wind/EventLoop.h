@@ -44,7 +44,7 @@ public:
 
     void runAt(Functor func, TimeStamp dstTime);
     // delay in micro seconds, 0 means run immediately
-    // interval in micro seconds, -1 means only run once.
+    // interval in micro seconds, 0 means only run once.
     void runAfter(Functor func, TimeType delay);
     void runEvery(Functor func, TimeType interval, TimeType delay = 0);
 
@@ -60,6 +60,8 @@ private:
 
     void queueToPendingFunctors(Functor func);
     void execPendingFunctors();
+
+    void removeChannelLocked(int channelFd);
 
     mutable std::mutex mutex_;
     std::atomic<bool> running_ = false;

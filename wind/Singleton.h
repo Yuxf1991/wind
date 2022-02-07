@@ -48,4 +48,4 @@ private:                                                                        
     friend class Singleton<T>;
 } // namespace wind
 
-#endif
+#endif // WIND_SINGLETON_H
