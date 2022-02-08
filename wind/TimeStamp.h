@@ -41,8 +41,8 @@ public:
     TimeStamp() noexcept = default;
     ~TimeStamp() noexcept = default;
 
-    constexpr explicit TimeStamp(TimeType nanoSecondsSinceEpoch) noexcept :
-        nanoSecondsSinceEpoch_(nanoSecondsSinceEpoch)
+    constexpr explicit TimeStamp(TimeType nanoSecondsSinceEpoch) noexcept
+        : nanoSecondsSinceEpoch_(nanoSecondsSinceEpoch)
     {}
 
     static TimeStamp now() noexcept;

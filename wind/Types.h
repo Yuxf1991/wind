@@ -31,8 +31,8 @@ namespace wind {
 using TimeType = std::uint64_t;
 using ThreadId = pid_t;
 using ProcessId = pid_t;
-using std::string;
 using std::size_t;
+using std::string;
 
 template <typename EnumType>
 inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)

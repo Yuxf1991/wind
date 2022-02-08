@@ -25,8 +25,6 @@
 
 #include "NonCopyable.h"
 
-#include <memory>
-
 namespace wind {
 template <typename T>
 class Singleton : NonCopyable {

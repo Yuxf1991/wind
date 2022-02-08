@@ -84,8 +84,8 @@ LogLevel currentLogLevel()
 #endif // NDEBUG
 }
 
-Logger::Logger(LogFileName fileName, int line, LogLevel level, std::string tag, bool isFatal) :
-    fileName_(fileName), line_(line), level_(level), tag_(std::move(tag)), isFatal_(isFatal)
+Logger::Logger(LogFileName fileName, int line, LogLevel level, std::string tag, bool isFatal)
+    : fileName_(fileName), line_(line), level_(level), tag_(std::move(tag)), isFatal_(isFatal)
 {
     stream_ << TimeStamp::now().toFormattedString() << " " << CurrentThread::pidString() << " "
             << CurrentThread::tidString() << " " << tag_ << " " << detail::logLevelToString(level_) << ": ";

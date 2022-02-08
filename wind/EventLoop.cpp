@@ -51,9 +51,9 @@ EventCallbackWithStamp toTimerCb(Functor func, int timerFd)
 
 __thread EventLoop *t_currLoop = nullptr; // current thread's event_loop
 
-EventLoop::EventLoop() :
-    poller_(std::make_unique<EventPoller>(this)),
-    wakeUpChannel_(std::make_shared<EventChannel>(utils::createEventFd(), this)), tid_(CurrentThread::tid())
+EventLoop::EventLoop()
+    : poller_(std::make_unique<EventPoller>(this)),
+      wakeUpChannel_(std::make_shared<EventChannel>(utils::createEventFd(), this)), tid_(CurrentThread::tid())
 {
     wakeUpChannel_->setReadCallback([this](TimeStamp) { wakeUpCallback(); });
     updateChannel(wakeUpChannel_);

@@ -53,8 +53,8 @@ itimerspec generateTimerSpec(TimeType delay, TimeType interval)
 }
 } // namespace detail
 
-Timer::Timer(EventLoop *eventLoop, TimeType delay, TimeType interval) :
-    EventChannel(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC), eventLoop), delay_(delay), interval_(interval)
+Timer::Timer(EventLoop *eventLoop, TimeType delay, TimeType interval)
+    : EventChannel(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC), eventLoop), delay_(delay), interval_(interval)
 {
     itimerspec newValue = detail::generateTimerSpec(delay_, interval_);
     int ret = TEMP_FAILURE_RETRY(::timerfd_settime(fd_.get(), 0, &newValue, NULL));

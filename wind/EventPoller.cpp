@@ -33,8 +33,8 @@
 namespace wind {
 size_t EventPoller::eventSize_ = 32;
 
-EventPoller::EventPoller(EventLoop *eventLoop) :
-    eventLoop_(eventLoop), epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_)
+EventPoller::EventPoller(EventLoop *eventLoop)
+    : eventLoop_(eventLoop), epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_)
 {
     LOG_FATAL_IF(eventLoop_ == nullptr) << "EventLoop is null!";
 }

@@ -20,13 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "TestHelper.h"
 #include "Singleton.h"
+#include "TestHelper.h"
 #include "TimeStamp.h"
 
-#include <thread>
 #include <vector>
-#include <gtest/gtest.h>
 
 namespace wind {
 class BookStore : public Singleton<BookStore> {
