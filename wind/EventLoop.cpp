@@ -63,20 +63,18 @@ EventLoop::EventLoop()
 EventLoop::~EventLoop() noexcept
 {
     stop();
+
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    for (auto &[fd, channel] : holdChannels_) {
+        poller_->removeChannel(fd);
+    }
+    holdChannels_.clear();
 }
 
 void EventLoop::stop()
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-
-        for (auto &[fd, channel] : holdChannels_) {
-            poller_->removeChannel(fd);
-        }
-        holdChannels_.clear();
-    }
-
-    if (!isInLoopThread()) {
+    if (!isInLoopThread() && running_) {
         running_ = false;
         wakeUp();
     }

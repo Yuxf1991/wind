@@ -20,32 +20,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TESTS_TESTHELPER_H
-#define WIND_TESTS_TESTHELPER_H
+#ifndef WIND_EVENT_LOOP_THREAD_H
+#define WIND_EVENT_LOOP_THREAD_H
 
-#include <iostream>
+#include <condition_variable>
 
-#include <gtest/gtest.h>
+#include "EventLoop.h"
+#include "Thread.h"
 
 namespace wind {
-struct TestScopeHelper {
-    TestScopeHelper(std::string testSuitName, std::string testName) : testSuitName_(testSuitName), testName_(testName)
-    {
-        std::cout << "-------------------------------------------------------" << std::endl;
-        std::cout << "Test " << testSuitName_ << "::" << testName_ << " begin:" << std::endl;
-    }
+class EventLoopThread : NonCopyable {
+public:
+    EventLoopThread();
+    explicit EventLoopThread(string name);
+    ~EventLoopThread() noexcept;
 
-    ~TestScopeHelper()
-    {
-        std::cout << "Test " << testSuitName_ << "::" << testName_ << " end." << std::endl;
-        std::cout << "-------------------------------------------------------" << std::endl;
-    }
+    EventLoop *start();
 
-    std::string testSuitName_;
-    std::string testName_;
+private:
+    void threadLoop();
+
+    mutable std::mutex mutex_;
+    std::condition_variable cond_;
+    string name_;
+    Thread thread_;
+    EventLoop *loop_ = nullptr;
 };
 } // namespace wind
 
-#define WIND_TEST_BEGIN(testSuitName, testName) wind::TestScopeHelper __testScopeHelper(#testSuitName, #testName);
-
-#endif // WIND_TESTS_TESTHELPER_H
+#endif // WIND_EVENT_LOOP_THREAD_H

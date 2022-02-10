@@ -20,32 +20,59 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TESTS_TESTHELPER_H
-#define WIND_TESTS_TESTHELPER_H
+#include "EventLoopThread.h"
 
-#include <iostream>
-
-#include <gtest/gtest.h>
+#ifdef LOG_TAG
+#undef LOG_TAG
+#define LOG_TAG "EventLoopThread"
+#endif // LOG_TAG
+#include "Log.h"
 
 namespace wind {
-struct TestScopeHelper {
-    TestScopeHelper(std::string testSuitName, std::string testName) : testSuitName_(testSuitName), testName_(testName)
+EventLoopThread::EventLoopThread() : EventLoopThread("WindEventLoopThread") {}
+
+EventLoopThread::EventLoopThread(string name) : name_(std::move(name)) {}
+
+EventLoopThread::~EventLoopThread() noexcept
+{
     {
-        std::cout << "-------------------------------------------------------" << std::endl;
-        std::cout << "Test " << testSuitName_ << "::" << testName_ << " begin:" << std::endl;
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (loop_ != nullptr) {
+            loop_->stop();
+        }
     }
 
-    ~TestScopeHelper()
-    {
-        std::cout << "Test " << testSuitName_ << "::" << testName_ << " end." << std::endl;
-        std::cout << "-------------------------------------------------------" << std::endl;
+    if (thread_.joinable()) {
+        thread_.join();
     }
 
-    std::string testSuitName_;
-    std::string testName_;
-};
+    LOG_DEBUG << name_ << " Stopped.";
+}
+
+EventLoop *EventLoopThread::start()
+{
+    thread_ = make_thread(name_, [this]() { threadLoop(); });
+
+    std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this]() -> bool { return loop_ != nullptr; });
+    return loop_;
+}
+
+void EventLoopThread::threadLoop()
+{
+    EventLoop loop;
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        loop_ = &loop;
+        cond_.notify_one();
+    }
+
+    loop.start();
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        loop_ = nullptr;
+    }
+}
 } // namespace wind
-
-#define WIND_TEST_BEGIN(testSuitName, testName) wind::TestScopeHelper __testScopeHelper(#testSuitName, #testName);
-
-#endif // WIND_TESTS_TESTHELPER_H
