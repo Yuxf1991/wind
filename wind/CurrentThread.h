@@ -28,6 +28,7 @@
 
 namespace wind {
 namespace CurrentThread {
+// Thread Local Storage
 struct TLS {
     ThreadId tid;
     const char *name;
@@ -37,7 +38,15 @@ extern __thread TLS t_tls;
 
 void cacheTid();
 
-ThreadId tid();
+inline ThreadId tid()
+{
+    if (WIND_UNLIKELY(t_tls.tid == 0)) {
+        cacheTid();
+    }
+
+    return t_tls.tid;
+}
+
 ProcessId pid();
 
 inline bool isMainThread()

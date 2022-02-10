@@ -51,14 +51,14 @@ EventLoopThread::~EventLoopThread() noexcept
 
 EventLoop *EventLoopThread::start()
 {
-    thread_ = make_thread(name_, [this]() { threadLoop(); });
+    thread_ = make_thread(name_, [this]() { loopThreadFunc(); });
 
     std::unique_lock<std::mutex> lock(mutex_);
     cond_.wait(lock, [this]() -> bool { return loop_ != nullptr; });
     return loop_;
 }
 
-void EventLoopThread::threadLoop()
+void EventLoopThread::loopThreadFunc()
 {
     EventLoop loop;
 

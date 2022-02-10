@@ -53,15 +53,6 @@ struct MainThreadInitializer {
 namespace CurrentThread {
 __thread TLS t_tls = {.tid = 0, .name = "unknown"};
 
-ThreadId tid()
-{
-    if (WIND_UNLIKELY(t_tls.tid == 0)) {
-        cacheTid();
-    }
-
-    return t_tls.tid;
-}
-
 ProcessId pid()
 {
     return ::getpid();

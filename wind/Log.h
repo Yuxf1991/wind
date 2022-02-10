@@ -56,21 +56,21 @@ enum class LogLevel {
 // https://stackoverflow.com/questions/205064/is-there-a-way-to-change-the-environment-variables-of-another-process-in-unix
 LogLevel currentLogLevel();
 
-class LogFileName {
+class SourceFileName {
 public:
     // not explicit cause we use its implicit constructor.
-    LogFileName(const char *s)
+    SourceFileName(const char *s)
     {
         size_t len = ::strlen(s);
         append(s, len);
     }
     // not explicit, too.
     template <size_t len>
-    LogFileName(const char (&s)[len])
+    SourceFileName(const char (&s)[len])
     {
         append(s, len);
     }
-    ~LogFileName() noexcept = default;
+    ~SourceFileName() noexcept = default;
 
     const char *data() const { return buf_; }
 
@@ -94,13 +94,13 @@ private:
 
 class Logger : NonCopyable {
 public:
-    Logger(LogFileName fileName, int line, LogLevel level, std::string tag, bool isFatal);
+    Logger(SourceFileName fileName, int line, LogLevel level, std::string tag, bool isFatal);
     ~Logger() noexcept;
     LogStream &stream() { return stream_; }
 
 private:
     LogStream stream_;
-    LogFileName fileName_;
+    SourceFileName fileName_;
     int line_;
     LogLevel level_;
     std::string tag_;

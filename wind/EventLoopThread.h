@@ -38,7 +38,7 @@ public:
     EventLoop *start();
 
 private:
-    void threadLoop();
+    void loopThreadFunc();
 
     mutable std::mutex mutex_;
     std::condition_variable cond_;
