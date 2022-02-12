@@ -28,13 +28,14 @@
 #include <mutex>
 #include <queue>
 
-#include "NonCopyable.h"
 #include "Thread.h"
+#include "TimeStamp.h"
 
 namespace wind {
-using Task = std::function<void()>;
-
 class ThreadPool : NonCopyable {
+    using Task = std::function<void()>;
+    static constexpr size_t DEFAULT_TASK_QUEUE_CAPACITY = 16;
+
 public:
     ThreadPool();
     ThreadPool(string name);
@@ -43,12 +44,11 @@ public:
     bool isRunning() const { return running_.load(std::memory_order_acquire); }
 
     void setThreadNum(size_t threadNum);
-    // Set max tasks this threadPool can hold.
-    void setTaskCapacity(size_t taskCapacity);
+    void setTaskQueueCapacity(size_t capacity);
 
-    size_t getQueueSize() const { return tasks_.size(); }
-    bool isFull() const { return taskCapacity_ == getQueueSize(); }
-    bool isEmpty() const { return tasks_.empty(); }
+    bool empty() const { return taskSize() == 0; }
+
+    size_t taskSize() const;
 
     // Start all the threads in the thread pool.
     void start();
@@ -60,29 +60,86 @@ public:
     // and can not be called after calling ThreadPool::stop(),
     void runTask(Task task);
 
+    // dump all workers' infomation.
+    void dump(std::string &out) const;
+
 private:
     void assertIsRunning() const;
     void assertIsNotRunning() const;
 
-    void postTaskLocked(Task &&task);
-    Task fetchTaskLocked();
-
-    Task fetchTask();
-    void threadMain();
-
     string name_;
-
-    mutable std::mutex mutex_;
-    std::condition_variable notEmptyCond_;
-    std::condition_variable notFullCond_;
-
     std::atomic<bool> running_ = false;
 
-    std::vector<Thread> threads_;
-    std::queue<Task> tasks_;
+    size_t getNextWorker() const;
 
-    static constexpr size_t DEFAULT_TASK_CAPACITY = 10;
-    size_t taskCapacity_ = DEFAULT_TASK_CAPACITY;
+    mutable std::mutex mutex_;
+
+    class TaskWorker : NonCopyable {
+    public:
+        explicit TaskWorker(string name);
+        ~TaskWorker() noexcept;
+
+        string name() const { return name_; }
+
+        // Can shrink and expand capacity.
+        void setTaskCapacity(size_t capacity);
+        size_t getQueueSize() const
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            return getQueueSizeLocked();
+        }
+        size_t getQueueCapacity() const
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            return getQueueCapacityLocked();
+        }
+        bool isEmpty() const
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            return isEmptyLocked();
+        }
+        bool isFull() const
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            return isFullLocked();
+        }
+
+        ThreadId start();
+        void postTask(Task task);
+
+        TimeStamp readyTime() const { return readyTime_; }
+
+    private:
+        void stop();
+        Task fetchTask();
+        void threadMain();
+
+        bool isFullLocked() const { return getQueueSizeLocked() >= getQueueCapacityLocked(); }
+        bool isEmptyLocked() const { return tasks_.empty(); }
+        size_t getQueueSizeLocked() const { return tasks_.size(); }
+        size_t getQueueCapacityLocked() const { return taskQueueCapacity_; }
+
+        string name_;
+
+        mutable std::mutex mutex_;
+        std::condition_variable initCond_;
+        std::condition_variable notFullCond_;
+        std::condition_variable notEmptyCond_;
+
+        std::atomic<bool> running_;
+        ThreadId tid_ = 0;
+        Thread thread_;
+
+        std::queue<Task> tasks_;
+        size_t taskQueueCapacity_ = ThreadPool::DEFAULT_TASK_QUEUE_CAPACITY;
+
+        TimeStamp readyTime_;
+    };
+    std::vector<std::unique_ptr<TaskWorker>> workers_;
+    size_t lastWorker_ = 0;
+
+    size_t threadNum_ = 0;
+    size_t taskQueueCapacity_ = DEFAULT_TASK_QUEUE_CAPACITY;
 };
 } // namespace wind
 #endif // WIND_THREAD_POOL_H
