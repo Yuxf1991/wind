@@ -25,8 +25,8 @@
 
 #include "LogStream.h"
 
-// if you want to define your custom log tag
-// plese define it before including Log.h, here a sample:
+// If you want to define your custom log tag,
+// plese define it before including Log.h, here is a sample:
 // -------------------------------------------
 //      #define LOG_TAG "MyLogTag"
 //      #include "Log.h"
@@ -96,14 +96,14 @@ private:
 
 class Logger : NonCopyable {
 public:
-    Logger(SourceFileName fileName, int line, LogLevel level, std::string tag, bool isFatal);
+    Logger(SourceFileName fileName, int line, LogLevel level, std::string tag = LOG_TAG, bool isFatal = false);
     ~Logger() noexcept;
     LogStream &stream() { return stream_; }
 
 private:
     LogStream stream_;
-    SourceFileName fileName_;
-    int line_;
+    [[maybe_unused]] SourceFileName fileName_;
+    [[maybe_unused]] int line_;
     LogLevel level_;
     std::string tag_;
     bool isFatal_;
@@ -112,17 +112,17 @@ private:
 
 #define LOG_TRACE                                                                                                      \
     if (wind::currentLogLevel() <= wind::LogLevel::TRACE)                                                              \
-    wind::Logger(__FILE__, __LINE__, wind::LogLevel::TRACE, LOG_TAG, false).stream()
+    wind::Logger(__FILE__, __LINE__, wind::LogLevel::TRACE, LOG_TAG).stream()
 #define LOG_DEBUG                                                                                                      \
     if (wind::currentLogLevel() <= wind::LogLevel::DEBUG)                                                              \
-    wind::Logger(__FILE__, __LINE__, wind::LogLevel::DEBUG, LOG_TAG, false).stream()
+    wind::Logger(__FILE__, __LINE__, wind::LogLevel::DEBUG, LOG_TAG).stream()
 #define LOG_INFO                                                                                                       \
     if (wind::currentLogLevel() <= wind::LogLevel::INFO)                                                               \
-    wind::Logger(__FILE__, __LINE__, wind::LogLevel::INFO, LOG_TAG, false).stream()
+    wind::Logger(__FILE__, __LINE__, wind::LogLevel::INFO, LOG_TAG).stream()
 #define LOG_WARN                                                                                                       \
     if (wind::currentLogLevel() <= wind::LogLevel::WARN)                                                               \
-    wind::Logger(__FILE__, __LINE__, wind::LogLevel::WARN, LOG_TAG, false).stream()
-#define LOG_ERROR wind::Logger(__FILE__, __LINE__, wind::LogLevel::ERROR, LOG_TAG, false).stream()
+    wind::Logger(__FILE__, __LINE__, wind::LogLevel::WARN, LOG_TAG).stream()
+#define LOG_ERROR wind::Logger(__FILE__, __LINE__, wind::LogLevel::ERROR, LOG_TAG).stream()
 #define LOG_SYS_FATAL wind::Logger(__FILE__, __LINE__, wind::LogLevel::ERROR, LOG_TAG, true).stream()
 #define LOG_FATAL_IF(expr)                                                                                             \
     if ((expr))                                                                                                        \

@@ -29,6 +29,8 @@
 #include <string.h>
 #include <sys/eventfd.h>
 
+#define ENABLE_EXCEPTION 1
+
 #ifdef NDEBUG
 #define ASSERT(exp)
 #else

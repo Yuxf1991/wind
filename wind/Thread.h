@@ -42,16 +42,21 @@ inline Thread make_thread(const string &name, Func &&func, Args &&... args)
                 CurrentThread::t_tls.name = "wind_thread";
             }
 
+#ifdef ENABLE_EXCEPTION
             try {
                 std::apply([&](auto &&... args) { func(args...); }, std::move(args));
                 CurrentThread::t_tls.name = "finished";
             } catch (const std::exception &e) {
-                LOG_ERROR << "Thread " << CurrentThread::name() << " failed: " << e.what() << ".";
                 CurrentThread::t_tls.name = "crashed";
+                LOG_ERROR << "Thread " << CurrentThread::name() << " failed: " << e.what() << ".";
             } catch (...) {
                 CurrentThread::t_tls.name = "crashed";
                 throw; // rethrow
             }
+#else
+            std::apply([&](auto &&... args) { func(args...); }, std::move(args));
+            CurrentThread::t_tls.name = "finished";
+#endif // ENABLE_EXCEPTION
         };
 
     return Thread{std::move(hookedFunc)};
