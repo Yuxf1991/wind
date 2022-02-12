@@ -50,11 +50,11 @@ public:
 
     static EventLoop *eventLoopOfCurrThread();
 
-    void assertInLoopThread();
-    void assertNotInLoopThread();
+    void assertInLoopThread() const;
+    void assertNotInLoopThread() const;
 
 private:
-    bool isInLoopThread();
+    bool isInLoopThread() const;
     void wakeUp();
     void wakeUpCallback();
 

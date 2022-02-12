@@ -202,17 +202,17 @@ void EventLoop::start()
     }
 }
 
-bool EventLoop::isInLoopThread()
+bool EventLoop::isInLoopThread() const
 {
     return CurrentThread::tid() == tid_;
 }
 
-void EventLoop::assertInLoopThread()
+void EventLoop::assertInLoopThread() const
 {
     LOG_FATAL_IF(!isInLoopThread()) << "assertInLoopThread failed!";
 }
 
-void EventLoop::assertNotInLoopThread()
+void EventLoop::assertNotInLoopThread() const
 {
     LOG_FATAL_IF(isInLoopThread()) << "assertNotInLoopThread failed!";
 }
