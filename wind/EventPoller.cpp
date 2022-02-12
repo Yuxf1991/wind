@@ -58,7 +58,7 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
 
             const auto &channel = channels_.at(fd);
             channel->setRecevicedEvents(event.events);
-            activeChannels.emplace_back(channels_.at(fd));
+            activeChannels.emplace_back(channel);
         }
 
         if (static_cast<size_t>(cnt) == eventSize_) {

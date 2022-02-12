@@ -54,7 +54,7 @@ public:
     void reset() { curr_ = data_; }
     void clear()
     {
-        memZero(data_, sizeof(data_));
+        utils::memZero(data_, sizeof(data_));
         reset();
     }
 

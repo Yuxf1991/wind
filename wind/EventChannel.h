@@ -32,7 +32,7 @@
 
 namespace wind {
 using EventCallback = std::function<void()>;
-using EventCallbackWithStamp = std::function<void(TimeStamp)>;
+using EventCallbackWithTimeStamp = std::function<void(TimeStamp)>;
 
 class EventPoller;
 class EventLoop;
@@ -52,7 +52,7 @@ public:
 
     int fd() const { return fd_.get(); }
 
-    void setReadCallback(EventCallbackWithStamp cb)
+    void setReadCallback(EventCallbackWithTimeStamp cb)
     {
         readCallback_ = std::move(cb);
         update();
@@ -95,7 +95,7 @@ protected:
     uint32_t eventsToHandle_ = enum_cast(EventType::NONE);
     uint32_t receivedEvents_ = enum_cast(EventType::NONE);
 
-    EventCallbackWithStamp readCallback_;
+    EventCallbackWithTimeStamp readCallback_;
     EventCallback writeCallback_;
     EventCallback errorCallback_;
     EventCallback closeCallback_;

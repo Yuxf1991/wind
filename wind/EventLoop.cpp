@@ -34,7 +34,7 @@
 
 namespace wind {
 namespace detail {
-EventCallbackWithStamp toTimerCb(Functor func, int timerFd)
+EventCallbackWithTimeStamp toTimerCb(Functor func, int timerFd)
 {
     auto newCb = [oldCb(std::move(func)), timerFd](TimeStamp) {
         uint64_t one;

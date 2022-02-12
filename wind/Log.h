@@ -74,7 +74,7 @@ public:
 
     const char *data() const { return buf_; }
 
-    size_t length() const { return ::strlen(buf_); }
+    size_t length() const { return len_; }
 
 private:
     void append(const char *data, size_t len)
@@ -87,9 +87,11 @@ private:
         size_t bytesToWrite = len - (p - data);
         ASSERT(sizeof(buf_) > bytesToWrite);
         ::memcpy(buf_, p, bytesToWrite);
+        len_ = bytesToWrite;
     }
 
     char buf_[256] = {0};
+    size_t len_ = 0;
 };
 
 class Logger : NonCopyable {
