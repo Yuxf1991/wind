@@ -70,14 +70,14 @@ void ThreadPoolTest3()
 void Task1()
 {
     ::utils::writeDebugInfo("task1 start.");
-    sleep(10);
+    sleep(1);
     ::utils::writeDebugInfo("task1 end.");
 }
 
 void Task2()
 {
     ::utils::writeDebugInfo("task2 start.");
-    sleep(5);
+    sleep(2);
     ::utils::writeDebugInfo("task2 end.");
 }
 

@@ -70,13 +70,15 @@ private:
     string name_;
     std::atomic<bool> running_ = false;
 
-    size_t getNextWorker() const;
+    void addEmptyWorkerLocked(ThreadId workerId);
+    void addEmptyWorker(ThreadId workerId);
+    ThreadId getNextWorker();
 
     mutable std::mutex mutex_;
 
     class TaskWorker : NonCopyable {
     public:
-        explicit TaskWorker(string name);
+        TaskWorker(string name, ThreadPool &pool);
         ~TaskWorker() noexcept;
 
         string name() const { return name_; }
@@ -120,6 +122,7 @@ private:
         size_t getQueueCapacityLocked() const { return taskQueueCapacity_; }
 
         string name_;
+        ThreadPool &pool_;
 
         mutable std::mutex mutex_;
         std::condition_variable initCond_;
@@ -135,8 +138,9 @@ private:
 
         TimeStamp readyTime_;
     };
-    std::vector<std::unique_ptr<TaskWorker>> workers_;
-    size_t lastWorker_ = 0;
+    friend class TaskWorker;
+    std::unordered_map<ThreadId, std::unique_ptr<TaskWorker>> workers_;
+    std::queue<ThreadId> emptyWorkers_;
 
     size_t threadNum_ = 0;
     size_t taskQueueCapacity_ = DEFAULT_TASK_QUEUE_CAPACITY;

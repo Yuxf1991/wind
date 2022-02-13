@@ -22,8 +22,6 @@
 
 #include "ThreadPool.h"
 
-#include <numeric>
-
 #ifdef LOG_TAG
 #undef LOG_TAG
 #define LOG_TAG "WindThreadPool"
@@ -31,7 +29,9 @@
 #include "Log.h"
 
 namespace wind {
-ThreadPool::TaskWorker::TaskWorker(std::string name) : name_(std::move(name)), readyTime_(TimeStamp::now()) {}
+ThreadPool::TaskWorker::TaskWorker(std::string name, ThreadPool &pool)
+    : name_(std::move(name)), pool_(pool), readyTime_(TimeStamp::now())
+{}
 
 ThreadPool::TaskWorker::~TaskWorker() noexcept
 {
@@ -148,6 +148,10 @@ void ThreadPool::TaskWorker::threadMain()
             task();
 #endif // ENABLE_EXCEPTION
         }
+
+        if (isEmpty()) {
+            pool_.addEmptyWorker(tid_);
+        }
     }
 
     LOG_INFO << "Thread " << name_ << " stopped.";
@@ -191,7 +195,7 @@ void ThreadPool::setTaskQueueCapacity(size_t capacity)
     std::lock_guard<std::mutex> lock(mutex_);
     taskQueueCapacity_ = capacity;
 
-    for (auto &worker : workers_) {
+    for (auto &[_, worker] : workers_) {
         worker->setTaskCapacity(taskQueueCapacity_);
     }
 }
@@ -206,30 +210,48 @@ void ThreadPool::assertIsNotRunning() const
     LOG_FATAL_IF(isRunning()) << "ThreadPool(name: " << name_ << ") is already started!";
 }
 
-// inner interface: guarantee all the workers are valid.
-size_t ThreadPool::getNextWorker() const
+void ThreadPool::addEmptyWorker(ThreadId workerId)
 {
-    auto selectedIdx = lastWorker_;
-    auto now = TimeStamp::now();
+    std::lock_guard<std::mutex> lock(mutex_);
+    addEmptyWorkerLocked(workerId);
+}
+
+void ThreadPool::addEmptyWorkerLocked(ThreadId workerId)
+{
+    emptyWorkers_.push(workerId);
+}
+
+// inner interface: guarantee all the workers are valid.
+ThreadId ThreadPool::getNextWorker()
+{
+    ThreadId selectedWorker = 0;
+    if (!emptyWorkers_.empty()) {
+        selectedWorker = emptyWorkers_.front();
+        emptyWorkers_.pop();
+        return selectedWorker;
+    }
 
     int maxScore = 0;
-    for (decltype(workers_.size()) i = 0; i != workers_.size(); ++i) {
-        const auto &worker = workers_[i];
-        auto readyTime = worker->readyTime();
+    for (const auto &[id, worker] : workers_) {
         double workerLoad = worker->getQueueSize() * 1.0 / worker->getQueueCapacity();
-        if (workerLoad < 0.25 && readyTime < now) {
-            selectedIdx = i;
+        if (workerLoad < 0.25) {
+            selectedWorker = id;
             break;
-        } else {
-            int score = static_cast<int>((1.0 - workerLoad) * 1000) + (readyTime < now ? 5 : -5);
-            if (score > maxScore) {
-                maxScore = score;
-                selectedIdx = i;
-            }
+        }
+
+        int score = static_cast<int>((1.0 - workerLoad) * 1000 + 1);
+        if (score > maxScore) {
+            maxScore = score;
+            selectedWorker = id;
         }
     }
 
-    return selectedIdx;
+    if (selectedWorker == 0) {
+        LOG_ERROR << "ThreadPool::" << __func__ << " failed, use the first worker instead.";
+        selectedWorker = workers_.begin()->first;
+    }
+
+    return selectedWorker;
 }
 
 void ThreadPool::runTask(Task task)
@@ -242,14 +264,8 @@ void ThreadPool::runTask(Task task)
                  << "), run the task in current thread immediately.";
         task();
     } else {
-        auto workerIdx = getNextWorker();
-        if (workerIdx >= workers_.size()) {
-            LOG_ERROR << "ThreadPool::" << __func__ << ": get worker failed, use the first worker instead.";
-            workerIdx = 0;
-        }
-
-        lastWorker_ = workerIdx;
-        workers_[workerIdx]->postTask(std::move(task));
+        auto workerId = getNextWorker();
+        workers_.at(workerId)->postTask(std::move(task));
     }
 }
 
@@ -262,32 +278,32 @@ void ThreadPool::start()
 
     running_ = true;
 
-    workers_.reserve(threadNum_);
     for (size_t i = 0; i != threadNum_; ++i) {
-        auto worker = std::make_unique<TaskWorker>(name_ + "_" + std::to_string(i));
+        auto worker = std::make_unique<TaskWorker>(name_ + "_" + std::to_string(i), *this);
         worker->setTaskCapacity(taskQueueCapacity_);
         auto tid = worker->start();
         LOG_FATAL_IF(tid <= 0) << "Failed to start a worker in ThreadPool(name: " << name_ << ")!";
 
         std::lock_guard<std::mutex> lock(mutex_);
-        workers_.push_back(std::move(worker));
+        workers_[tid] = std::move(worker);
+        addEmptyWorkerLocked(tid);
     }
 }
 
 size_t ThreadPool::taskSize() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto sum = [](size_t num, const std::unique_ptr<TaskWorker> &worker) -> size_t {
-        return num + worker->getQueueSize();
-    };
     size_t taskNum = 0;
-    return std::accumulate(workers_.cbegin(), workers_.cend(), taskNum, sum);
+    for (const auto &[_, worker] : workers_) {
+        taskNum += worker->getQueueSize();
+    }
+    return taskNum;
 }
 
 void ThreadPool::dump(std::string &out) const
 {
     out += "    name        | queue size | queue capacity |   load(%)  |    ready time  \n";
-    for (const auto &worker : workers_) {
+    for (const auto &[_, worker] : workers_) {
         auto queueSize = worker->getQueueSize();
         auto queueCapacity = worker->getQueueCapacity();
         double load = queueSize * 1.0 / queueCapacity * 100.0;
