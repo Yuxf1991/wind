@@ -34,7 +34,7 @@ void writeDebugInfo(const std::string &info)
 {
     static std::mutex mutex;
     std::lock_guard lock(mutex);
-    LOG_INFO << "\n" << info;
+    LOG_INFO << info;
 }
 } // namespace utils
 
@@ -98,8 +98,9 @@ void ThreadPoolTest4()
         threadPool.runTask([]() { Task1(); });
         threadPool.runTask([]() { Task2(); });
         threadPool.runTask([]() { Task3(); });
-        ::utils::writeDebugInfo("Put 3 tasks to the thread pool.");
+        ::utils::writeDebugInfo("Put 3 tasks into the ThreadPool(name: " + threadPool.name() + ").");
         std::string dumpInfo;
+        dumpInfo += "\n";
         threadPool.dump(dumpInfo);
         ::utils::writeDebugInfo(dumpInfo);
     }
@@ -109,6 +110,7 @@ void ThreadPoolTest4()
             break;
         }
         std::string dumpInfo;
+        dumpInfo += "\n";
         threadPool.dump(dumpInfo);
         ::utils::writeDebugInfo(dumpInfo);
         sleep(5);

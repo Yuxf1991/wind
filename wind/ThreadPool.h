@@ -41,6 +41,8 @@ public:
     ThreadPool(string name);
     ~ThreadPool() noexcept;
 
+    string name() const { return name_; }
+
     bool isRunning() const { return running_.load(std::memory_order_acquire); }
 
     void setThreadNum(size_t threadNum);

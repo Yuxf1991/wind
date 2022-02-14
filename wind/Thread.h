@@ -32,32 +32,33 @@ namespace wind {
 using Thread = std::thread;
 
 template <typename Func, typename... Args>
-inline Thread make_thread(const string &name, Func &&func, Args &&... args)
+inline Thread make_thread(string name, Func &&func, Args &&... args)
 {
-    auto hookedFunc =
-        [name, func(std::forward<Func &&>(func)), args(std::make_tuple(std::forward<Args &&>(args)...))]() mutable {
-            if (!name.empty()) {
-                CurrentThread::t_tls.name = name.c_str();
-            } else {
-                CurrentThread::t_tls.name = "wind_thread";
-            }
+    auto hookedFunc = [name(std::move(name)),
+                       func(std::forward<Func &&>(func)),
+                       args(std::make_tuple(std::forward<Args &&>(args)...))]() mutable {
+        if (!name.empty()) {
+            CurrentThread::t_tls.name = name.c_str();
+        } else {
+            CurrentThread::t_tls.name = "wind_thread";
+        }
 
 #ifdef ENABLE_EXCEPTION
-            try {
-                std::apply([&](auto &&... args) { func(args...); }, std::move(args));
-                CurrentThread::t_tls.name = "finished";
-            } catch (const std::exception &e) {
-                CurrentThread::t_tls.name = "crashed";
-                LOG_ERROR << "Thread " << CurrentThread::name() << " failed: " << e.what() << ".";
-            } catch (...) {
-                CurrentThread::t_tls.name = "crashed";
-                throw; // rethrow
-            }
-#else
+        try {
             std::apply([&](auto &&... args) { func(args...); }, std::move(args));
             CurrentThread::t_tls.name = "finished";
+        } catch (const std::exception &e) {
+            CurrentThread::t_tls.name = "crashed";
+            LOG_ERROR << "Thread " << CurrentThread::name() << " failed: " << e.what() << ".";
+        } catch (...) {
+            CurrentThread::t_tls.name = "crashed";
+            throw; // rethrow
+        }
+#else
+        std::apply([&](auto &&... args) { func(args...); }, std::move(args));
+        CurrentThread::t_tls.name = "finished";
 #endif // ENABLE_EXCEPTION
-        };
+    };
 
     return Thread{std::move(hookedFunc)};
 }
