@@ -231,23 +231,19 @@ ThreadId ThreadPool::getNextWorker()
         return selectedWorker;
     }
 
-    int maxScore = 0;
+    double minLoad = 100.0;
     for (const auto &[id, worker] : workers_) {
-        double workerLoad = worker->getQueueSize() * 1.0 / worker->getQueueCapacity();
-        if (workerLoad < 0.25) {
-            selectedWorker = id;
-            break;
-        }
-
-        int score = static_cast<int>((1.0 - workerLoad) * 1000 + 1);
-        if (score > maxScore) {
-            maxScore = score;
+        double workerLoad = worker->getQueueSize() * 1.0 / worker->getQueueCapacity() * 100.0;
+        if (workerLoad < minLoad) {
+            minLoad = workerLoad;
             selectedWorker = id;
         }
     }
 
+    // Maybe all the workers' load are 100%
+    // TODO: select most hungry worker.
     if (selectedWorker == 0) {
-        LOG_ERROR << "ThreadPool::" << __func__ << " failed, use the first worker instead.";
+        LOG_ERROR << "ThreadPool::" << __func__ << ": all the workers' load are 100%, use the first worker by default.";
         selectedWorker = workers_.begin()->first;
     }
 
