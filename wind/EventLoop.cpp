@@ -72,7 +72,7 @@ EventLoop::~EventLoop() noexcept
     holdChannels_.clear();
 }
 
-void EventLoop::stop()
+void EventLoop::stop() noexcept
 {
     if (!isInLoopThread() && running_) {
         running_ = false;

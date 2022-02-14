@@ -114,7 +114,7 @@ private:
         TimeStamp readyTime() const { return readyTime_; }
 
     private:
-        void stop();
+        void stop() noexcept;
         Task fetchTask();
         void threadMain();
 

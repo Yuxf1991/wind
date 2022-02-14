@@ -38,7 +38,7 @@ ThreadPool::TaskWorker::~TaskWorker() noexcept
     stop();
 }
 
-void ThreadPool::TaskWorker::stop()
+void ThreadPool::TaskWorker::stop() noexcept
 {
     if (!running_) {
         return;

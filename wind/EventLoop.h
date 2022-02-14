@@ -36,7 +36,7 @@ public:
     EventLoop();
     ~EventLoop() noexcept;
     void start();
-    void stop();
+    void stop() noexcept;
     void updateChannel(const std::shared_ptr<EventChannel> &channel);
     void removeChannel(int channelFd);
 
