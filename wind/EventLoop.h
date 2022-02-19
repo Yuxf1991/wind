@@ -61,8 +61,6 @@ private:
     void queueToPendingFunctors(Functor func);
     void execPendingFunctors();
 
-    void removeChannelLocked(int channelFd);
-
     mutable std::mutex mutex_;
     std::atomic<bool> running_ = false;
 
@@ -70,7 +68,6 @@ private:
     std::shared_ptr<EventChannel> wakeUpChannel_;
 
     ThreadId tid_ = -1; // indicates which thread is this loop in.
-    std::unordered_map<int, std::shared_ptr<EventChannel>> holdChannels_;
 
     std::atomic<bool> executingPendingFunctors_ = false;
     std::vector<Functor> pendingFunctors_;

@@ -63,13 +63,6 @@ EventLoop::EventLoop()
 EventLoop::~EventLoop() noexcept
 {
     stop();
-
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    for (auto &[fd, channel] : holdChannels_) {
-        poller_->removeChannel(fd);
-    }
-    holdChannels_.clear();
 }
 
 void EventLoop::stop() noexcept
@@ -87,29 +80,26 @@ void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)
         return;
     }
 
-    std::lock_guard<std::mutex> lock(mutex_);
+    auto func = [this, channel]() { poller_->updateChannel(channel); };
 
-    int channelFd = channel->fd();
-    if (holdChannels_.count(channelFd) > 0 && holdChannels_[channelFd] != channel) {
-        // remove old channel first
-        removeChannelLocked(channelFd);
+    // ensure update channels in loop thread.
+    if (isInLoopThread()) {
+        func();
+    } else {
+        queueToPendingFunctors(std::move(func));
     }
-
-    holdChannels_[channelFd] = channel;
-    poller_->updateChannel(channel);
-}
-
-void EventLoop::removeChannelLocked(int channelFd)
-{
-    poller_->removeChannel(channelFd);
-    holdChannels_.erase(channelFd);
 }
 
 void EventLoop::removeChannel(int channelFd)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    auto func = [this, channelFd]() { poller_->removeChannel(channelFd); };
 
-    removeChannelLocked(channelFd);
+    // ensure update channels in loop thread.
+    if (isInLoopThread()) {
+        func();
+    } else {
+        queueToPendingFunctors(std::move(func));
+    }
 }
 
 void EventLoop::execPendingFunctors()
