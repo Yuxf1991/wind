@@ -38,7 +38,8 @@ set(WIND_SRC
     EventPoller.cpp
     EventLoop.cpp
     EventLoopThread.cpp
-    ThreadPool.cpp)
+    ThreadPool.cpp
+    SockAddrInet.cpp)
 
 add_library(wind ${WIND_SRC})
 target_link_libraries(wind pthread)

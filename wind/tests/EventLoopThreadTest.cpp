@@ -23,9 +23,9 @@
 #define LOG_TAG "EventLoopThreadTest"
 #include "EventLoopThread.h"
 
+#include "SockAddrInet.h"
+
 #include <iostream>
-#include <netinet/in.h>
-#include <string.h>
 #include <sys/socket.h>
 
 using namespace wind;
@@ -57,10 +57,19 @@ void echoFunc(int fd, TimeStamp receivedTime)
 
 void acceptFunc(int fd, TimeStamp receivedTime)
 {
-    sockaddr_in clientSockAddr = {};
+    SockAddrInet clientAddr;
     socklen_t len;
-    int clientFd = ::accept(fd, (sockaddr *)(&clientSockAddr), &len);
-    LOG_INFO << receivedTime.toFormattedString() << " accept client: " << clientFd;
+    int clientFd = ::accept(fd, clientAddr.data(), &len);
+    if (clientFd < 0) {
+        return;
+    }
+
+    if (getpeername(clientFd, clientAddr.data(), &len) != 0) {
+        return;
+    }
+
+    LOG_INFO << receivedTime.toFormattedString() << " accept client: fd(" << clientFd << "), addr("
+             << clientAddr.toString() << ").";
 
     auto echoChannel = std::make_shared<EventChannel>(clientFd, g_loop);
     echoChannel->setReadCallback([clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
@@ -87,11 +96,8 @@ int main()
 
     // init socket
     auto fd = ::socket(AF_INET, SOCK_STREAM, 0);
-    sockaddr_in sockAddr = {};
-    sockAddr.sin_family = AF_INET;
-    sockAddr.sin_addr.s_addr = INADDR_ANY;
-    sockAddr.sin_port = htons(4567);
-    int ret = TEMP_FAILURE_RETRY(::bind(fd, (sockaddr *)(&sockAddr), sizeof(sockAddr)));
+    SockAddrInet secvAddr(INADDR_ANY, 4567);
+    int ret = TEMP_FAILURE_RETRY(::bind(fd, secvAddr.get(), secvAddr.len()));
     if (ret < 0) {
         LOG_INFO << "bind: " << fd << "err!";
         return -1;
