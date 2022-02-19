@@ -45,8 +45,8 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
 {
     auto cnt = TEMP_FAILURE_RETRY(::epoll_wait(epollFd_.get(), activeEvents_.data(), eventSize_, timeOutMs));
     auto pollTime = TimeStamp::now();
-    if (cnt <= 0) {
-        LOG_WARN << "epoll_wait returned negetive count events.";
+    if (cnt < 0) {
+        LOG_WARN << "epoll_wait error: " << strerror(errno) << ".";
     } else {
         for (int i = 0; i < cnt; ++i) {
             const auto &event = activeEvents_[i];
