@@ -58,13 +58,9 @@ void echoFunc(int fd, TimeStamp receivedTime)
 void acceptFunc(int fd, TimeStamp receivedTime)
 {
     SockAddrInet clientAddr;
-    socklen_t len;
+    socklen_t len = clientAddr.len();
     int clientFd = ::accept(fd, clientAddr.data(), &len);
     if (clientFd < 0) {
-        return;
-    }
-
-    if (getpeername(clientFd, clientAddr.data(), &len) != 0) {
         return;
     }
 
@@ -99,7 +95,7 @@ int main()
     SockAddrInet secvAddr(INADDR_ANY, 4567);
     int ret = TEMP_FAILURE_RETRY(::bind(fd, secvAddr.get(), secvAddr.len()));
     if (ret < 0) {
-        LOG_INFO << "bind: " << fd << "err!";
+        LOG_INFO << "bind: " << fd << " err:" << strerror(errno) << "!";
         return -1;
     }
     listen(fd, 5);
