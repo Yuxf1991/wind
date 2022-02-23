@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "EventChannel.h"
+#include "UniqueFd.h"
 
 namespace wind {
 class EventLoop;
@@ -41,6 +42,9 @@ public:
     void removeChannel(int fd);
 
 private:
+    void assertInLoopThread();
+
+    void epollCtl(const std::shared_ptr<EventChannel> &channel, int operation);
     EventLoop *eventLoop_;
     UniqueFd epollFd_;
     static size_t eventSize_;

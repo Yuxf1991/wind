@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_SOCKETADDR_H
-#define WIND_SOCKETADDR_H
+#ifndef WIND_SOCKET_ADDR_INET_H
+#define WIND_SOCKET_ADDR_INET_H
 
 #include "Types.h"
 
@@ -48,4 +48,4 @@ private:
     sockaddr_in addr_;
 };
 } // namespace wind
-#endif // WIND_SOCKETADDR_H
+#endif // WIND_SOCKET_ADDR_INET_H

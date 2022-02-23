@@ -23,107 +23,103 @@
 #define LOG_TAG "EventLoopTest"
 #include "EventLoop.h"
 
-#include <netinet/in.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <thread>
+#include "Socket.h"
 
 using namespace wind;
 
-std::unique_ptr<EventLoop> g_loop;
-bool g_stop = false;
+class Connection {
+public:
+    Connection(int sockfd, EventLoop *loop)
+        : sock_(sockfd), loop_(loop), channel_(std::make_shared<EventChannel>(sockfd, loop_))
+    {}
+    ~Connection() noexcept { channel_->disableAll(); }
 
-void subThreadFunc()
-{
-    if (g_loop != nullptr) {
-        g_loop->runEvery([]() { LOG_INFO << "sub thread tick 1."; }, 2000 * MICRO_SECS_PER_MILLISECOND);
+    std::shared_ptr<EventChannel> getChannel() const { return channel_; }
+
+private:
+    Socket sock_;
+    EventLoop *loop_;
+    std::shared_ptr<EventChannel> channel_;
+};
+
+class EchoServer {
+public:
+    EchoServer() : servSock_(Socket::createNonBlockSocket(AF_INET, SOCK_STREAM, 0)), loop_() {}
+
+    ~EchoServer() noexcept { acceptChannel_->disableAll(); }
+
+    void run(uint16_t port)
+    {
+        // tick every 5s, delayed 1s.
+        loop_.runEvery(
+            []() { LOG_INFO << "main tick."; }, 5000 * MICRO_SECS_PER_MILLISECOND, 1000 * MICRO_SECS_PER_MILLISECOND);
+
+        // run after 5s.
+        loop_.runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
+
+        // init socket
+        SockAddrInet secvAddr(INADDR_ANY, port);
+        servSock_.bind(secvAddr);
+        servSock_.listen();
+
+        acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), &loop_);
+        acceptChannel_->setReadCallback([this](TimeStamp receivedTime) { acceptFunc(receivedTime); });
+        acceptChannel_->enableReading();
+
+        loop_.start();
     }
 
-    while (!g_stop) {
-        if (g_loop != nullptr) {
-            g_loop->runInLoop([]() { LOG_INFO << "sub thread tick 2."; });
-            sleep(2);
-        }
-    }
-}
+private:
+    void acceptFunc(TimeStamp receivedTime)
+    {
+        SockAddrInet clientAddr;
+        int clientFd = servSock_.accept(clientAddr);
+        LOG_INFO << receivedTime.toFormattedString() << " accept client: fd(" << clientFd << "), addr("
+                 << clientAddr.toString() << ").";
 
-void echoFunc(int fd, TimeStamp receivedTime)
-{
-    char buf[1024] = {0};
-    int len = TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)));
-    if (len < 0) {
-        LOG_INFO << " recv msg err from client " << fd << ": " << strerror(errno);
-    } else if (len == 0) {
-        LOG_INFO << receivedTime.toFormattedString() << " client " << fd << " closed, remove this channel.";
-        if (g_loop != nullptr) {
-            g_loop->removeChannel(fd);
-        }
-    } else {
-        LOG_INFO << receivedTime.toFormattedString() << " recv msg from client " << fd << ": " << buf;
-        int ret = TEMP_FAILURE_RETRY(write(fd, buf, len));
-        if (ret < 0) {
-            LOG_INFO << receivedTime.toFormattedString() << " send msg err from client " << fd << ": "
-                     << strerror(errno);
+        auto newConn = std::make_shared<Connection>(clientFd, &loop_);
+        auto channel = newConn->getChannel();
+        channel->setReadCallback([this, clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
+        channel->enableReading();
+        clients_[clientFd] = newConn;
+    }
+
+    void echoFunc(int fd, TimeStamp receivedTime)
+    {
+        char buf[1024] = {0};
+        int len = TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)));
+        if (len < 0) {
+            LOG_INFO << " recv msg err from client " << fd << ": " << strerror(errno);
+        } else if (len == 0) {
+            LOG_INFO << receivedTime.toFormattedString() << " client " << fd << " closed, remove this conn.";
+            removeClient(fd);
         } else {
-            LOG_INFO << receivedTime.toFormattedString() << " send msg from client " << fd << ": " << buf;
+            LOG_INFO << receivedTime.toFormattedString() << " recv msg from client " << fd << ": " << buf;
+            int ret = TEMP_FAILURE_RETRY(write(fd, buf, len));
+            if (ret < 0) {
+                LOG_INFO << receivedTime.toFormattedString() << " send msg err from client " << fd << ": "
+                         << strerror(errno);
+            } else {
+                LOG_INFO << receivedTime.toFormattedString() << " send msg from client " << fd << ": " << buf;
+            }
         }
     }
-}
 
-void acceptFunc(int fd, TimeStamp receivedTime)
-{
-    sockaddr_in clientSockAddr = {};
-    socklen_t len;
-    int clientFd = ::accept(fd, (sockaddr *)(&clientSockAddr), &len);
-    LOG_INFO << receivedTime.toFormattedString() << " accept client: " << clientFd;
+    void removeClient(int fd) { clients_.erase(fd); }
 
-    auto echoChannel = std::make_shared<EventChannel>(clientFd, g_loop.get());
-    echoChannel->setReadCallback([clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
-    g_loop->updateChannel(echoChannel);
-}
+    Socket servSock_;
+    EventLoop loop_;
+
+    std::shared_ptr<EventChannel> acceptChannel_;
+    std::unordered_map<int, std::shared_ptr<Connection>> clients_;
+};
 
 int main()
 {
-    // testChannel may generate a core dump in EventChannel's constructor.
-    // auto testChannel = std::make_shared<EventChannel>(2, g_loop.get());
+    LOG_INFO << "EventLoopThreadTest started.";
 
-    LOG_INFO << "EventLoopTest started.";
-
-    g_loop = std::make_unique<EventLoop>();
-    std::thread t{&subThreadFunc};
-
-    // tick every 2s, delayed 3s.
-    g_loop->runEvery(
-        []() { LOG_INFO << "main thread tick."; },
-        2000 * MICRO_SECS_PER_MILLISECOND,
-        3000 * MICRO_SECS_PER_MILLISECOND);
-
-    // run after 5s.
-    g_loop->runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
-
-    // init socket
-    auto fd = ::socket(AF_INET, SOCK_STREAM, 0);
-    sockaddr_in sockAddr = {};
-    sockAddr.sin_family = AF_INET;
-    sockAddr.sin_addr.s_addr = INADDR_ANY;
-    sockAddr.sin_port = htons(4567);
-    int ret = TEMP_FAILURE_RETRY(::bind(fd, (sockaddr *)(&sockAddr), sizeof(sockAddr)));
-    if (ret < 0) {
-        LOG_INFO << "bind: " << fd << "err!";
-        return -1;
-    }
-    listen(fd, 5);
-
-    auto acceptChannel = std::make_shared<EventChannel>(fd, g_loop.get());
-    acceptChannel->setReadCallback([fd](TimeStamp receivedTime) { acceptFunc(fd, receivedTime); });
-    g_loop->updateChannel(acceptChannel);
-
-    g_loop->start();
-
-    g_stop = true;
-    if (t.joinable()) {
-        t.join();
-    }
+    EchoServer server;
+    server.run(4567);
 
     return 0;
 }

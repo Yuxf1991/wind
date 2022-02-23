@@ -22,9 +22,8 @@
 
 #include "Timer.h"
 
-#include <sys/timerfd.h>
+#include <atomic>
 
-#include "EventLoop.h"
 #ifdef LOG_TAG
 #undef LOG_TAG
 #define LOG_TAG "WindTimer"
@@ -33,40 +32,31 @@
 
 namespace wind {
 namespace detail {
-itimerspec generateTimerSpec(TimeType delay, TimeType interval)
+uint64_t genSequenceId()
 {
-    itimerspec newValue;
-    if (delay == 0) {
-        // set it_value to 1000 nanoseconds(1 us) to make sure it can be triggerd.
-        newValue.it_value.tv_nsec = 1000;
-    } else {
-        int seconds = delay / MICRO_SECS_PER_SECOND;
-        newValue.it_value.tv_sec = seconds;
-        newValue.it_value.tv_nsec = (delay % MICRO_SECS_PER_SECOND) * NANO_SECS_PER_MICROSECOND;
-    }
-
-    int intervalSecs = interval / MICRO_SECS_PER_SECOND;
-    newValue.it_interval.tv_sec = intervalSecs;
-    newValue.it_interval.tv_nsec = (interval % MICRO_SECS_PER_SECOND) * NANO_SECS_PER_MICROSECOND;
-
-    return newValue;
+    static std::atomic<uint64_t> id(0);
+    return id.fetch_add(1, std::memory_order_relaxed);
 }
 } // namespace detail
 
-Timer::Timer(EventLoop *eventLoop, TimeType delay, TimeType interval)
-    : EventChannel(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC), eventLoop), delay_(delay), interval_(interval)
+Timer::Timer(TimerCallback callback, TimeStamp expireTime, TimeType interval)
+    : cb_(callback), expireTime_(expireTime), interval_(interval), repeat_(interval > 0), id_(detail::genSequenceId())
+{}
+
+void Timer::execute()
 {
-    itimerspec newValue = detail::generateTimerSpec(delay_, interval_);
-    int ret = TEMP_FAILURE_RETRY(::timerfd_settime(fd_.get(), 0, &newValue, NULL));
-    LOG_FATAL_IF(ret == -1) << "timerfd_settime failed: " << strerror(errno) << ".";
+    if (cb_ != nullptr) {
+        cb_();
+    }
+
+    if (isRepeat()) {
+        restart();
+    }
 }
 
-void Timer::handleEvent(TimeStamp receivedTime)
+void Timer::restart()
 {
-    EventChannel::handleEvent(receivedTime);
-    if (interval_ == 0) {
-        LOG_DEBUG << "Remove timer fd " << fd_.get() << " from poller.";
-        eventLoop_->removeChannel(fd_.get());
-    }
+    ASSERT(isRepeat());
+    expireTime_ = timeAdd(TimeStamp::now(), interval_);
 }
 } // namespace wind

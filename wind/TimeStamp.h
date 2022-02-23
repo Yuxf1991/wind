@@ -46,13 +46,18 @@ public:
     {}
 
     static TimeStamp now() noexcept;
-    [[nodiscard]] TimeType get() const noexcept { return nanoSecondsSinceEpoch_; }
 
-    [[nodiscard]] string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
-    [[nodiscard]] string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    TimeType get() const noexcept { return nanoSecondsSinceEpoch_; }
+    TimeType nanos() const noexcept { return get(); }
+    TimeType micros() const noexcept { return nanos() / NANO_SECS_PER_MICROSECOND; }
+    TimeType millis() const noexcept { return micros() / MICRO_SECS_PER_MILLISECOND; }
+    TimeType seconds() const noexcept { return millis() / MILLI_SECS_PER_SECOND; }
+
+    string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
 
 private:
-    TimeType nanoSecondsSinceEpoch_;
+    TimeType nanoSecondsSinceEpoch_ = 0;
 };
 
 inline bool operator==(TimeStamp lhs, TimeStamp rhs)
@@ -85,10 +90,17 @@ inline bool operator!=(TimeStamp lhs, TimeStamp rhs)
     return lhs.get() != rhs.get();
 }
 
+// return two timeStamps' diff in nanos
 inline int64_t timeDiff(TimeStamp lhs, TimeStamp rhs)
 {
     return lhs.get() - rhs.get();
 }
-} // namespace wind
 
+// @micros: add micros seconds to timestamp t.
+// @return: timestamp t + micro seconds
+inline TimeStamp timeAdd(TimeStamp t, TimeType micros)
+{
+    return TimeStamp(t.get() + micros * NANO_SECS_PER_MICROSECOND);
+}
+} // namespace wind
 #endif // WIND_TIMESTAMP_H

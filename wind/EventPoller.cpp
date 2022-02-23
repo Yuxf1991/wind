@@ -31,6 +31,18 @@
 #include "Utils.h"
 
 namespace wind {
+namespace detail {
+string epollOperationToString(int operation)
+{
+    switch (operation) {
+        case EPOLL_CTL_ADD: return "EpollCtlAdd";
+        case EPOLL_CTL_MOD: return "EpollCtlMod";
+        case EPOLL_CTL_DEL: return "EpollCtlDel";
+        default: return "UnknownEpollCtl";
+    }
+}
+} // namespace detail
+
 size_t EventPoller::eventSize_ = 32;
 
 EventPoller::EventPoller(EventLoop *eventLoop)
@@ -70,49 +82,60 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
     return pollTime;
 }
 
+void EventPoller::assertInLoopThread()
+{
+    ASSERT(eventLoop_ != nullptr);
+    eventLoop_->assertInLoopThread();
+}
+
+void EventPoller::epollCtl(const std::shared_ptr<EventChannel> &channel, int operation)
+{
+    ASSERT(channel != nullptr);
+    int fd = channel->fd();
+    epoll_event epollEvent{0};
+    epollEvent.events = channel->listeningEvents();
+    epollEvent.data.fd = fd;
+    int ret = TEMP_FAILURE_RETRY(::epoll_ctl(epollFd_.get(), operation, fd, &epollEvent));
+    if (ret < 0) {
+        LOG_ERROR << detail::epollOperationToString(operation) << " failed for fd " << fd << ": " << strerror(errno)
+                  << "!";
+    }
+}
+
 void EventPoller::updateChannel(std::shared_ptr<EventChannel> channel)
 {
     if (channel == nullptr) {
         return;
     }
 
-    int channelFd = channel->fd();
-    auto channelEvnets = channel->eventsToHandle();
-    if (channelEvnets == enum_cast(EventType::NONE)) {
-        eventLoop_->removeChannel(channelFd);
+    eventLoop_->assertInLoopThread();
+
+    int fd = channel->fd();
+    if (channel->hasNoEvent()) {
+        eventLoop_->removeChannel(fd);
         return;
     }
 
-    epoll_event epollEvent = {};
-    epollEvent.events = channelEvnets; // we assert the EventType is associated with EPOLL_EVENTS
-    epollEvent.data.fd = channelFd;
-    int ret = 0;
-    if (channels_.count(channelFd) == 0) {
+    if (channels_.count(fd) == 0) {
         // new channel
-        ret = TEMP_FAILURE_RETRY(::epoll_ctl(epollFd_.get(), EPOLL_CTL_ADD, channelFd, &epollEvent));
+        epollCtl(channel, EPOLL_CTL_ADD);
+        channels_[fd] = std::move(channel);
     } else {
         // modify channel
-        ret = TEMP_FAILURE_RETRY(::epoll_ctl(epollFd_.get(), EPOLL_CTL_MOD, channelFd, &epollEvent));
-    }
-
-    if (ret != 0) {
-        LOG_ERROR << "epoll_ctl(EPOLL_CTL_MOD) failed: " << strerror(errno) << ".";
-    } else {
-        channels_[channelFd] = std::move(channel);
+        epollCtl(channels_[fd], EPOLL_CTL_MOD);
     }
 }
 
 void EventPoller::removeChannel(int fd)
 {
+    eventLoop_->assertInLoopThread();
+
     if (channels_.count(fd) == 0) {
         LOG_WARN << "Can't find channel " << fd << " in poller " << epollFd_.get() << ".";
         return;
     }
 
-    int ret = TEMP_FAILURE_RETRY(::epoll_ctl(epollFd_.get(), EPOLL_CTL_DEL, fd, nullptr));
-    if (ret < 0) {
-        LOG_ERROR << "epoll_ctl(EPOLL_CTL_DEL) failed: " << strerror(errno) << ".";
-    }
+    epollCtl(channels_[fd], EPOLL_CTL_DEL);
     channels_.erase(fd);
 }
 } // namespace wind

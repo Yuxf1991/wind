@@ -22,10 +22,7 @@
 
 #include "EventLoop.h"
 
-#include <vector>
-
 #include "CurrentThread.h"
-#include "Timer.h"
 #ifdef LOG_TAG
 #undef LOG_TAG
 #define LOG_TAG "EventLoop"
@@ -33,30 +30,16 @@
 #include "Log.h"
 
 namespace wind {
-namespace detail {
-EventCallbackWithTimeStamp toTimerCb(Functor func, int timerFd)
-{
-    auto newCb = [oldCb(std::move(func)), timerFd](TimeStamp) {
-        uint64_t one;
-        int len = TEMP_FAILURE_RETRY(::read(timerFd, &one, sizeof(one)));
-        if (len != sizeof(one)) {
-            LOG_WARN << "Read from timerfd " << timerFd << " " << len << " bytes, should be " << sizeof(one)
-                     << " bytes.";
-        }
-        oldCb();
-    };
-    return newCb;
-}
-} // namespace detail
-
 __thread EventLoop *t_currLoop = nullptr; // current thread's event_loop
 
 EventLoop::EventLoop()
-    : poller_(std::make_unique<EventPoller>(this)),
-      wakeUpChannel_(std::make_shared<EventChannel>(utils::createEventFd(), this)), tid_(CurrentThread::tid())
+    : tid_(CurrentThread::tid()), poller_(std::make_unique<EventPoller>(this)), wakeUpFd_(utils::createEventFd()),
+      wakeUpChannel_(std::make_shared<EventChannel>(wakeUpFd_.get(), this)),
+      timerManager_(std::make_unique<TimerManager>(this))
 {
+    // wakeUpCallback do not need TimeStamp
     wakeUpChannel_->setReadCallback([this](TimeStamp) { wakeUpCallback(); });
-    updateChannel(wakeUpChannel_);
+    wakeUpChannel_->enableReading();
     t_currLoop = this;
 }
 
@@ -67,39 +50,31 @@ EventLoop::~EventLoop() noexcept
 
 void EventLoop::stop() noexcept
 {
-    if (!isInLoopThread() && running_) {
+    if (isInLoopThread()) {
+        wakeUpChannel_->disableAll();
+    } else if (running_) {
+        auto future = schedule([this]() { wakeUpChannel_->disableAll(); });
         running_ = false;
         wakeUp();
+        future.wait();
     }
 }
 
-void EventLoop::updateChannel(const std::shared_ptr<EventChannel> &channel)
+void EventLoop::updateChannel(std::shared_ptr<EventChannel> channel)
 {
     if (channel == nullptr) {
         LOG_WARN << "EventLoop::" << __func__ << ": channel is null!";
         return;
     }
 
-    auto func = [this, channel]() { poller_->updateChannel(channel); };
-
-    // ensure update channels in loop thread.
-    if (isInLoopThread()) {
-        func();
-    } else {
-        queueToPendingFunctors(std::move(func));
-    }
+    assertInLoopThread();
+    poller_->updateChannel(std::move(channel));
 }
 
 void EventLoop::removeChannel(int channelFd)
 {
-    auto func = [this, channelFd]() { poller_->removeChannel(channelFd); };
-
-    // ensure update channels in loop thread.
-    if (isInLoopThread()) {
-        func();
-    } else {
-        queueToPendingFunctors(std::move(func));
-    }
+    assertInLoopThread();
+    poller_->removeChannel(channelFd);
 }
 
 void EventLoop::execPendingFunctors()
@@ -156,22 +131,13 @@ void EventLoop::runAfter(Functor func, TimeType delay)
     if (delay == 0) {
         runInLoop(func);
     } else {
-        auto newTimer = std::make_shared<Timer>(this, delay);
-        newTimer->setReadCallback(detail::toTimerCb(func, newTimer->fd()));
-        updateChannel(newTimer);
+        timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay));
     }
 }
 
 void EventLoop::runEvery(Functor func, TimeType interval, TimeType delay)
 {
-    if (delay == 0) {
-        runInLoop(func);
-        delay = interval;
-    }
-
-    auto newTimer = std::make_shared<Timer>(this, delay, interval);
-    newTimer->setReadCallback(detail::toTimerCb(func, newTimer->fd()));
-    updateChannel(newTimer);
+    timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay), interval);
 }
 
 void EventLoop::start()
@@ -199,19 +165,23 @@ bool EventLoop::isInLoopThread() const
 
 void EventLoop::assertInLoopThread() const
 {
-    LOG_FATAL_IF(!isInLoopThread()) << "assertInLoopThread failed!";
+    if (WIND_UNLIKELY(!isInLoopThread())) {
+        LOG_SYS_FATAL << "assertInLoopThread failed!";
+    }
 }
 
 void EventLoop::assertNotInLoopThread() const
 {
-    LOG_FATAL_IF(isInLoopThread()) << "assertNotInLoopThread failed!";
+    if (WIND_UNLIKELY(isInLoopThread())) {
+        LOG_SYS_FATAL << "assertNotInLoopThread failed!";
+    }
 }
 
 void EventLoop::wakeUp()
 {
     uint64_t buf = 1;
     int len = TEMP_FAILURE_RETRY(::write(wakeUpChannel_->fd(), &buf, sizeof(buf)));
-    if (len != sizeof(buf)) {
+    if (WIND_UNLIKELY(len != sizeof(buf))) {
         LOG_WARN << "should write " << sizeof(buf) << " bytes, but " << len << " wrote.";
     }
 }
@@ -220,7 +190,7 @@ void EventLoop::wakeUpCallback()
 {
     uint64_t buf = 0;
     int len = TEMP_FAILURE_RETRY(::read(wakeUpChannel_->fd(), &buf, sizeof(buf)));
-    if (len != sizeof(buf)) {
+    if (WIND_UNLIKELY(len != sizeof(buf))) {
         LOG_WARN << "should read " << sizeof(buf) << " bytes, but " << len << " read.";
     }
 }

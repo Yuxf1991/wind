@@ -23,16 +23,18 @@
 #ifndef WIND_EVENT_CHANNEL_H
 #define WIND_EVENT_CHANNEL_H
 
+#include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <sys/epoll.h>
 
+#include "NonCopyable.h"
 #include "TimeStamp.h"
-#include "UniqueFd.h"
 
 namespace wind {
 using EventCallback = std::function<void()>;
-using EventCallbackWithTimeStamp = std::function<void(TimeStamp)>;
+using ReadCallback = std::function<void(TimeStamp)>;
 
 class EventPoller;
 class EventLoop;
@@ -45,57 +47,97 @@ enum class EventType : uint32_t {
     EDGE_EVENT = EPOLLET,
 };
 
-class EventChannel : NonCopyable {
+// The EventChannel class not own the fd, so we must make sure than
+// the fd is valid when an EventChannel object holds it.
+class EventChannel : public std::enable_shared_from_this<EventChannel>, NonCopyable {
 public:
     EventChannel(int fd, EventLoop *eventLoop);
     virtual ~EventChannel() noexcept;
 
-    int fd() const { return fd_.get(); }
+    void handleEvent(TimeStamp receivedTime);
 
-    void setReadCallback(EventCallbackWithTimeStamp cb)
+    int fd() const { return fd_; }
+    EventLoop *getOwnerLoop() const { return eventLoop_; }
+
+    void setReadCallback(ReadCallback cb)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         readCallback_ = std::move(cb);
-        update();
     }
-
+    ReadCallback getReadCallback() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return readCallback_;
+    }
     void setWriteCallback(EventCallback cb)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         writeCallback_ = std::move(cb);
-        update();
     }
-
+    EventCallback getWriteCallback() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return writeCallback_;
+    }
     void setErrorCallback(EventCallback cb)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         errorCallback_ = std::move(cb);
-        update();
     }
-
+    EventCallback getErrorCallback() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return errorCallback_;
+    }
     void setCloseCallback(EventCallback cb)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         closeCallback_ = std::move(cb);
-        update();
+    }
+    EventCallback getCloseCallback() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return closeCallback_;
     }
 
-    virtual void handleEvent(TimeStamp receivedTime);
+    bool hasNoEvent() const { return listeningEvents() == enum_cast(EventType::NONE); }
+    bool isWriting() const { return listeningEvents() & enum_cast(EventType::WRITE_EVENT); }
+    bool isReading() const { return listeningEvents() & enum_cast(EventType::READ_EVNET); }
+
+    // @toUpdate: whether to update the channel in poller or not, true by default.
+    void enableReading(bool toUpdate = true);
+    // @toUpdate: whether to update the channel in poller or not, true by default.
+    void disableReading(bool toUpdate = true);
+    // @toUpdate: whether to update the channel in poller or not, true by default.
+    void enableWriting(bool toUpdate = true);
+    // @toUpdate: whether to update the channel in poller or not, true by default.
+    void disableWriting(bool toUpdate = true);
+    // @toUpdate: whether to update the channel in poller or not, true by default.
+    void disableAll(bool toUpdate = true);
+
+    // You must make sure to update channel in loop thread.
+    void update();
+    // You must make sure to remove channel in loop thread.
+    void remove();
 
 protected:
     friend class EventPoller;
-    uint32_t eventsToHandle() const { return eventsToHandle_; }
 
+    // will abort if not in loop thread.
+    void assertInLoopThread() const;
+
+    uint32_t listeningEvents() const { return listeningEvents_; }
     void setRecevicedEvents(uint32_t events) { receivedEvents_ = events; }
 
-    void update();
-    void enableReading();
-    void disableReading();
-    void enableWriting();
-    void disableWriting();
-
-    UniqueFd fd_;
+    int fd_;
     EventLoop *eventLoop_ = nullptr;
-    uint32_t eventsToHandle_ = enum_cast(EventType::NONE);
+    std::atomic<bool> addedToLoop_ = false;
+
+    uint32_t listeningEvents_ = enum_cast(EventType::NONE);
     uint32_t receivedEvents_ = enum_cast(EventType::NONE);
 
-    EventCallbackWithTimeStamp readCallback_;
+    mutable std::mutex mutex_; // to guard these callbacks
+    ReadCallback readCallback_;
     EventCallback writeCallback_;
     EventCallback errorCallback_;
     EventCallback closeCallback_;

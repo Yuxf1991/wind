@@ -23,21 +23,39 @@
 #ifndef WIND_TIMER_H
 #define WIND_TIMER_H
 
-#include "EventChannel.h"
+#include <functional>
+
+#include "NonCopyable.h"
+#include "TimeStamp.h"
 
 namespace wind {
-class Timer : public EventChannel {
-public:
-    // delay in micro seconds, 0 means run immediately
-    // interval in micro seconds, 0 means only run once.
-    Timer(EventLoop *eventLoop, TimeType delay = 0, TimeType interval = 0);
-    ~Timer() noexcept override = default;
+using TimerCallback = std::function<void()>;
+using TimerId = uint64_t;
 
-    void handleEvent(TimeStamp receivedTime) override;
+class Timer : NonCopyable {
+public:
+    // @callback: TimerCallback
+    // @expireTime: expire TimeStamp
+    // @interval: interval in micro seconds, 0 for only run once.
+    Timer(TimerCallback callback, TimeStamp expireTime, TimeType interval = 0);
+    ~Timer() noexcept = default;
+
+    TimerId id() const { return id_; }
+    bool isRepeat() const { return repeat_; }
+
+    TimeStamp expireTime() const { return expireTime_; }
+
+    void execute();
 
 private:
-    TimeType delay_ = 0;
-    TimeType interval_ = -1;
+    // only valid when the timer is repeated.
+    void restart();
+
+    TimerCallback cb_;
+    TimeStamp expireTime_;
+    TimeType interval_ = 0;
+    bool repeat_ = false;
+    TimerId id_;
 };
 } // namespace wind
 #endif // WIND_TIMER_H

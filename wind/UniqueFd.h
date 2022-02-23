@@ -57,7 +57,7 @@ public:
     UniqueFdImpl(UniqueFdImpl &&other) noexcept : fd_(other.release()) {}
     UniqueFdImpl &operator=(UniqueFdImpl &&other) noexcept
     {
-        reset(other.release());
+        reset(other.release()); // can avoid self-move.
         return *this;
     }
 

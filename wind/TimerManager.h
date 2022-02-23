@@ -20,39 +20,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_UTILS_H
-#define WIND_UTILS_H
+#ifndef WIND_TIMER_MANAGER_H
+#define WIND_TIMER_MANAGER_H
 
-#include <assert.h>
-#include <inttypes.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/eventfd.h>
+#include "EventChannel.h"
+#include "UniqueFd.h"
 
-#define ENABLE_EXCEPTION 1
+#include <set>
 
-#ifdef NDEBUG
-#define ASSERT(exp)
-#else
-#define ASSERT(exp) assert((exp))
-#endif
-
-#ifdef __cplusplus
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))
-#else
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), 1))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-#endif
+#include "Timer.h"
 
 namespace wind {
-namespace utils {
-inline void memZero(void *data, size_t len)
-{
-    ::memset(data, 0, len);
-}
+using TimerEntry = std::pair<TimeStamp, std::shared_ptr<Timer>>;
 
-int createEventFd();
-} // namespace utils
+class EventLoop;
+
+class TimerManager : NonCopyable {
+public:
+    TimerManager(EventLoop *loop);
+    ~TimerManager() noexcept;
+
+    // @callback: TimerCallback
+    // @expireTime: expire TimeStamp
+    // @interval: interval in micro seconds, 0 for only run once.
+    // @return: TimerId
+    TimerId addTimer(TimerCallback callback, TimeStamp expireTime, TimeType interval = 0);
+
+private:
+    void assertInLoopThread();
+
+    void addTimerInLoop(std::shared_ptr<Timer> timer);
+    std::vector<TimerEntry> getExpiredTimers(TimeStamp receivedTime);
+
+    void handleRead(TimeStamp receivedTime);
+    void timerfdRead();
+    void timerfdReset(TimeStamp expireTime);
+
+    EventLoop *loop_;
+    UniqueFd timerfd_;
+    std::shared_ptr<EventChannel> timerfdChannel_;
+
+    std::set<TimerEntry> timers_;
+};
 } // namespace wind
-#endif // WIND_UTILS_H
+#endif // WIND_TIMER_MANAGER_H

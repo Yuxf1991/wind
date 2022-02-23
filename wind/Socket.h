@@ -20,39 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_UTILS_H
-#define WIND_UTILS_H
+#ifndef WIND_SOCKET_H
+#define WIND_SOCKET_H
 
-#include <assert.h>
-#include <inttypes.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/eventfd.h>
-
-#define ENABLE_EXCEPTION 1
-
-#ifdef NDEBUG
-#define ASSERT(exp)
-#else
-#define ASSERT(exp) assert((exp))
-#endif
-
-#ifdef __cplusplus
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))
-#else
-#define WIND_LIKELY(x) (__builtin_expect(!!(x), 1))
-#define WIND_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-#endif
+#include "SockAddrInet.h"
+#include "UniqueFd.h"
 
 namespace wind {
-namespace utils {
-inline void memZero(void *data, size_t len)
-{
-    ::memset(data, 0, len);
-}
+class Socket : NonCopyable {
+public:
+    // Will call abort() if create socket failed.
+    static Socket createNonBlockSocket(int domain, int type, int protocol);
 
-int createEventFd();
-} // namespace utils
+    explicit Socket(int sockfd);
+    ~Socket() noexcept;
+
+    // movable
+    Socket(Socket &&other);
+    Socket &operator=(Socket &&other);
+
+    int fd() const { return fd_.get(); }
+
+    void bind(const SockAddrInet &addr) const;
+    void listen() const;
+    int accept(SockAddrInet &peerAddr) const;
+    void connect(const SockAddrInet &addr) const;
+
+private:
+    UniqueFd fd_;
+};
 } // namespace wind
-#endif // WIND_UTILS_H
+#endif // WIND_SOCKET_H

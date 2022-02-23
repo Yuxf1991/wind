@@ -31,45 +31,102 @@
 #include "Utils.h"
 
 namespace wind {
-EventChannel::EventChannel(int fd, EventLoop *eventLoop) : fd_(fd), eventLoop_(eventLoop)
+EventChannel::EventChannel(int fd, EventLoop *eventLoop)
+    : std::enable_shared_from_this<EventChannel>(), fd_(fd), eventLoop_(eventLoop)
 {
     LOG_FATAL_IF(eventLoop_ == nullptr) << "EventLoop is null!";
 }
 
 EventChannel::~EventChannel() noexcept {}
 
-void EventChannel::enableReading()
+void EventChannel::assertInLoopThread() const
 {
-    eventsToHandle_ |= enum_cast(EventType::READ_EVNET);
+    ASSERT(eventLoop_ != nullptr);
+    eventLoop_->assertInLoopThread();
 }
 
-void EventChannel::disableReading()
+void EventChannel::remove()
 {
-    eventsToHandle_ &= (~enum_cast(EventType::READ_EVNET));
+    assertInLoopThread();
+    ASSERT(hasNoEvent());
+    addedToLoop_ = false;
+    eventLoop_->removeChannel(fd_);
 }
 
-void EventChannel::enableWriting()
+void EventChannel::enableReading(bool toUpdate)
 {
-    eventsToHandle_ |= enum_cast(EventType::WRITE_EVENT);
+    if (isReading()) {
+        return;
+    }
+
+    listeningEvents_ |= enum_cast(EventType::READ_EVNET);
+
+    if (toUpdate) {
+        update();
+    }
 }
 
-void EventChannel::disableWriting()
+void EventChannel::disableReading(bool toUpdate)
 {
-    eventsToHandle_ &= (~enum_cast(EventType::WRITE_EVENT));
+    if (!isReading()) {
+        return;
+    }
+
+    listeningEvents_ &= (~enum_cast(EventType::READ_EVNET));
+
+    if (toUpdate) {
+        update();
+    }
+}
+
+void EventChannel::enableWriting(bool toUpdate)
+{
+    if (isWriting()) {
+        return;
+    }
+
+    listeningEvents_ |= enum_cast(EventType::WRITE_EVENT);
+
+    if (toUpdate) {
+        update();
+    }
+}
+
+void EventChannel::disableWriting(bool toUpdate)
+{
+    if (!isWriting()) {
+        return;
+    }
+
+    listeningEvents_ &= (~enum_cast(EventType::WRITE_EVENT));
+
+    if (toUpdate) {
+        update();
+    }
+}
+
+void EventChannel::disableAll(bool toUpdate)
+{
+    if (hasNoEvent()) {
+        return;
+    }
+
+    listeningEvents_ = enum_cast(EventType::NONE);
+
+    if (toUpdate) {
+        remove();
+    }
 }
 
 void EventChannel::update()
 {
-    if (readCallback_ == nullptr) {
-        disableReading();
-    } else {
-        enableReading();
-    }
+    assertInLoopThread();
 
-    if (writeCallback_ == nullptr) {
-        disableWriting();
+    if (hasNoEvent()) {
+        remove();
     } else {
-        enableWriting();
+        addedToLoop_ = true;
+        eventLoop_->updateChannel(shared_from_this());
     }
 }
 
@@ -78,34 +135,34 @@ void EventChannel::handleEvent(TimeStamp receivedTime)
     eventLoop_->assertInLoopThread();
 
     if ((receivedEvents_ & EPOLLHUP) && !(receivedEvents_ & EPOLLIN)) {
-        LOG_TRACE << "close event in channel " << fd_.get() << ".";
+        LOG_TRACE << "close event in channel " << fd_ << ".";
         if (closeCallback_ != nullptr) {
             closeCallback_();
-            LOG_DEBUG << "Remove channel fd " << fd_.get() << " from poller.";
-            eventLoop_->removeChannel(fd_.get());
+            LOG_DEBUG << "Remove channel fd " << fd_ << " from poller.";
+            eventLoop_->removeChannel(fd_);
             return;
         }
     }
 
     if (receivedEvents_ & EPOLLERR) {
-        LOG_TRACE << "error event in channel " << fd_.get() << ".";
+        LOG_TRACE << "error event in channel " << fd_ << ".";
         if (errorCallback_ != nullptr) {
             errorCallback_();
-            LOG_DEBUG << "Remove channel fd " << fd_.get() << " from poller.";
-            eventLoop_->removeChannel(fd_.get());
+            LOG_DEBUG << "Remove channel fd " << fd_ << " from poller.";
+            eventLoop_->removeChannel(fd_);
             return;
         }
     }
 
     if (receivedEvents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
-        LOG_TRACE << "read event in channel " << fd_.get() << ".";
+        LOG_TRACE << "read event in channel " << fd_ << ".";
         if (readCallback_ != nullptr) {
             readCallback_(receivedTime);
         }
     }
 
     if (receivedEvents_ & EPOLLOUT) {
-        LOG_TRACE << "write event in channel " << fd_.get() << ".";
+        LOG_TRACE << "write event in channel " << fd_ << ".";
         if (writeCallback_ != nullptr) {
             writeCallback_();
         }
