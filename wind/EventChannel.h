@@ -112,12 +112,10 @@ public:
     void enableWriting(bool toUpdate = true);
     // @toUpdate: whether to update the channel in poller or not, true by default.
     void disableWriting(bool toUpdate = true);
-    // @toUpdate: whether to update the channel in poller or not, true by default.
-    void disableAll(bool toUpdate = true);
+    // @toUpdate: whether to remove the channel in poller or not, true by default.
+    void disableAll(bool toRemove = true);
 
-    // You must make sure to update channel in loop thread.
     void update();
-    // You must make sure to remove channel in loop thread.
     void remove();
 
 protected:

@@ -73,11 +73,11 @@ public:
     }
     void runInLoop(Functor func);
 
-    void runAt(Functor func, TimeStamp dstTime);
+    TimerId runAt(Functor func, TimeStamp dstTime);
     // delay in micro seconds, 0 means run immediately
     // interval in micro seconds, 0 means only run once.
-    void runAfter(Functor func, TimeType delay);
-    void runEvery(Functor func, TimeType interval, TimeType delay = 0);
+    TimerId runAfter(Functor func, TimeType delay);
+    TimerId runEvery(Functor func, TimeType interval, TimeType delay = 0);
 
     static EventLoop *eventLoopOfCurrThread();
 

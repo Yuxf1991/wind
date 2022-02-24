@@ -32,6 +32,7 @@
 
 namespace wind {
 using TimerEntry = std::pair<TimeStamp, std::shared_ptr<Timer>>;
+using TimerSet = std::set<TimerEntry>;
 
 class EventLoop;
 
@@ -60,7 +61,7 @@ private:
     UniqueFd timerfd_;
     std::shared_ptr<EventChannel> timerfdChannel_;
 
-    std::set<TimerEntry> timers_;
+    TimerSet timers_;
 };
 } // namespace wind
 #endif // WIND_TIMER_MANAGER_H

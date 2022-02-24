@@ -30,7 +30,7 @@ namespace wind {
 namespace detail {
 int createTimerFd()
 {
-    int fd = ::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC);
+    int fd = TEMP_FAILURE_RETRY(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC));
     if (INVALID_FD(fd)) {
         LOG_SYS_FATAL << "Create timerfd error: " << strerror(errno) << "!";
     }
@@ -65,46 +65,27 @@ TimerManager::TimerManager(EventLoop *loop)
 
 TimerManager::~TimerManager() noexcept
 {
-    loop_->runInLoop([this]() { timerfdChannel_->disableAll(); });
+    timerfdChannel_->disableAll();
 }
 
 TimerId TimerManager::addTimer(TimerCallback callback, TimeStamp expireTime, TimeType interval)
 {
-    return loop_
-        ->schedule([=, cb(std::move(callback))]() mutable -> TimerId {
-            auto newTimer = std::make_shared<Timer>(std::move(cb), expireTime, interval);
-            TimerId id = newTimer->id();
-            addTimerInLoop(newTimer);
-            return id;
-        })
-        .get();
+    auto future = loop_->schedule([=, cb(std::move(callback))]() mutable -> TimerId {
+        auto newTimer = std::make_shared<Timer>(std::move(cb), expireTime, interval);
+        addTimerInLoop(newTimer);
+        return newTimer->id();
+    });
+    return future.get();
 }
 
 void TimerManager::addTimerInLoop(std::shared_ptr<Timer> timer)
 {
-    if (timer == nullptr) {
-        return;
-    }
-
+    ASSERT(timer != nullptr);
     assertInLoopThread();
-    TimeStamp dst = timer->expireTime();
 
-    bool needToResetTimerFd = false;
-    TimeStamp expireTime;
-    if (timers_.empty()) {
-        needToResetTimerFd = true;
-        expireTime = dst;
-    } else {
-        auto firstExpireTime = timers_.cbegin()->first;
-        if (firstExpireTime > dst) {
-            needToResetTimerFd = true;
-            expireTime = dst;
-        } else {
-            expireTime = firstExpireTime;
-        }
-    }
-
-    timers_.insert(std::make_pair(dst, std::move(timer)));
+    TimeStamp expireTime = timer->expireTime();
+    bool needToResetTimerFd = (timers_.empty() || timers_.cbegin()->first > expireTime);
+    timers_.insert(std::make_pair(expireTime, std::move(timer)));
 
     if (needToResetTimerFd) {
         timerfdReset(expireTime);
@@ -123,7 +104,7 @@ std::vector<TimerEntry> TimerManager::getExpiredTimers(TimeStamp receivedTime)
     TimerEntry pivot = std::make_pair(receivedTime, std::make_shared<Timer>(nullptr, TimeStamp()));
     auto it = timers_.lower_bound(pivot);
     ASSERT(receivedTime < it->first || it == timers_.cend());
-    std::move(timers_.begin(), it, back_inserter(expiredTimers));
+    std::copy(timers_.begin(), it, back_inserter(expiredTimers));
     timers_.erase(timers_.begin(), it);
 
     return expiredTimers;
@@ -138,10 +119,9 @@ void TimerManager::handleRead(TimeStamp receivedTime)
         auto expiredTimers = getExpiredTimers(receivedTime);
         for (auto &[expiredTime, timer] : expiredTimers) {
             ASSERT(timer != nullptr);
-            timer->execute();
+            timer->execute(); // implicit reset timer's expireTime in execute() if it is repeated.
             if (timer->isRepeat()) {
-                TimeStamp expiredTime = timer->expireTime();
-                timers_.insert(std::make_pair(expiredTime, timer));
+                timers_.insert(std::make_pair(timer->expireTime(), timer));
             }
         }
     }

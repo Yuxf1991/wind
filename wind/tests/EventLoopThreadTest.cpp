@@ -34,7 +34,10 @@ public:
     Connection(int sockfd, EventLoop *loop)
         : sock_(sockfd), loop_(loop), channel_(std::make_shared<EventChannel>(sockfd, loop_))
     {}
-    ~Connection() noexcept { channel_->disableAll(); }
+    ~Connection() noexcept
+    {
+        channel_->disableAll();
+    }
 
     std::shared_ptr<EventChannel> getChannel() const { return channel_; }
 
@@ -52,7 +55,7 @@ public:
 
     ~EchoServer() noexcept
     {
-        loop_->runInLoop([this]() { acceptChannel_->disableAll(); });
+        acceptChannel_->disableAll();
     }
 
     void run(uint16_t port)
@@ -77,7 +80,7 @@ public:
 
         acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), loop_);
         acceptChannel_->setReadCallback([this](TimeStamp receivedTime) { acceptFunc(receivedTime); });
-        loop_->runInLoop([=]() { acceptChannel_->enableReading(); });
+        acceptChannel_->enableReading();
 
         while (true) {
             std::string tmp;

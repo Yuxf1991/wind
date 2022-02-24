@@ -45,18 +45,17 @@ EventLoop::EventLoop()
 
 EventLoop::~EventLoop() noexcept
 {
+    wakeUpChannel_->disableAll();
     stop();
+    t_currLoop = nullptr;
 }
 
 void EventLoop::stop() noexcept
 {
-    if (isInLoopThread()) {
-        wakeUpChannel_->disableAll();
-    } else if (running_) {
-        auto future = schedule([this]() { wakeUpChannel_->disableAll(); });
-        running_ = false;
+    running_ = false;
+
+    if (!isInLoopThread()) {
         wakeUp();
-        future.wait();
     }
 }
 
@@ -67,14 +66,12 @@ void EventLoop::updateChannel(std::shared_ptr<EventChannel> channel)
         return;
     }
 
-    assertInLoopThread();
-    poller_->updateChannel(std::move(channel));
+    runInLoop([this, channel]() { poller_->updateChannel(std::move(channel)); });
 }
 
 void EventLoop::removeChannel(int channelFd)
 {
-    assertInLoopThread();
-    poller_->removeChannel(channelFd);
+    runInLoop([=]() { poller_->removeChannel(channelFd); });
 }
 
 void EventLoop::execPendingFunctors()
@@ -115,29 +112,19 @@ void EventLoop::runInLoop(Functor func)
     }
 }
 
-void EventLoop::runAt(Functor func, TimeStamp dstTime)
+TimerId EventLoop::runAt(Functor func, TimeStamp dstTime)
 {
-    auto now = TimeStamp::now();
-    auto diff = timeDiff(dstTime, now);
-    if (diff < 0) {
-        runInLoop(func);
-    } else {
-        runAfter(func, static_cast<TimeType>(diff));
-    }
+    return timerManager_->addTimer(func, dstTime);
 }
 
-void EventLoop::runAfter(Functor func, TimeType delay)
+TimerId EventLoop::runAfter(Functor func, TimeType delay)
 {
-    if (delay == 0) {
-        runInLoop(func);
-    } else {
-        timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay));
-    }
+    return timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay));
 }
 
-void EventLoop::runEvery(Functor func, TimeType interval, TimeType delay)
+TimerId EventLoop::runEvery(Functor func, TimeType interval, TimeType delay)
 {
-    timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay), interval);
+    return timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay), interval);
 }
 
 void EventLoop::start()

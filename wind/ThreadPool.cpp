@@ -304,8 +304,8 @@ void ThreadPool::dump(std::string &out) const
         auto queueCapacity = worker->getQueueCapacity();
         double load = queueSize * 1.0 / queueCapacity * 100.0;
         out +=
-            (worker->name() + "  |   " + std::to_string(queueSize) + "  |   " + std::to_string(queueCapacity)
-             + "   |   " + std::to_string(load) + "    |   " + worker->readyTime().toFormattedString());
+            (worker->name() + "  |   " + std::to_string(queueSize) + "  |   " + std::to_string(queueCapacity) +
+             "   |   " + std::to_string(load) + "    |   " + worker->readyTime().toFormattedString());
         out += "\n";
     }
 }

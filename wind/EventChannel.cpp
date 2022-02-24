@@ -47,7 +47,6 @@ void EventChannel::assertInLoopThread() const
 
 void EventChannel::remove()
 {
-    assertInLoopThread();
     ASSERT(hasNoEvent());
     addedToLoop_ = false;
     eventLoop_->removeChannel(fd_);
@@ -55,10 +54,6 @@ void EventChannel::remove()
 
 void EventChannel::enableReading(bool toUpdate)
 {
-    if (isReading()) {
-        return;
-    }
-
     listeningEvents_ |= enum_cast(EventType::READ_EVNET);
 
     if (toUpdate) {
@@ -68,10 +63,6 @@ void EventChannel::enableReading(bool toUpdate)
 
 void EventChannel::disableReading(bool toUpdate)
 {
-    if (!isReading()) {
-        return;
-    }
-
     listeningEvents_ &= (~enum_cast(EventType::READ_EVNET));
 
     if (toUpdate) {
@@ -81,10 +72,6 @@ void EventChannel::disableReading(bool toUpdate)
 
 void EventChannel::enableWriting(bool toUpdate)
 {
-    if (isWriting()) {
-        return;
-    }
-
     listeningEvents_ |= enum_cast(EventType::WRITE_EVENT);
 
     if (toUpdate) {
@@ -94,10 +81,6 @@ void EventChannel::enableWriting(bool toUpdate)
 
 void EventChannel::disableWriting(bool toUpdate)
 {
-    if (!isWriting()) {
-        return;
-    }
-
     listeningEvents_ &= (~enum_cast(EventType::WRITE_EVENT));
 
     if (toUpdate) {
@@ -105,23 +88,17 @@ void EventChannel::disableWriting(bool toUpdate)
     }
 }
 
-void EventChannel::disableAll(bool toUpdate)
+void EventChannel::disableAll(bool toRemove)
 {
-    if (hasNoEvent()) {
-        return;
-    }
-
     listeningEvents_ = enum_cast(EventType::NONE);
 
-    if (toUpdate) {
+    if (toRemove) {
         remove();
     }
 }
 
 void EventChannel::update()
 {
-    assertInLoopThread();
-
     if (hasNoEvent()) {
         remove();
     } else {
@@ -132,7 +109,7 @@ void EventChannel::update()
 
 void EventChannel::handleEvent(TimeStamp receivedTime)
 {
-    eventLoop_->assertInLoopThread();
+    assertInLoopThread();
 
     if ((receivedEvents_ & EPOLLHUP) && !(receivedEvents_ & EPOLLIN)) {
         LOG_TRACE << "close event in channel " << fd_ << ".";
