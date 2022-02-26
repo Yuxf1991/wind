@@ -47,7 +47,7 @@ enum class EventType : uint32_t {
     EDGE_EVENT = EPOLLET,
 };
 
-// The EventChannel class not own the fd, so we must make sure than
+// The EventChannel class not own the fd, so we must make sure that
 // the fd is valid when an EventChannel object holds it.
 class EventChannel : public std::enable_shared_from_this<EventChannel>, NonCopyable {
 public:
@@ -112,7 +112,7 @@ public:
     void enableWriting(bool toUpdate = true);
     // @toUpdate: whether to update the channel in poller or not, true by default.
     void disableWriting(bool toUpdate = true);
-    // @toUpdate: whether to remove the channel in poller or not, true by default.
+    // @toRemove: whether to remove the channel in poller or not, true by default.
     void disableAll(bool toRemove = true);
 
     void update();
@@ -127,7 +127,7 @@ protected:
     uint32_t listeningEvents() const { return listeningEvents_; }
     void setRecevicedEvents(uint32_t events) { receivedEvents_ = events; }
 
-    int fd_;
+    int fd_ = -1;
     EventLoop *eventLoop_ = nullptr;
     std::atomic<bool> addedToLoop_ = false;
 

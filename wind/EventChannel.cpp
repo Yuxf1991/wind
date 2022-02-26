@@ -113,35 +113,39 @@ void EventChannel::handleEvent(TimeStamp receivedTime)
 
     if ((receivedEvents_ & EPOLLHUP) && !(receivedEvents_ & EPOLLIN)) {
         LOG_TRACE << "close event in channel " << fd_ << ".";
-        if (closeCallback_ != nullptr) {
-            closeCallback_();
+        auto closeCallback = getCloseCallback();
+        if (closeCallback != nullptr) {
+            closeCallback();
             LOG_DEBUG << "Remove channel fd " << fd_ << " from poller.";
-            eventLoop_->removeChannel(fd_);
+            disableAll();
             return;
         }
     }
 
     if (receivedEvents_ & EPOLLERR) {
         LOG_TRACE << "error event in channel " << fd_ << ".";
-        if (errorCallback_ != nullptr) {
-            errorCallback_();
+        auto errorCallback = getErrorCallback();
+        if (errorCallback != nullptr) {
+            errorCallback();
             LOG_DEBUG << "Remove channel fd " << fd_ << " from poller.";
-            eventLoop_->removeChannel(fd_);
+            disableAll();
             return;
         }
     }
 
     if (receivedEvents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
         LOG_TRACE << "read event in channel " << fd_ << ".";
-        if (readCallback_ != nullptr) {
-            readCallback_(receivedTime);
+        auto readCallback = getReadCallback();
+        if (readCallback != nullptr) {
+            readCallback(receivedTime);
         }
     }
 
     if (receivedEvents_ & EPOLLOUT) {
         LOG_TRACE << "write event in channel " << fd_ << ".";
-        if (writeCallback_ != nullptr) {
-            writeCallback_();
+        auto writeCallback = getWriteCallback();
+        if (writeCallback != nullptr) {
+            writeCallback();
         }
     }
 }
