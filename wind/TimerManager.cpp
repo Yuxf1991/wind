@@ -25,6 +25,7 @@
 #include <sys/timerfd.h>
 
 #include "EventLoop.h"
+#include "TimeStamp.h"
 
 namespace wind {
 namespace detail {
@@ -43,14 +44,12 @@ itimerspec generateTimerSpec(TimeStamp dstTime)
     itimerspec newValue;
     utils::memZero(&newValue, sizeof(newValue));
 
-    auto diffNanos = timeDiff(dstTime, TimeStamp::now());
-    if (diffNanos < 1000) {
-        // set minimum nanos to 1000 nanoseconds(1 us) to make sure the timer can be triggerd.
-        diffNanos = 1000;
-    }
+    auto diffMicros = timeDiff(dstTime, TimeStamp::now());
+    // set minimum diffMicros to 1 us to make sure the timer can be triggerd.
+    diffMicros = std::max(decltype(diffMicros)(1), diffMicros);
 
-    newValue.it_value.tv_sec = diffNanos / NANO_SECS_PER_SECOND;
-    newValue.it_value.tv_nsec = diffNanos % NANO_SECS_PER_SECOND;
+    newValue.it_value.tv_sec = diffMicros / MICRO_SECS_PER_SECOND;
+    newValue.it_value.tv_nsec = (diffMicros * NANO_SECS_PER_MICROSECOND) % NANO_SECS_PER_SECOND;
     return newValue;
 }
 } // namespace detail

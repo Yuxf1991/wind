@@ -28,7 +28,7 @@
 #include <unistd.h>
 
 namespace wind {
-using TimeType = std::uint64_t;
+using TimeType = int64_t;
 using ThreadId = pid_t;
 using ProcessId = pid_t;
 using std::size_t;

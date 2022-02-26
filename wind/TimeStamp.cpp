@@ -23,123 +23,73 @@
 #include "TimeStamp.h"
 
 #include <chrono>
-#include <inttypes.h>
+#include <iomanip>
 
 namespace wind {
 namespace detail {
-template <typename Duration>
-using SysTime = std::chrono::time_point<std::chrono::system_clock, Duration>;
-using SysNanoSeconds = SysTime<std::chrono::nanoseconds>;
-
-TimeType nanosecondsSinceEpoch()
+TimeType microSecondsSinceEpoch()
 {
-    SysNanoSeconds tmp = std::chrono::system_clock::now();
-    TimeType t = tmp.time_since_epoch().count();
-    return t;
+    auto tp = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now());
+    return tp.time_since_epoch().count();
 }
 } // namespace detail
 
 TimeStamp TimeStamp::now() noexcept
 {
-    return TimeStamp(detail::nanosecondsSinceEpoch());
+    return TimeStamp(detail::microSecondsSinceEpoch());
 }
 
-std::string TimeStamp::toString(TimePrecision precision) const noexcept
+string TimeStamp::toString(TimePrecision precision) const noexcept
 {
-    char buf[32] = {};
-    TimeType seconds = nanoSecondsSinceEpoch_ / NANO_SECS_PER_SECOND;
+    TimeType seconds = microSecondsSinceEpoch_ / MICRO_SECS_PER_SECOND;
+    TimeType micros = microSecondsSinceEpoch_ % MICRO_SECS_PER_SECOND;
+
+    std::stringstream ss;
+    ss << seconds << "." << std::setfill('0');
     switch (precision) {
         case TimePrecision::SECOND: {
-            snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%03" PRId64 "", seconds, 0l);
+            ss << std::setw(3) << 0;
             break;
         }
         case TimePrecision::MILLI: {
-            TimeType millis = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MILLISECOND;
-            snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%03" PRId64 "", seconds, millis);
+            TimeType millis = micros / MICRO_SECS_PER_MILLISECOND;
+            ss << std::setw(3) << millis;
             break;
         }
         case TimePrecision::MICRO: {
-            TimeType micros = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MICROSECOND;
-            snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%06" PRId64 "", seconds, micros);
-            break;
-        }
-        case TimePrecision::NANO: {
-            TimeType nanos = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND);
-            snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%09" PRId64 "", seconds, nanos);
+            ss << std::setw(6) << micros;
             break;
         }
         default: break;
     }
-    return buf;
+
+    return ss.str();
 }
 
-std::string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
+string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
 {
-    char buf[64] = {};
-    time_t seconds = nanoSecondsSinceEpoch_ / NANO_SECS_PER_SECOND;
-    struct tm *tm_time = std::localtime(&seconds);
+    TimeType seconds = microSecondsSinceEpoch_ / MICRO_SECS_PER_SECOND;
+    TimeType micros = microSecondsSinceEpoch_ % MICRO_SECS_PER_SECOND;
+
+    std::stringstream ss;
+    ss << std::put_time(::localtime(&seconds), "%F %X") << "." << std::setfill('0');
     switch (precision) {
         case TimePrecision::SECOND: {
-            snprintf(
-                buf,
-                sizeof(buf),
-                "%4d-%02d-%02d %02d:%02d:%02d.%03d",
-                tm_time->tm_year + 1900,
-                tm_time->tm_mon + 1,
-                tm_time->tm_mday,
-                tm_time->tm_hour,
-                tm_time->tm_min,
-                tm_time->tm_sec,
-                0);
+            ss << std::setw(3) << 0;
             break;
         }
         case TimePrecision::MILLI: {
-            int millis = static_cast<int>(nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MILLISECOND;
-            snprintf(
-                buf,
-                sizeof(buf),
-                "%4d-%02d-%02d %02d:%02d:%02d.%03d",
-                tm_time->tm_year + 1900,
-                tm_time->tm_mon + 1,
-                tm_time->tm_mday,
-                tm_time->tm_hour,
-                tm_time->tm_min,
-                tm_time->tm_sec,
-                millis);
+            TimeType millis = micros / MICRO_SECS_PER_MILLISECOND;
+            ss << std::setw(3) << millis;
             break;
         }
         case TimePrecision::MICRO: {
-            int micros = static_cast<int>(nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND) / NANO_SECS_PER_MICROSECOND;
-            snprintf(
-                buf,
-                sizeof(buf),
-                "%4d-%02d-%02d %02d:%02d:%02d.%06d",
-                tm_time->tm_year + 1900,
-                tm_time->tm_mon + 1,
-                tm_time->tm_mday,
-                tm_time->tm_hour,
-                tm_time->tm_min,
-                tm_time->tm_sec,
-                micros);
-            break;
-        }
-        case TimePrecision::NANO: {
-            TimeType nanos = (nanoSecondsSinceEpoch_ % NANO_SECS_PER_SECOND);
-            snprintf(
-                buf,
-                sizeof(buf),
-                "%4d-%02d-%02d %02d:%02d:%02d.%09ld",
-                tm_time->tm_year + 1900,
-                tm_time->tm_mon + 1,
-                tm_time->tm_mday,
-                tm_time->tm_hour,
-                tm_time->tm_min,
-                tm_time->tm_sec,
-                nanos);
+            ss << std::setw(6) << micros;
             break;
         }
         default: break;
     }
-    return buf;
+
+    return ss.str();
 }
 } // namespace wind

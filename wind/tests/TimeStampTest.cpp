@@ -31,8 +31,19 @@ using std::endl;
 TEST(TimeStampTest, NowTest)
 {
     auto t = wind::TimeStamp::now();
-    cout << "nanoSecondsSinceEpoch: " << t.get() << endl;
-    cout << "toString: " << t.toString() << endl;
-    cout << "toFormattedString: " << t.toFormattedString() << endl;
+    cout << "microsecondsSinceEpoch: " << t.get() << endl;
+    cout << "microsecondsSinceEpoch: " << t.micros() << endl;
+    cout << "millisecondsSinceEpoch: " << t.millis() << endl;
+    cout << "secondsSinceEpoch: " << t.seconds() << endl;
+
+    cout << "toString(default): " << t.toString() << endl;
+    cout << "toString(micro): " << t.toString(wind::TimePrecision::MICRO) << endl;
+    cout << "toString(milli): " << t.toString(wind::TimePrecision::MILLI) << endl;
+    cout << "toString(second): " << t.toString(wind::TimePrecision::SECOND) << endl;
+
+    cout << "toFormattedString(default): " << t.toFormattedString() << endl;
+    cout << "toFormattedString(micro): " << t.toFormattedString(wind::TimePrecision::MICRO) << endl;
+    cout << "toFormattedString(milli): " << t.toFormattedString(wind::TimePrecision::MILLI) << endl;
+    cout << "toFormattedString(second): " << t.toFormattedString(wind::TimePrecision::SECOND) << endl;
     EXPECT_GT(t.get(), 0);
 }

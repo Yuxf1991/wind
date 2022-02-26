@@ -33,7 +33,7 @@ constexpr int NANO_SECS_PER_MICROSECOND = 1000;
 constexpr int NANO_SECS_PER_MILLISECOND = NANO_SECS_PER_MICROSECOND * MICRO_SECS_PER_MILLISECOND;
 constexpr int NANO_SECS_PER_SECOND = NANO_SECS_PER_MILLISECOND * MILLI_SECS_PER_SECOND;
 
-enum class TimePrecision { SECOND, MILLI, MICRO, NANO };
+enum class TimePrecision { SECOND, MILLI, MICRO };
 
 // copyable
 class TimeStamp {
@@ -41,15 +41,15 @@ public:
     TimeStamp() noexcept = default;
     ~TimeStamp() noexcept = default;
 
-    constexpr explicit TimeStamp(TimeType nanoSecondsSinceEpoch) noexcept
-        : nanoSecondsSinceEpoch_(nanoSecondsSinceEpoch)
+    constexpr explicit TimeStamp(TimeType microSecondsSinceEpoch) noexcept
+        : microSecondsSinceEpoch_(microSecondsSinceEpoch)
     {}
 
     static TimeStamp now() noexcept;
+    static TimeStamp invalid() noexcept { return TimeStamp(); }
 
-    TimeType get() const noexcept { return nanoSecondsSinceEpoch_; }
-    TimeType nanos() const noexcept { return get(); }
-    TimeType micros() const noexcept { return nanos() / NANO_SECS_PER_MICROSECOND; }
+    TimeType get() const noexcept { return microSecondsSinceEpoch_; }
+    TimeType micros() const noexcept { return get(); }
     TimeType millis() const noexcept { return micros() / MICRO_SECS_PER_MILLISECOND; }
     TimeType seconds() const noexcept { return millis() / MILLI_SECS_PER_SECOND; }
 
@@ -57,7 +57,7 @@ public:
     string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
 
 private:
-    TimeType nanoSecondsSinceEpoch_ = 0;
+    TimeType microSecondsSinceEpoch_ = 0;
 };
 
 inline bool operator==(TimeStamp lhs, TimeStamp rhs)
@@ -90,7 +90,7 @@ inline bool operator!=(TimeStamp lhs, TimeStamp rhs)
     return lhs.get() != rhs.get();
 }
 
-// return two timeStamps' diff in nanos
+// return two timeStamps' diff in micros
 inline int64_t timeDiff(TimeStamp lhs, TimeStamp rhs)
 {
     return lhs.get() - rhs.get();
@@ -100,7 +100,7 @@ inline int64_t timeDiff(TimeStamp lhs, TimeStamp rhs)
 // @return: timestamp t + micro seconds
 inline TimeStamp timeAdd(TimeStamp t, TimeType micros)
 {
-    return TimeStamp(t.get() + micros * NANO_SECS_PER_MICROSECOND);
+    return TimeStamp(t.micros() + micros);
 }
 } // namespace wind
 #endif // WIND_TIMESTAMP_H

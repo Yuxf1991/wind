@@ -34,10 +34,7 @@ public:
     Connection(int sockfd, EventLoop *loop)
         : sock_(sockfd), loop_(loop), channel_(std::make_shared<EventChannel>(sockfd, loop_))
     {}
-    ~Connection() noexcept
-    {
-        channel_->disableAll();
-    }
+    ~Connection() noexcept { channel_->disableAll(); }
 
     std::shared_ptr<EventChannel> getChannel() const { return channel_; }
 
@@ -53,10 +50,7 @@ public:
         : servSock_(Socket::createNonBlockSocket(AF_INET, SOCK_STREAM, 0)), loopThread_("EchoServerEventLoopThread")
     {}
 
-    ~EchoServer() noexcept
-    {
-        acceptChannel_->disableAll();
-    }
+    ~EchoServer() noexcept { acceptChannel_->disableAll(); }
 
     void run(uint16_t port)
     {

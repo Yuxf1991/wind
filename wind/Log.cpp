@@ -39,13 +39,14 @@ inline LogLevel defaultLogLevel()
 
 inline string logLevelToString(LogLevel level)
 {
-    static std::unordered_map<LogLevel, string> logLevelToStringMap = {
-        {LogLevel::TRACE, "TRACE"},
-        {LogLevel::INFO, "INFO"},
-        {LogLevel::DEBUG, "DEBUG"},
-        {LogLevel::WARN, "WARN"},
-        {LogLevel::ERROR, "ERROR"}};
-    return logLevelToStringMap[level];
+    switch (level) {
+        case LogLevel::TRACE: return "TRACE";
+        case LogLevel::DEBUG: return "DEBUG";
+        case LogLevel::INFO: return "INFO";
+        case LogLevel::WARN: return "WARN";
+        case LogLevel::ERROR: return "ERROR";
+        default: return "UNKNOWN";
+    }
 }
 
 inline LogLevel getLogLevelFromEnv()
