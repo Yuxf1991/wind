@@ -86,8 +86,8 @@ void Socket::connect(const SockAddrInet &addr) const
 {
     int ret = TEMP_FAILURE_RETRY(::connect(fd_.get(), addr.get(), addr.len()));
     if (ret < 0) {
-        LOG_SYS_FATAL << "Socket Fd(" << fd_.get() << ") connect to " << addr.toString() << " err: " << strerror(errno)
-                      << "!";
+        LOG_SYS_FATAL << "Socket Fd(" << fd_.get() << ") connect to " << addr.ipPortString()
+                      << " err: " << strerror(errno) << "!";
     }
 }
 } // namespace wind

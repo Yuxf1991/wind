@@ -28,24 +28,39 @@
 #include <netinet/in.h>
 
 namespace wind {
+namespace sockets {
+bool fromIpPortV4(const string &ip, in_port_t port, sockaddr_in *outAddr);
+bool fromIpPortV6(const string &ip, in_port_t port, sockaddr_in6 *outAddr);
+string toIpStringV4(const sockaddr_in &addrV4);
+string toIpStringV6(const sockaddr_in6 &addrV6);
+} // namespace sockets
+
 // copyable
 class SockAddrInet {
 public:
-    SockAddrInet();
-    SockAddrInet(uint32_t ip, uint16_t port);
-    SockAddrInet(const string &ip, uint16_t port);
+    // For listening address usually if all values are default.
+    explicit SockAddrInet(in_port_t port = 0, bool ipv6 = false, bool onlyLoopBack = false) noexcept;
+    SockAddrInet(const string &ip, in_port_t port, bool ipv6 = false);
     ~SockAddrInet() noexcept = default;
 
-    const sockaddr *get() const { return reinterpret_cast<const sockaddr *>(&addr_); }
+    const sockaddr *get() const { return reinterpret_cast<const sockaddr *>(&addr_.v6); }
 
     sockaddr *data() { return const_cast<sockaddr *>(get()); }
 
-    socklen_t len() const { return static_cast<socklen_t>(sizeof(addr_)); }
+    socklen_t len() const { return static_cast<socklen_t>(sizeof(addr_.v6)); }
 
-    string toString() const;
+    sa_family_t family() const { return get()->sa_family; }
+    string ip() const;
+    in_port_t port() const;
+    string portString() const;
+
+    string ipPortString() const;
 
 private:
-    sockaddr_in addr_;
+    union Addr {
+        sockaddr_in v4;
+        sockaddr_in6 v6;
+    } addr_;
 };
 } // namespace wind
 #endif // WIND_SOCKET_ADDR_INET_H

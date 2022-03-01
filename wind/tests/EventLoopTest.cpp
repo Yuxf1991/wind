@@ -58,7 +58,7 @@ public:
         loop_.runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
 
         // init socket
-        SockAddrInet secvAddr(INADDR_ANY, port);
+        SockAddrInet secvAddr(port);
         servSock_.bind(secvAddr);
         servSock_.listen();
 
@@ -75,7 +75,7 @@ private:
         SockAddrInet clientAddr;
         int clientFd = servSock_.accept(clientAddr);
         LOG_INFO << receivedTime.toFormattedString() << " accept client: fd(" << clientFd << "), addr("
-                 << clientAddr.toString() << ").";
+                 << clientAddr.ipPortString() << ").";
 
         auto newConn = std::make_shared<Connection>(clientFd, &loop_);
         auto channel = newConn->getChannel();
