@@ -25,7 +25,7 @@
 #include "base/Log.h"
 
 namespace wind {
-namespace network {
+namespace conn {
 namespace detail {
 int nonBlockSocketCreate(int domain, int type, int protocol)
 {
@@ -91,5 +91,5 @@ void Socket::connect(const SockAddrInet &addr) const
                       << " err: " << strerror(errno) << "!";
     }
 }
-} // namespace network
+} // namespace conn
 } // namespace wind

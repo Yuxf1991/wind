@@ -28,7 +28,7 @@
 #include "SockAddrInet.h"
 
 namespace wind {
-namespace network {
+namespace conn {
 class Socket : base::NonCopyable {
 public:
     // Will call abort() if create socket failed.
@@ -51,6 +51,6 @@ public:
 private:
     base::UniqueFd fd_;
 };
-} // namespace network
+} // namespace conn
 } // namespace wind
 #endif // WIND_SOCKET_H

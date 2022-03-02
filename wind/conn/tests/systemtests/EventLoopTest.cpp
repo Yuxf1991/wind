@@ -20,16 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#define LOG_TAG "EventLoopThreadTest"
-#include "base/EventLoopThread.h"
+#define LOG_TAG "EventLoopTest"
+#include "base/EventLoop.h"
 
 #include "Socket.h"
 
-#include <iostream>
-
 using namespace wind;
 using namespace wind::base;
-using namespace wind::network;
+using namespace wind::conn;
 
 class Connection {
 public:
@@ -48,45 +46,29 @@ private:
 
 class EchoServer {
 public:
-    EchoServer()
-        : servSock_(Socket::createNonBlockSocket(AF_INET6, SOCK_STREAM, 0)), loopThread_("EchoServerEventLoopThread")
-    {}
+    EchoServer() : servSock_(Socket::createNonBlockSocket(AF_INET, SOCK_STREAM, 0)), loop_() {}
 
     ~EchoServer() noexcept { acceptChannel_->disableAll(); }
 
     void run(uint16_t port)
     {
-        loop_ = loopThread_.start();
-        if (loop_ == nullptr) {
-            LOG_ERROR << "Failed to create EventLoopThread!";
-            return;
-        }
-
         // tick every 5s, delayed 1s.
-        loop_->runEvery(
+        loop_.runEvery(
             []() { LOG_INFO << "main tick."; }, 5000 * MICRO_SECS_PER_MILLISECOND, 1000 * MICRO_SECS_PER_MILLISECOND);
 
         // run after 5s.
-        loop_->runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
+        loop_.runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
 
         // init socket
-        SockAddrInet secvAddr(port, true);
+        SockAddrInet secvAddr(port);
         servSock_.bind(secvAddr);
-        LOG_INFO << "Listen on: " << secvAddr.ipPortString() << ".";
         servSock_.listen();
 
-        acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), loop_);
+        acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), &loop_);
         acceptChannel_->setReadCallback([this](TimeStamp receivedTime) { acceptFunc(receivedTime); });
         acceptChannel_->enableReading();
 
-        while (true) {
-            std::string tmp;
-            getline(std::cin, tmp);
-            if (tmp.size() == 1 && std::toupper(tmp[0]) == 'Q') {
-                break;
-            }
-            loop_->runAfter([]() { LOG_INFO << "sub tick."; }, 100 * MICRO_SECS_PER_MILLISECOND);
-        }
+        loop_.start();
     }
 
 private:
@@ -97,7 +79,7 @@ private:
         LOG_INFO << receivedTime.toFormattedString() << " accept client: fd(" << clientFd << "), addr("
                  << clientAddr.ipPortString() << ").";
 
-        auto newConn = std::make_shared<Connection>(clientFd, loop_);
+        auto newConn = std::make_shared<Connection>(clientFd, &loop_);
         auto channel = newConn->getChannel();
         channel->setReadCallback([this, clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
         channel->enableReading();
@@ -128,8 +110,7 @@ private:
     void removeClient(int fd) { clients_.erase(fd); }
 
     Socket servSock_;
-    EventLoopThread loopThread_;
-    EventLoop *loop_ = nullptr;
+    EventLoop loop_;
 
     std::shared_ptr<EventChannel> acceptChannel_;
     std::unordered_map<int, std::shared_ptr<Connection>> clients_;
@@ -140,7 +121,7 @@ int main()
     LOG_INFO << "EventLoopThreadTest started.";
 
     EchoServer server;
-    server.run(5679);
+    server.run(4567);
 
     return 0;
 }

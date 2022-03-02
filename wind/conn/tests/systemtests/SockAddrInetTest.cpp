@@ -25,7 +25,7 @@
 
 using namespace std;
 using namespace wind;
-using namespace wind::network;
+using namespace wind::conn;
 
 int main()
 {

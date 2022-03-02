@@ -28,7 +28,7 @@
 #include <netinet/in.h>
 
 namespace wind {
-namespace network {
+namespace conn {
 namespace sockets {
 bool fromIpPortV4(const string &ip, in_port_t port, sockaddr_in *outAddr);
 bool fromIpPortV6(const string &ip, in_port_t port, sockaddr_in6 *outAddr);
@@ -39,7 +39,7 @@ string toIpStringV6(const sockaddr_in6 &addrV6);
 // copyable
 class SockAddrInet {
 public:
-    // For listening address usually if all values are default.
+    // Mostly for listening address if all values are default.
     explicit SockAddrInet(in_port_t port = 0, bool ipv6 = false, bool onlyLoopBack = false) noexcept;
     SockAddrInet(const string &ip, in_port_t port, bool ipv6 = false);
     ~SockAddrInet() noexcept = default;
@@ -63,6 +63,6 @@ private:
         sockaddr_in6 v6;
     } addr_;
 };
-} // namespace network
+} // namespace conn
 } // namespace wind
 #endif // WIND_SOCKET_ADDR_INET_H

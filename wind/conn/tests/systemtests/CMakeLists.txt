@@ -20,15 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+link_libraries(wind_conn)
 
-set(WIND_NET_SRC
-    SockAddrInet.cpp
-    Socket.cpp)
-
-add_library(wind_net ${WIND_NET_SRC})
-target_link_libraries(wind_net wind_base)
-
-add_subdirectory(tests)
+add_executable(EventLoopTest EventLoopTest.cpp)
+add_executable(EventLoopThreadTest EventLoopThreadTest.cpp)
+add_executable(SockAddrInetTest SockAddrInetTest.cpp)

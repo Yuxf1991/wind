@@ -31,7 +31,7 @@
 #include "base/Log.h"
 
 namespace wind {
-namespace network {
+namespace conn {
 namespace sockets {
 bool fromIpPortV4(const string &ip, in_port_t port, sockaddr_in *outAddr)
 {
@@ -129,5 +129,5 @@ string SockAddrInet::ipPortString() const
 {
     return ip() + ":" + portString();
 }
-} // namespace network
+} // namespace conn
 } // namespace wind
