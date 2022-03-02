@@ -20,10 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# utils
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+link_libraries(wind_base)
 
-add_subdirectory(base)
-add_subdirectory(network)
+add_executable(LogStreamTest LogStreamTest.cpp)
+add_executable(LogTest LogTest.cpp)
+add_executable(ThreadPoolTest ThreadPoolTest.cpp)
+add_executable(TimerTest TimerTest.cpp)

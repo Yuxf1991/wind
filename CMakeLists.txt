@@ -31,11 +31,8 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
         add_compile_options(-pg)
 endif()
 
-include_directories(
-        wind
-        third_party/googletest/googletest/include
-        third_party/googletest/googlemock/include
-)
+include_directories(wind)
 
-add_subdirectory(third_party)
+add_subdirectory(thirdparty)
 add_subdirectory(wind)
+add_subdirectory(samples)

@@ -20,10 +20,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# utils
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_subdirectory(base)
-add_subdirectory(network)
+set(WIND_BASE_SRC
+    CurrentThread.cpp
+    EventChannel.cpp
+    EventPoller.cpp
+    EventLoop.cpp
+    EventLoopThread.cpp
+    LogStream.cpp
+    Log.cpp
+    ThreadPool.cpp
+    TimeStamp.cpp
+    Timer.cpp
+    TimerManager.cpp
+    Utils.cpp
+)
+
+add_library(wind_base ${WIND_BASE_SRC})
+target_link_libraries(wind_base pthread)
+
+add_subdirectory(tests)

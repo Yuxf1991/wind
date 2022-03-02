@@ -20,10 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# utils
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+link_libraries(wind_net)
 
-add_subdirectory(base)
-add_subdirectory(network)
+add_executable(EventLoopTest EventLoopTest.cpp)
+add_executable(EventLoopThreadTest EventLoopThreadTest.cpp)
+add_executable(SockAddrInetTest SockAddrInetTest.cpp)

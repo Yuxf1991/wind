@@ -20,10 +20,4 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# utils
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
 
-add_subdirectory(base)
-add_subdirectory(network)

@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# utils
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+link_libraries(gtest_main wind_base)
 
-add_subdirectory(base)
-add_subdirectory(network)
+add_executable(TimeStampTest TimeStampTest.cpp)
+add_executable(CurrentThreadTest CurrentThreadTest.cpp)
+add_executable(StackBufferTest StackBufferTest.cpp)
+add_executable(UniqueFdTest UniqueFdTest.cpp)
+add_executable(SingletonTest SingletonTest.cpp)
