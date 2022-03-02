@@ -103,7 +103,7 @@ std::vector<TimerEntry> TimerManager::getExpiredTimers(TimeStamp receivedTime)
     std::vector<TimerEntry> expiredTimers;
     TimerEntry pivot = std::make_pair(receivedTime, std::make_shared<Timer>(nullptr, TimeStamp()));
     auto it = timers_.lower_bound(pivot);
-    ASSERT(receivedTime < it->first || it == timers_.cend());
+    ASSERT(receivedTime <= it->first || it == timers_.cend());
     std::copy(timers_.begin(), it, back_inserter(expiredTimers));
     timers_.erase(timers_.begin(), it);
 
