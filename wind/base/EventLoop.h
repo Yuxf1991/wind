@@ -79,6 +79,7 @@ public:
     // interval in micro seconds, 0 means only run once.
     TimerId runAfter(Functor func, TimeType delay);
     TimerId runEvery(Functor func, TimeType interval, TimeType delay = 0);
+    void cancel(const TimerId &timerId);
 
     static EventLoop *eventLoopOfCurrThread();
 

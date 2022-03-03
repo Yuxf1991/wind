@@ -37,7 +37,8 @@ uint64_t genSequenceId()
 } // namespace detail
 
 Timer::Timer(TimerCallback callback, TimeStamp expireTime, TimeType interval)
-    : cb_(callback), expireTime_(expireTime), interval_(interval), repeat_(interval > 0), id_(detail::genSequenceId())
+    : cb_(callback), expireTime_(expireTime), interval_(interval), repeat_(interval > 0),
+      id_(detail::genSequenceId(), this)
 {}
 
 void Timer::execute()

@@ -63,7 +63,7 @@ public:
         }
 
         // tick every 5s, delayed 1s.
-        loop_->runEvery(
+        auto mainTickTimer = loop_->runEvery(
             []() { LOG_INFO << "main tick."; }, 5000 * MICRO_SECS_PER_MILLISECOND, 1000 * MICRO_SECS_PER_MILLISECOND);
 
         // run after 5s.
@@ -84,6 +84,10 @@ public:
             getline(std::cin, tmp);
             if (tmp.size() == 1 && std::toupper(tmp[0]) == 'Q') {
                 break;
+            }
+            // stop tick
+            if (tmp.size() == 1 && std::toupper(tmp[0]) == 'C') {
+                loop_->cancel(mainTickTimer);
             }
             loop_->runAfter([]() { LOG_INFO << "sub tick."; }, 100 * MICRO_SECS_PER_MILLISECOND);
         }

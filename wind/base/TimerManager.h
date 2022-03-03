@@ -27,13 +27,16 @@
 #include "UniqueFd.h"
 
 #include <set>
+#include <unordered_map>
 
 #include "Timer.h"
 
 namespace wind {
 namespace base {
-using TimerEntry = std::pair<TimeStamp, std::shared_ptr<Timer>>;
-using TimerSet = std::set<TimerEntry>;
+using TimerPtr = std::unique_ptr<Timer>;
+using TimerMap = std::unordered_map<TimerId, TimerPtr>; // To hold timers, manager the timers' onwership.
+using TimerEntry = std::pair<TimeStamp, TimerId>;       // Make sure every TimerEntry is unique.
+using TimerEntrySet = std::set<TimerEntry>;             // To sort timers ordered by expireTime
 
 class EventLoop;
 
@@ -48,10 +51,14 @@ public:
     // @return: TimerId
     TimerId addTimer(TimerCallback callback, TimeStamp expireTime, TimeType interval = 0);
 
+    // @timerId: TimerId to cancel
+    // can only be called in loop thread
+    void cancelTimerInLoop(const TimerId &timerId);
+
 private:
     void assertInLoopThread();
 
-    void addTimerInLoop(std::shared_ptr<Timer> timer);
+    void addTimerInLoop(std::unique_ptr<Timer> &&timer);
     std::vector<TimerEntry> getExpiredTimers(TimeStamp receivedTime);
 
     void handleRead(TimeStamp receivedTime);
@@ -62,7 +69,8 @@ private:
     UniqueFd timerfd_;
     std::shared_ptr<EventChannel> timerfdChannel_;
 
-    TimerSet timers_;
+    TimerMap timers_;
+    TimerEntrySet timerEntries_;
 };
 } // namespace base
 } // namespace wind

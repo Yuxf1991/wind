@@ -124,6 +124,11 @@ TimerId EventLoop::runEvery(Functor func, TimeType interval, TimeType delay)
     return timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay), interval);
 }
 
+void EventLoop::cancel(const TimerId &timerId)
+{
+    runInLoop([this, &timerId]() { timerManager_->cancelTimerInLoop(timerId); });
+}
+
 void EventLoop::start()
 {
     assertInLoopThread();

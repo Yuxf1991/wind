@@ -22,10 +22,16 @@
 
 #include "TimerManager.h"
 
+#include <algorithm>
+#include <iterator>
 #include <sys/timerfd.h>
+#include <utility>
 
 #include "EventLoop.h"
+#include "Log.h"
 #include "TimeStamp.h"
+#include "TimerId.h"
+#include "Utils.h"
 
 namespace wind {
 namespace base {
@@ -71,24 +77,52 @@ TimerManager::~TimerManager() noexcept
 TimerId TimerManager::addTimer(TimerCallback callback, TimeStamp expireTime, TimeType interval)
 {
     auto future = loop_->schedule([=, cb(std::move(callback))]() mutable -> TimerId {
-        auto newTimer = std::make_shared<Timer>(std::move(cb), expireTime, interval);
-        addTimerInLoop(newTimer);
-        return newTimer->id();
+        auto newTimer = std::make_unique<Timer>(std::move(cb), expireTime, interval);
+        TimerId id = newTimer->id();
+        addTimerInLoop(std::move(newTimer));
+        return id;
     });
     return future.get();
 }
 
-void TimerManager::addTimerInLoop(std::shared_ptr<Timer> timer)
+void TimerManager::addTimerInLoop(std::unique_ptr<Timer> &&timer)
 {
     ASSERT(timer != nullptr);
     assertInLoopThread();
 
     TimeStamp expireTime = timer->expireTime();
-    bool needToResetTimerFd = (timers_.empty() || timers_.cbegin()->first > expireTime);
-    timers_.insert(std::make_pair(expireTime, std::move(timer)));
+    bool needToResetTimerFd = (timerEntries_.empty() || expireTime < timerEntries_.cbegin()->first);
+
+    TimerId timerId = timer->id();
+    timerEntries_.insert(std::make_pair(expireTime, timerId));
+    timers_[timerId] = std::move(timer);
 
     if (needToResetTimerFd) {
         timerfdReset(expireTime);
+    }
+}
+
+void TimerManager::cancelTimerInLoop(const TimerId &timerId)
+{
+    assertInLoopThread();
+
+    auto timer = timerId.timer;
+    if (timer == nullptr) {
+        return;
+    }
+
+    auto timerEntry = std::make_pair(timer->expireTime(), timerId);
+    if (timers_.count(timerId) == 0 || timerEntries_.count(timerEntry) == 0) {
+        return;
+    }
+
+    LOG_DEBUG << "Cancel Timer(id: " << timerId.id << ").";
+    bool needToResetTimerFd = (timerEntry == *timerEntries_.cbegin());
+    timers_.erase(timerId);
+    timerEntries_.erase(timerEntry);
+
+    if (needToResetTimerFd) {
+        timerfdReset(timerEntries_.cbegin()->first);
     }
 }
 
@@ -101,11 +135,12 @@ void TimerManager::assertInLoopThread()
 std::vector<TimerEntry> TimerManager::getExpiredTimers(TimeStamp receivedTime)
 {
     std::vector<TimerEntry> expiredTimers;
-    TimerEntry pivot = std::make_pair(receivedTime, std::make_shared<Timer>(nullptr, TimeStamp()));
-    auto it = timers_.lower_bound(pivot);
-    ASSERT(receivedTime <= it->first || it == timers_.cend());
-    std::copy(timers_.begin(), it, back_inserter(expiredTimers));
-    timers_.erase(timers_.begin(), it);
+
+    TimerEntry pivot = std::make_pair(receivedTime, TimerId(0, nullptr));
+    auto it = timerEntries_.lower_bound(pivot);
+    ASSERT(receivedTime <= it->first || it == timerEntries_.cend());
+    std::copy(timerEntries_.begin(), it, std::back_inserter(expiredTimers));
+    timerEntries_.erase(timerEntries_.begin(), it);
 
     return expiredTimers;
 }
@@ -117,16 +152,21 @@ void TimerManager::handleRead(TimeStamp receivedTime)
 
     {
         auto expiredTimers = getExpiredTimers(receivedTime);
-        for (auto &[expiredTime, timer] : expiredTimers) {
+        for (const auto &[_, timerId] : expiredTimers) {
+            ASSERT(timers_.count(timerId) > 0);
+            auto &timer = timers_.at(timerId);
             ASSERT(timer != nullptr);
-            timer->execute(); // implicit reset timer's expireTime in execute() if it is repeated.
+            timer->execute(); // Will implicitly restart the timer if it is repeat.
+
             if (timer->isRepeat()) {
-                timers_.insert(std::make_pair(timer->expireTime(), timer));
+                timerEntries_.insert(std::make_pair(timer->expireTime(), timerId));
+            } else {
+                timers_.erase(timerId);
             }
         }
     }
 
-    auto nextExpiredTime = timers_.cbegin()->first;
+    auto nextExpiredTime = timerEntries_.cbegin()->first;
     timerfdReset(nextExpiredTime);
 }
 

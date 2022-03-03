@@ -20,44 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TIMER_H
-#define WIND_TIMER_H
+#ifndef WIND_TIMER_ID_H
+#define WIND_TIMER_ID_H
 
-#include <functional>
-
-#include "NonCopyable.h"
-#include "TimerId.h"
-#include "TimeStamp.h"
+#include "Types.h"
 
 namespace wind {
 namespace base {
-using TimerCallback = std::function<void()>;
-
-class Timer : NonCopyable {
-public:
-    // @callback: TimerCallback
-    // @expireTime: expire TimeStamp
-    // @interval: interval in micro seconds, 0 for only run once.
-    Timer(TimerCallback callback, TimeStamp expireTime, TimeType interval = 0);
-    ~Timer() noexcept = default;
-
-    TimerId id() const { return id_; }
-    bool isRepeat() const { return repeat_; }
-
-    TimeStamp expireTime() const { return expireTime_; }
-
-    void execute();
-
-private:
-    // only valid when the timer is repeated.
-    void restart();
-
-    TimerCallback cb_;
-    TimeStamp expireTime_;
-    TimeType interval_ = 0;
-    bool repeat_ = false;
-    TimerId id_;
+class Timer;
+struct TimerId {
+    TimerId(uint64_t id, Timer *timer) : id(id), timer(timer) {}
+    uint64_t id = 0;
+    Timer *timer = nullptr;
+    bool operator==(const TimerId &other) const { return id == other.id && timer == other.timer; }
+    bool operator<(const TimerId &other) const { return id < other.id || timer < other.timer; }
 };
 } // namespace base
 } // namespace wind
-#endif // WIND_TIMER_H
+
+namespace std {
+template <>
+struct hash<typename wind::base::TimerId> {
+    size_t operator()(wind::base::TimerId timerId) const
+    {
+        return static_cast<size_t>(timerId.id ^ reinterpret_cast<uintptr_t>(timerId.timer));
+    }
+};
+} // namespace std
+#endif // WIND_TIMER_ID_H
