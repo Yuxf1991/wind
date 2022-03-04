@@ -42,12 +42,27 @@ public:
 
     int fd() const { return fd_.get(); }
 
-    void bind(const SockAddrInet &addr) const;
-    void listen() const;
+    // will call abort() if bind failed.
+    void bindOrDie(const SockAddrInet &addr) const;
+    // will call abort() if listen failed.
+    void listenOrDie() const;
+
+    // success: return valid fd
+    // failure: return -1
     int accept(SockAddrInet &peerAddr) const;
-    void connect(const SockAddrInet &addr) const;
+    // success: return 0
+    // failure: return -1
+    int connect(const SockAddrInet &addr) const;
+
+    // will check ret value in this func and log err info, same as follows
+    void setTcpNoDelay(bool on); // set TCP_NODELAY of the socket (disable/enable Nagle's algorithm).
+    void setKeepAlive(bool on);  // set SO_KEEPALIVE
+    void setReusePort(bool on);  // set SO_REUSEPORT
+    void setReuseAddr(bool on);  // set SO_REUSEADDR
 
 private:
+    int setSocketOpt(int level, int optName, bool on);
+
     base::UniqueFd fd_;
 };
 } // namespace conn

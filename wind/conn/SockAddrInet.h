@@ -43,11 +43,11 @@ public:
     SockAddrInet(const string &ip, in_port_t port, bool ipv6 = false);
     ~SockAddrInet() noexcept = default;
 
-    const sockaddr *get() const { return reinterpret_cast<const sockaddr *>(&addr_.v6); }
+    const sockaddr *get() const { return reinterpret_cast<const sockaddr *>(&addr_); }
 
     sockaddr *data() { return const_cast<sockaddr *>(get()); }
 
-    socklen_t len() const { return static_cast<socklen_t>(sizeof(addr_.v6)); }
+    socklen_t len() const { return static_cast<socklen_t>(sizeof(addr_)); }
 
     sa_family_t family() const { return get()->sa_family; }
     string ip() const;

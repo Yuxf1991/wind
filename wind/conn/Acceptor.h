@@ -23,11 +23,7 @@
 #pragma once
 
 #include "base/EventLoop.h"
-
-#include "SockAddrInet.h"
 #include "Socket.h"
-#include <cstddef>
-#include <sys/socket.h>
 
 namespace wind {
 namespace conn {
@@ -35,7 +31,7 @@ using AcceptCallback = std::function<void(int, const SockAddrInet &)>;
 
 class Acceptor : base::NonCopyable {
 public:
-    Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, int type = SOCK_STREAM);
+    Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, bool reusePort = true, int type = SOCK_STREAM);
     ~Acceptor() noexcept;
 
     void setAcceptCallback(const AcceptCallback &callback);
@@ -51,7 +47,7 @@ private:
     std::atomic<bool> listening_ = false;
 
     base::EventLoop *loop_ = nullptr;
-    Socket socket_;
+    Socket acceptSocket_;
     std::shared_ptr<base::EventChannel> acceptChannel_;
 
     base::UniqueFd idleFd_;

@@ -21,19 +21,8 @@
 // SOFTWARE.
 
 #include "Acceptor.h"
-#include "SockAddrInet.h"
-#include "Socket.h"
-#include "base/EventChannel.h"
-#include <asm-generic/errno-base.h>
-#include <cerrno>
-#include <cstring>
-#include <memory>
-#include "base/Log.h"
-#include "base/TimeStamp.h"
-#include "base/UniqueFd.h"
 
 #include <fcntl.h>
-#include <unistd.h>
 
 namespace wind {
 namespace conn {
@@ -42,19 +31,21 @@ int createIdleFd()
 {
     int idleFd = TEMP_FAILURE_RETRY(::open("/dev/null", O_RDONLY | O_CLOEXEC));
     if (base::isInvalidFd(idleFd)) {
-        LOG_ERROR << "Create idleFd failed: " << strerror(errno) << ".";
+        LOG_SYS_FATAL << "Create idleFd failed: " << strerror(errno) << ".";
     }
     return idleFd;
 }
 } // namespace detail
 
-Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, int type)
-    : loop_(eventLoop), socket_(Socket::createNonBlockSocket(listenAddr.family(), type, 0)),
-      acceptChannel_(std::make_shared<base::EventChannel>(socket_.fd(), loop_)), idleFd_(detail::createIdleFd())
+Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, bool reusePort, int type)
+    : loop_(eventLoop), acceptSocket_(Socket::createNonBlockSocket(listenAddr.family(), type, 0)),
+      acceptChannel_(std::make_shared<base::EventChannel>(acceptSocket_.fd(), loop_)), idleFd_(detail::createIdleFd())
 {
-    socket_.bind(listenAddr);
+    acceptSocket_.setReuseAddr(true);
+    acceptSocket_.setReusePort(reusePort);
     acceptChannel_->setReadCallback([this](base::TimeStamp) { handleRead(); });
-    acceptChannel_->enableReading();
+
+    loop_->runInLoop([=]() { acceptSocket_.bindOrDie(listenAddr); });
 }
 
 Acceptor::~Acceptor() noexcept
@@ -75,7 +66,10 @@ void Acceptor::listen()
 
     listening_ = true;
 
-    loop_->runInLoop([this]() { socket_.listen(); });
+    loop_->runInLoop([this]() {
+        acceptSocket_.listenOrDie();
+        acceptChannel_->enableReading();
+    });
 }
 
 void Acceptor::assertInLoopThread() const
@@ -87,14 +81,14 @@ void Acceptor::handleRead()
 {
     assertInLoopThread();
     SockAddrInet remoteAddr;
-    base::UniqueFd remoteFd(socket_.accept(remoteAddr));
+    base::UniqueFd remoteFd(acceptSocket_.accept(remoteAddr));
     if (!remoteFd.valid()) {
-        LOG_ERROR << "Socket(fd:" << socket_.fd() << ") failed: " << strerror(errno) << ".";
+        LOG_ERROR << "Socket(fd:" << acceptSocket_.fd() << ") failed: " << strerror(errno) << ".";
         // "The special problem of accept()ing when you can't"
         // By Marc Lehmann, author of libev.
         if (errno == EMFILE) {
             idleFd_.reset();
-            remoteFd.reset(socket_.accept(remoteAddr));
+            remoteFd.reset(acceptSocket_.accept(remoteAddr));
             LOG_INFO << "It is too busy, so close new connection(" << remoteAddr.ipPortString() << ").";
             remoteFd.reset();
             idleFd_.reset(detail::createIdleFd());

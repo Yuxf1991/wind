@@ -24,6 +24,8 @@
 
 #include "base/Log.h"
 
+#include <netinet/tcp.h>
+
 namespace wind {
 namespace conn {
 namespace detail {
@@ -63,7 +65,7 @@ int Socket::accept(SockAddrInet &peerAddr) const
     return peerfd;
 }
 
-void Socket::bind(const SockAddrInet &addr) const
+void Socket::bindOrDie(const SockAddrInet &addr) const
 {
     int ret = TEMP_FAILURE_RETRY(::bind(fd_.get(), addr.get(), addr.len()));
     if (ret < 0) {
@@ -71,7 +73,7 @@ void Socket::bind(const SockAddrInet &addr) const
     }
 }
 
-void Socket::listen() const
+void Socket::listenOrDie() const
 {
     int ret = TEMP_FAILURE_RETRY(::listen(fd_.get(), SOMAXCONN));
     if (ret < 0) {
@@ -79,12 +81,51 @@ void Socket::listen() const
     }
 }
 
-void Socket::connect(const SockAddrInet &addr) const
+int Socket::connect(const SockAddrInet &addr) const
 {
     int ret = TEMP_FAILURE_RETRY(::connect(fd_.get(), addr.get(), addr.len()));
     if (ret < 0) {
-        LOG_SYS_FATAL << "Socket Fd(" << fd_.get() << ") connect to " << addr.ipPortString()
-                      << " err: " << strerror(errno) << "!";
+        LOG_ERROR << "Socket Fd(" << fd_.get() << ") connect to " << addr.ipPortString() << " err: " << strerror(errno)
+                  << "!";
+    }
+    return ret;
+}
+
+int Socket::setSocketOpt(int level, int optName, bool on)
+{
+    int opt = on ? 1 : 0;
+    return TEMP_FAILURE_RETRY(::setsockopt(fd(), level, optName, &opt, static_cast<socklen_t>(sizeof(opt))));
+}
+
+void Socket::setTcpNoDelay(bool on)
+{
+    int ret = setSocketOpt(IPPROTO_TCP, TCP_NODELAY, on);
+    if (ret < 0) {
+        LOG_ERROR << "Socket(fd: " << fd() << ") setTcpNoDelay " << on << " failed: " << strerror(errno) << ".";
+    }
+}
+
+void Socket::setKeepAlive(bool on)
+{
+    int ret = setSocketOpt(SOL_SOCKET, SO_KEEPALIVE, on);
+    if (ret < 0) {
+        LOG_ERROR << "Socket(fd: " << fd() << ") setKeepAlive " << on << " failed: " << strerror(errno) << ".";
+    }
+}
+
+void Socket::setReusePort(bool on)
+{
+    int ret = setSocketOpt(SOL_SOCKET, SO_REUSEPORT, on);
+    if (ret < 0) {
+        LOG_ERROR << "Socket(fd: " << fd() << ") setReusePort " << on << " failed: " << strerror(errno) << ".";
+    }
+}
+
+void Socket::setReuseAddr(bool on)
+{
+    int ret = setSocketOpt(SOL_SOCKET, SO_REUSEADDR, on);
+    if (ret < 0) {
+        LOG_ERROR << "Socket(fd: " << fd() << ") setReuseAddr " << on << " failed: " << strerror(errno) << ".";
     }
 }
 } // namespace conn

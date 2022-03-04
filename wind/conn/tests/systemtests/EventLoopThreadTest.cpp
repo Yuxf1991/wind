@@ -71,9 +71,9 @@ public:
 
         // init socket
         SockAddrInet secvAddr(port, true);
-        servSock_.bind(secvAddr);
+        servSock_.bindOrDie(secvAddr);
         LOG_INFO << "Listen on: " << secvAddr.ipPortString() << ".";
-        servSock_.listen();
+        servSock_.listenOrDie();
 
         acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), loop_);
         acceptChannel_->setReadCallback([this](TimeStamp receivedTime) { acceptFunc(receivedTime); });
