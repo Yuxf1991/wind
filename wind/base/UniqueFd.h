@@ -28,15 +28,12 @@
 
 namespace wind {
 namespace base {
-inline constexpr bool INVALID_FD(int fd)
+inline constexpr bool isInvalidFd(int fd)
 {
     return fd < 0;
 }
 
-inline constexpr int INVALID_FD()
-{
-    return -1;
-}
+constexpr int INVALID_FD = -1;
 
 struct DefaultFdCloser {
     void operator()(int fd)
@@ -61,7 +58,9 @@ public:
         return *this;
     }
 
-    void reset(int fd = INVALID_FD()) noexcept
+    bool valid() const { return !isInvalidFd(fd_); }
+
+    void reset(int fd = INVALID_FD) noexcept
     {
         close();
         fd_ = fd;
@@ -70,7 +69,7 @@ public:
     int release()
     {
         int fd = fd_;
-        fd_ = INVALID_FD();
+        fd_ = INVALID_FD;
         return fd;
     }
 
@@ -82,12 +81,12 @@ private:
     void close()
     {
         static Closer closer;
-        if (!INVALID_FD(fd_)) {
+        if (!isInvalidFd(fd_)) {
             closer(fd_);
         }
     }
 
-    int fd_ = INVALID_FD();
+    int fd_ = INVALID_FD;
 };
 
 using UniqueFd = UniqueFdImpl<DefaultFdCloser>;

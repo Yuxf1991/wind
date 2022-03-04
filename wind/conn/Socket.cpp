@@ -60,10 +60,6 @@ int Socket::accept(SockAddrInet &peerAddr) const
 {
     socklen_t len = peerAddr.len();
     int peerfd = TEMP_FAILURE_RETRY(::accept(fd_.get(), peerAddr.data(), &len));
-    if (peerfd < 0) {
-        LOG_SYS_FATAL << "Socket Fd(" << fd_.get() << ") accept err: " << strerror(errno) << "!";
-    }
-
     return peerfd;
 }
 

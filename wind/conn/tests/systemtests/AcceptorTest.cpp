@@ -20,41 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include "base/Thread.h"
+#include <unistd.h>
+#ifndef LOG_TAG
+#define LOG_TAG "AcceptorTest"
+#endif
+#include "base/Log.h"
 
-#include "base/EventLoop.h"
+#include "Acceptor.h"
 
-#include "SockAddrInet.h"
-#include "Socket.h"
-#include <sys/socket.h>
+using namespace wind;
+using namespace wind::base;
+using namespace wind::conn;
 
-namespace wind {
-namespace conn {
-using AcceptCallback = std::function<void(int, const SockAddrInet &)>;
+void acceptFunc(int peerfd, const SockAddrInet &peerAddr)
+{
+    LOG_INFO << "New conn accepted: " << peerAddr.ipPortString() << ", fd: " << peerfd << ".";
 
-class Acceptor : base::NonCopyable {
-public:
-    Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, int type = SOCK_STREAM);
-    ~Acceptor() noexcept;
+    // close it
+    // DefaultFdCloser()(peerfd);
+}
 
-    void setAcceptCallback(const AcceptCallback &callback);
-
-    void listen();
-
-    bool listening() const { return listening_; }
-
-private:
-    void assertInLoopThread() const;
-    void handleRead();
-
-    std::atomic<bool> listening_ = false;
-
-    base::EventLoop *loop_;
-    Socket socket_;
-    std::shared_ptr<base::EventChannel> acceptChannel_;
-
-    base::UniqueFd idleFd_;
-    AcceptCallback acceptCallback_;
-};
-} // namespace conn
-} // namespace wind
+int main()
+{
+    EventLoop loop;
+    SockAddrInet listenAddr(23456);
+    Acceptor acceptor(&loop, listenAddr);
+    acceptor.setAcceptCallback(&acceptFunc);
+    acceptor.listen();
+    loop.start();
+    return 0;
+}

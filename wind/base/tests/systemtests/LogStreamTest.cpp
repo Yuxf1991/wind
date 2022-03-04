@@ -39,5 +39,8 @@ int main()
 
     ss << 124545.6 << ", " << -2121.5f << endl;
 
+    int val = 3829372;
+    ss << &val << endl;
+
     return 0;
 }

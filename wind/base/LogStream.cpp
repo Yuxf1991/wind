@@ -48,6 +48,16 @@ inline char digitToChar(int idx)
     return digits[zeroIdx + idx];
 }
 
+inline char hexDigitToChar(int idx, bool upper = false)
+{
+    static char hexDigits[17] = "0123456789abcdef";
+    static char hexDigitsUpper[17] = "0123456789ABCDEF";
+    static_assert(sizeof(hexDigits) == 17, "hexDigits number err!");
+    static_assert(sizeof(hexDigitsUpper) == 17, "hexDigitsUpper number err!");
+    ASSERT((idx >= 0) && (idx < 17));
+    return upper ? hexDigitsUpper[idx] : hexDigits[idx];
+}
+
 // ensure the out buf's capacity is bigger than MAX_NUMERIC_SIZE.
 // return the real buf size after converting.
 template <typename T>
@@ -65,7 +75,24 @@ size_t convertDigitToString(char *outBuf, T inValue)
     if (inValue < 0) {
         *end++ = '-';
     }
+    *end = '\0';
 
+    std::reverse(start, end);
+    return end - start;
+}
+
+size_t convertPointerToString(char *outBuf, uintptr_t p)
+{
+    char *start = outBuf;
+    char *end = outBuf;
+    uintptr_t tmp = p;
+    do {
+        int remainder = static_cast<int>(tmp % 16);
+        tmp /= 16;
+        *end++ = hexDigitToChar(remainder);
+    } while (tmp != 0);
+
+    *end = '\0';
     std::reverse(start, end);
     return end - start;
 }
@@ -147,6 +174,15 @@ LogStream &LogStream::operator<<(uint64_t val)
 {
     preProcessWithNumericInput();
     auto len = detail::convertDigitToString(buf_.curr(), val);
+    buf_.grow(len);
+    return self();
+}
+
+LogStream &LogStream::operator<<(const void *pointer)
+{
+    append("0x", 2);
+    preProcessWithNumericInput();
+    auto len = detail::convertPointerToString(buf_.curr(), reinterpret_cast<uintptr_t>(pointer));
     buf_.grow(len);
     return self();
 }

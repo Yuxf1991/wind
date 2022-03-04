@@ -26,7 +26,8 @@ include_directories(
 
 set(WIND_CONN_SRC
     SockAddrInet.cpp
-    Socket.cpp)
+    Socket.cpp
+    Acceptor.cpp)
 
 add_library(wind_conn ${WIND_CONN_SRC})
 target_link_libraries(wind_conn wind_base)

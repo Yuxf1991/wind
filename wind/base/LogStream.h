@@ -57,18 +57,18 @@ public:
     ~LogStream() noexcept;
 
     LogStream &self() { return *this; }
+
+    LogStream &operator<<(int8_t val) { return self() << static_cast<int64_t>(val); }
+    LogStream &operator<<(int16_t val) { return self() << static_cast<int64_t>(val); }
+    LogStream &operator<<(int32_t val) { return self() << static_cast<int64_t>(val); }
     LogStream &operator<<(int64_t val);
+
+    LogStream &operator<<(uint8_t val) { return self() << static_cast<uint64_t>(val); }
+    LogStream &operator<<(uint16_t val) { return self() << static_cast<uint64_t>(val); }
+    LogStream &operator<<(uint32_t val) { return self() << static_cast<uint64_t>(val); }
     LogStream &operator<<(uint64_t val);
-    template <typename IntType>
-    LogStream &operator<<(IntType val)
-    {
-        static_assert(std::is_integral<IntType>::value, "input type is not an integral type!");
-        if (std::is_signed<IntType>::value) {
-            return self() << static_cast<int64_t>(val);
-        } else {
-            return self() << static_cast<uint64_t>(val);
-        }
-    }
+
+    LogStream &operator<<(const void *pointer);
 
     LogStream &operator<<(double val);
     LogStream &operator<<(float val) { return self() << static_cast<double>(val); }

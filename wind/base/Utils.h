@@ -36,6 +36,8 @@
 #define ASSERT(exp) assert((exp))
 #endif
 
+#define UNUSED(val) (void)val;
+
 #ifdef __cplusplus
 #define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
 #define WIND_UNLIKELY(x) (__builtin_expect(!!(x), false))

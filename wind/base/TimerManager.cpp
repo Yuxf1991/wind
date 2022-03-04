@@ -31,6 +31,7 @@
 #include "Log.h"
 #include "TimeStamp.h"
 #include "TimerId.h"
+#include "UniqueFd.h"
 #include "Utils.h"
 
 namespace wind {
@@ -39,7 +40,7 @@ namespace detail {
 int createTimerFd()
 {
     int fd = TEMP_FAILURE_RETRY(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC));
-    if (INVALID_FD(fd)) {
+    if (isInvalidFd(fd)) {
         LOG_SYS_FATAL << "Create timerfd error: " << strerror(errno) << "!";
     }
 

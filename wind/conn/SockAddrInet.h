@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "base/Types.h"
-
 #include <netinet/in.h>
+
+#include "base/Types.h"
 
 namespace wind {
 namespace conn {

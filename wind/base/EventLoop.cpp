@@ -34,6 +34,10 @@ EventLoop::EventLoop()
       wakeUpChannel_(std::make_shared<EventChannel>(wakeUpFd_.get(), this)),
       timerManager_(std::make_unique<TimerManager>(this))
 {
+    if (t_currLoop != nullptr) {
+        LOG_SYS_FATAL << "Construct EventLoop failed: current thread already have a loop(" << &t_currLoop << ")!";
+    }
+
     // wakeUpCallback do not need TimeStamp
     wakeUpChannel_->setReadCallback([this](TimeStamp) { wakeUpCallback(); });
     wakeUpChannel_->enableReading();
