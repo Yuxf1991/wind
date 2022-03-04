@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_THREAD_H
-#define WIND_THREAD_H
+#pragma once
 
 #include <thread>
 
@@ -66,4 +65,3 @@ inline Thread make_thread(string name, Func &&func, Args &&... args)
 }
 } // namespace base
 } // namespace wind
-#endif // WIND_THREAD_H

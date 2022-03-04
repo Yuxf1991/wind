@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TIMER_MANAGER_H
-#define WIND_TIMER_MANAGER_H
+#pragma once
 
 #include "EventChannel.h"
 #include "UniqueFd.h"
@@ -74,4 +73,3 @@ private:
 };
 } // namespace base
 } // namespace wind
-#endif // WIND_TIMER_MANAGER_H

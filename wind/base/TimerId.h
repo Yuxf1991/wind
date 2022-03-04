@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TIMER_ID_H
-#define WIND_TIMER_ID_H
+#pragma once
 
 #include "Types.h"
 
@@ -47,4 +46,3 @@ struct hash<typename wind::base::TimerId> {
     }
 };
 } // namespace std
-#endif // WIND_TIMER_ID_H

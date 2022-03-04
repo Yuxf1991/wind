@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_CURRENTTHREAD_H
-#define WIND_CURRENTTHREAD_H
+#pragma once
 
 #include "Types.h"
 #include "Utils.h"
@@ -65,4 +64,3 @@ const char *pidString();
 } // namespace CurrentThread
 } // namespace base
 } // namespace wind
-#endif // WIND_CURRENTTHREAD_H

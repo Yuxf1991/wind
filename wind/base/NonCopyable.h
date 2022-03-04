@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_NONCOPYABLE_H
-#define WIND_NONCOPYABLE_H
+#pragma once
 
 namespace wind {
 namespace base {
@@ -37,5 +36,3 @@ protected:
 };
 } // namespace base
 } // namespace wind
-
-#endif // WIND_NONCOPYABLE_H

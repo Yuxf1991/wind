@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_EVENT_POLLER_H
-#define WIND_EVENT_POLLER_H
+#pragma once
 
 #include <unordered_map>
 #include <vector>
@@ -54,4 +53,3 @@ private:
 };
 } // namespace base
 } // namespace wind
-#endif // WIND_EVENT_POLLER_H

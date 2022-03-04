@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_SOCKET_ADDR_INET_H
-#define WIND_SOCKET_ADDR_INET_H
+#pragma once
 
 #include "base/Types.h"
 
@@ -65,4 +64,3 @@ private:
 };
 } // namespace conn
 } // namespace wind
-#endif // WIND_SOCKET_ADDR_INET_H

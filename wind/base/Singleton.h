@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_SINGLETON_H
-#define WIND_SINGLETON_H
+#pragma once
 
 #include "NonCopyable.h"
 
@@ -47,5 +46,3 @@ private:                                                                        
     friend class Singleton<T>;
 } // namespace base
 } // namespace wind
-
-#endif // WIND_SINGLETON_H

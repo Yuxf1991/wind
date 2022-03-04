@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TESTS_TESTHELPER_H
-#define WIND_TESTS_TESTHELPER_H
+#pragma once
 
 #include <iostream>
 
@@ -47,5 +46,3 @@ struct TestScopeHelper {
 } // namespace wind
 
 #define WIND_TEST_BEGIN(testSuitName, testName) wind::TestScopeHelper __testScopeHelper(#testSuitName, #testName);
-
-#endif // WIND_TESTS_TESTHELPER_H

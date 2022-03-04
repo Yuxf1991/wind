@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_BUFFER_H
-#define WIND_BUFFER_H
+#pragma once
 
 #include "NonCopyable.h"
 #include "Types.h"
@@ -77,4 +76,3 @@ private:
 typedef StackBuffer<DEFAULT_BUFFER_SIZE> DefaultFixedBuffer;
 } // namespace base
 } // namespace wind
-#endif // WIND_BUFFER_H

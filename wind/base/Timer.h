@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TIMER_H
-#define WIND_TIMER_H
+#pragma once
 
 #include <functional>
 
@@ -60,4 +59,3 @@ private:
 };
 } // namespace base
 } // namespace wind
-#endif // WIND_TIMER_H

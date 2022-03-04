@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_UTILS_H
-#define WIND_UTILS_H
+#pragma once
 
 #include <assert.h>
 #include <inttypes.h>
@@ -57,4 +56,3 @@ int createEventFd();
 } // namespace utils
 } // namespace base
 } // namespace wind
-#endif // WIND_UTILS_H

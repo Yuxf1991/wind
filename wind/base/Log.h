@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_LOG_H
-#define WIND_LOG_H
+#pragma once
 
 #include "LogStream.h"
 
@@ -129,4 +128,3 @@ private:
 #define LOG_FATAL_IF(expr)                                                                                             \
     if ((expr))                                                                                                        \
     wind::base::Logger(__FILE__, __LINE__, wind::base::LogLevel::ERROR, LOG_TAG, true).stream()
-#endif // WIND_LOG_H

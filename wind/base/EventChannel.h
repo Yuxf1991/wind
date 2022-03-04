@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_EVENT_CHANNEL_H
-#define WIND_EVENT_CHANNEL_H
+#pragma once
 
 #include <atomic>
 #include <functional>
@@ -143,4 +142,3 @@ protected:
 };
 } // namespace base
 } // namespace wind
-#endif // WIND_EVENT_CHANNEL_H

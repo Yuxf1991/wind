@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_LOGSTREAM_H
-#define WIND_LOGSTREAM_H
+#pragma once
 
 #include <functional>
 
@@ -105,4 +104,3 @@ inline LogStream &endl(LogStream &stream)
 }
 } // namespace base
 } // namespace wind
-#endif // WIND_LOGSTREAM_H

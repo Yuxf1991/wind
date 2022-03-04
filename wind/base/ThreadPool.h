@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_THREAD_POOL_H
-#define WIND_THREAD_POOL_H
+#pragma once
 
 #include <atomic>
 #include <condition_variable>
@@ -150,4 +149,3 @@ private:
 };
 } // namespace base
 } // namespace wind
-#endif // WIND_THREAD_POOL_H

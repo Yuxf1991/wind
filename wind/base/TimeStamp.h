@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TIMESTAMP_H
-#define WIND_TIMESTAMP_H
+#pragma once
 
 #include "Types.h"
 
@@ -105,4 +104,3 @@ inline TimeStamp timeAdd(TimeStamp t, TimeType micros)
 }
 } // namespace base
 } // namespace wind
-#endif // WIND_TIMESTAMP_H

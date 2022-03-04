@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_TYPES_H
-#define WIND_TYPES_H
+#pragma once
 
 #include <string>
 #include <type_traits>
@@ -40,4 +39,3 @@ inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumTyp
     return static_cast<typename std::underlying_type<EnumType>::type>(e);
 }
 } // namespace wind
-#endif // WIND_TYPES_H

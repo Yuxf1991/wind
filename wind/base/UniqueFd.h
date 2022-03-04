@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_UNIQUEFD_H
-#define WIND_UNIQUEFD_H
+#pragma once
 
 #include <unistd.h>
 
@@ -94,4 +93,3 @@ private:
 using UniqueFd = UniqueFdImpl<DefaultFdCloser>;
 } // namespace base
 } // namespace wind
-#endif // WIND_UNIQUEFD_H

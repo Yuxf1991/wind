@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef WIND_EVENT_LOOP_H
-#define WIND_EVENT_LOOP_H
+#pragma once
 
 #include <future>
 #include <type_traits>
@@ -114,4 +113,3 @@ private:
 };
 } // namespace base
 } // namespace wind
-#endif // WIND_EVENT_LOOP_H
