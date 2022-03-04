@@ -45,7 +45,7 @@ private:
     void assertInLoopThread();
 
     void epollCtl(const std::shared_ptr<EventChannel> &channel, int operation);
-    EventLoop *eventLoop_;
+    EventLoop *eventLoop_ = nullptr;
     UniqueFd epollFd_;
     static size_t eventSize_;
     std::vector<epoll_event> activeEvents_; // to receive events from epoll_wait.

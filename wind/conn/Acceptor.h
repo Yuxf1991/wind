@@ -26,6 +26,7 @@
 
 #include "SockAddrInet.h"
 #include "Socket.h"
+#include <cstddef>
 #include <sys/socket.h>
 
 namespace wind {
@@ -49,7 +50,7 @@ private:
 
     std::atomic<bool> listening_ = false;
 
-    base::EventLoop *loop_;
+    base::EventLoop *loop_ = nullptr;
     Socket socket_;
     std::shared_ptr<base::EventChannel> acceptChannel_;
 

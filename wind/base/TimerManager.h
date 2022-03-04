@@ -64,7 +64,7 @@ private:
     void timerfdRead();
     void timerfdReset(TimeStamp expireTime);
 
-    EventLoop *loop_;
+    EventLoop *loop_ = nullptr;
     UniqueFd timerfd_;
     std::shared_ptr<EventChannel> timerfdChannel_;
 
