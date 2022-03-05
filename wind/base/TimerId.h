@@ -31,8 +31,14 @@ struct TimerId {
     TimerId(uint64_t id, Timer *timer) : id(id), timer(timer) {}
     uint64_t id = 0;
     Timer *timer = nullptr;
-    bool operator==(const TimerId &other) const { return id == other.id && timer == other.timer; }
-    bool operator<(const TimerId &other) const { return id < other.id || timer < other.timer; }
+    bool operator==(const TimerId &other) const
+    {
+        return id == other.id && timer == other.timer;
+    }
+    bool operator<(const TimerId &other) const
+    {
+        return id < other.id || timer < other.timer;
+    }
 };
 } // namespace base
 } // namespace wind

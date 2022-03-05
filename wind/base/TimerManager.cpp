@@ -63,7 +63,8 @@ itimerspec generateTimerSpec(TimeStamp dstTime)
 } // namespace detail
 
 TimerManager::TimerManager(EventLoop *loop)
-    : loop_(loop), timerfd_(detail::createTimerFd()),
+    : loop_(loop),
+      timerfd_(detail::createTimerFd()),
       timerfdChannel_(std::make_shared<EventChannel>(timerfd_.get(), loop_))
 {
     timerfdChannel_->setReadCallback([this](TimeStamp t) { handleRead(t); });
@@ -176,8 +177,8 @@ void TimerManager::timerfdRead()
     uint64_t one = 0;
     int len = TEMP_FAILURE_RETRY(::read(timerfd_.get(), &one, sizeof(one)));
     if (len != sizeof(one)) {
-        LOG_WARN << "Read from timerfd " << timerfd_.get() << " " << len << " bytes, should be " << sizeof(one)
-                 << " bytes.";
+        LOG_WARN << "Read from timerfd " << timerfd_.get() << " " << len << " bytes, should be "
+                 << sizeof(one) << " bytes.";
     }
 }
 

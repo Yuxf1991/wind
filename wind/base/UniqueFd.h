@@ -48,7 +48,10 @@ class UniqueFdImpl : NonCopyable {
 public:
     UniqueFdImpl() = default;
     explicit UniqueFdImpl(int fd) noexcept : fd_(fd) {}
-    ~UniqueFdImpl() noexcept { reset(); }
+    ~UniqueFdImpl() noexcept
+    {
+        reset();
+    }
 
     // movable
     UniqueFdImpl(UniqueFdImpl &&other) noexcept : fd_(other.release()) {}
@@ -58,7 +61,10 @@ public:
         return *this;
     }
 
-    bool valid() const { return !isInvalidFd(fd_); }
+    bool valid() const
+    {
+        return !isInvalidFd(fd_);
+    }
 
     void reset(int fd = INVALID_FD) noexcept
     {
@@ -73,9 +79,15 @@ public:
         return fd;
     }
 
-    [[nodiscard]] int get() const noexcept { return fd_; }
+    [[nodiscard]] int get() const noexcept
+    {
+        return fd_;
+    }
 
-    explicit operator int() const { return fd_; }
+    explicit operator int() const
+    {
+        return fd_;
+    }
 
 private:
     void close()

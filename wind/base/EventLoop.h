@@ -46,7 +46,10 @@ public:
         return std::make_pair(t, t->cb_.get_future());
     }
 
-    void Run() { cb_(); }
+    void Run()
+    {
+        cb_();
+    }
 
 private:
     explicit PackagedTask(Callable &&cb) : cb_(std::move(cb)) {}

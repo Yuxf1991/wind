@@ -41,7 +41,11 @@ public:
         bool reusePort = true,
         int type = SOCK_STREAM,
         int protocol = IPPROTO_TCP);
-    Acceptor(base::EventLoop *eventLoop, const SockAddrUnix &listenAddr, int type = SOCK_STREAM, int protocol = 0);
+    Acceptor(
+        base::EventLoop *eventLoop,
+        const SockAddrUnix &listenAddr,
+        int type = SOCK_STREAM,
+        int protocol = 0);
     ~Acceptor() noexcept;
 
     void setAcceptCallback(const AcceptCallbackInet &callback);
@@ -49,7 +53,10 @@ public:
 
     void listen();
 
-    bool listening() const { return listening_; }
+    bool listening() const
+    {
+        return listening_;
+    }
 
 private:
     void reuseAndLockUnixAddrOrDie(const string &socketPath);

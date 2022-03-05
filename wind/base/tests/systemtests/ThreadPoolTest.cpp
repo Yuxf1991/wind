@@ -99,7 +99,8 @@ void ThreadPoolTest4()
         threadPool.runTask([]() { Task1(); });
         threadPool.runTask([]() { Task2(); });
         threadPool.runTask([]() { Task3(); });
-        ::utils::writeDebugInfo("Put 3 tasks into the ThreadPool(name: " + threadPool.name() + ").");
+        ::utils::writeDebugInfo(
+            "Put 3 tasks into the ThreadPool(name: " + threadPool.name() + ").");
         std::string dumpInfo;
         dumpInfo += "\n";
         threadPool.dump(dumpInfo);

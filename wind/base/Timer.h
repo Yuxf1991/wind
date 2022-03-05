@@ -40,10 +40,19 @@ public:
     Timer(TimerCallback callback, TimeStamp expireTime, TimeType interval = 0);
     ~Timer() noexcept = default;
 
-    TimerId id() const { return id_; }
-    bool isRepeat() const { return repeat_; }
+    TimerId id() const
+    {
+        return id_;
+    }
+    bool isRepeat() const
+    {
+        return repeat_;
+    }
 
-    TimeStamp expireTime() const { return expireTime_; }
+    TimeStamp expireTime() const
+    {
+        return expireTime_;
+    }
 
     void execute();
 

@@ -33,9 +33,18 @@ class BookStore : public Singleton<BookStore> {
 
 public:
     ~BookStore() noexcept = default;
-    size_t bookCnt() const { return books_.size(); }
-    void addBook(string book) { books_.push_back(std::move(book)); }
-    void removeBook() { books_.pop_back(); }
+    size_t bookCnt() const
+    {
+        return books_.size();
+    }
+    void addBook(string book)
+    {
+        books_.push_back(std::move(book));
+    }
+    void removeBook()
+    {
+        books_.pop_back();
+    }
 
 private:
     BookStore() = default;

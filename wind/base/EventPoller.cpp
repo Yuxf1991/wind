@@ -50,9 +50,11 @@ EventPoller::EventPoller(EventLoop *eventLoop)
 
 EventPoller::~EventPoller() noexcept {}
 
-TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &activeChannels, int timeOutMs)
+TimeStamp
+EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &activeChannels, int timeOutMs)
 {
-    auto cnt = TEMP_FAILURE_RETRY(::epoll_wait(epollFd_.get(), activeEvents_.data(), eventSize_, timeOutMs));
+    auto cnt = TEMP_FAILURE_RETRY(
+        ::epoll_wait(epollFd_.get(), activeEvents_.data(), eventSize_, timeOutMs));
     auto pollTime = TimeStamp::now();
     if (cnt < 0) {
         LOG_WARN << "epoll_wait error: " << strerror(errno) << ".";
@@ -61,7 +63,8 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
             const auto &event = activeEvents_[i];
             int fd = event.data.fd;
             if (channels_.count(fd) == 0 && channels_.at(fd) == nullptr) {
-                LOG_WARN << "epoll_wait returned a channel that is not in poller " << epollFd_.get() << ".";
+                LOG_WARN << "epoll_wait returned a channel that is not in poller " << epollFd_.get()
+                         << ".";
                 continue;
             }
 
@@ -94,8 +97,8 @@ void EventPoller::epollCtl(const std::shared_ptr<EventChannel> &channel, int ope
     epollEvent.data.fd = fd;
     int ret = TEMP_FAILURE_RETRY(::epoll_ctl(epollFd_.get(), operation, fd, &epollEvent));
     if (ret < 0) {
-        LOG_ERROR << detail::epollOperationToString(operation) << " failed for fd " << fd << ": " << strerror(errno)
-                  << "!";
+        LOG_ERROR << detail::epollOperationToString(operation) << " failed for fd " << fd << ": "
+                  << strerror(errno) << "!";
     }
 }
 

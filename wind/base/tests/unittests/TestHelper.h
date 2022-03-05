@@ -28,7 +28,8 @@
 
 namespace wind {
 struct TestScopeHelper {
-    TestScopeHelper(std::string testSuitName, std::string testName) : testSuitName_(testSuitName), testName_(testName)
+    TestScopeHelper(std::string testSuitName, std::string testName)
+        : testSuitName_(testSuitName), testName_(testName)
     {
         std::cout << "-------------------------------------------------------" << std::endl;
         std::cout << "Test " << testSuitName_ << "::" << testName_ << " begin:" << std::endl;
@@ -45,4 +46,5 @@ struct TestScopeHelper {
 };
 } // namespace wind
 
-#define WIND_TEST_BEGIN(testSuitName, testName) wind::TestScopeHelper __testScopeHelper(#testSuitName, #testName);
+#define WIND_TEST_BEGIN(testSuitName, testName)                                                    \
+    wind::TestScopeHelper __testScopeHelper(#testSuitName, #testName);

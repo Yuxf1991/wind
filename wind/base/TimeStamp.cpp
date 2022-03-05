@@ -30,7 +30,8 @@ namespace base {
 namespace detail {
 TimeType microSecondsSinceEpoch()
 {
-    auto tp = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now());
+    auto tp = std::chrono::time_point_cast<std::chrono::microseconds>(
+        std::chrono::high_resolution_clock::now());
     return tp.time_since_epoch().count();
 }
 } // namespace detail

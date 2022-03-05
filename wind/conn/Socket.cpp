@@ -47,7 +47,8 @@ void setNonBlockAndCloseOnExec(int fd)
     flags |= FD_CLOEXEC;
     ret = TEMP_FAILURE_RETRY(::fcntl(fd, F_SETFD, flags));
     if (ret < 0) {
-        LOG_ERROR << "Set socket(fd: " << fd << ") close-on-exec failed: " << strerror(errno) << ".";
+        LOG_ERROR << "Set socket(fd: " << fd << ") close-on-exec failed: " << strerror(errno)
+                  << ".";
     }
 }
 #endif // NO_ACCEPT4
@@ -56,7 +57,8 @@ int createNonBlockSocketOrDie(int family, int type, int protocol)
 {
     int fd = TEMP_FAILURE_RETRY(::socket(family, type | SOCK_NONBLOCK | SOCK_CLOEXEC, protocol));
     if (fd < 0) {
-        LOG_SYS_FATAL << "Create non-block and close-on-exec socket failed: " << strerror(errno) << ".";
+        LOG_SYS_FATAL << "Create non-block and close-on-exec socket failed: " << strerror(errno)
+                      << ".";
     }
 
     return fd;
@@ -117,14 +119,16 @@ void Socket::listenOrDie() const
 int Socket::setSocketOpt(int level, int optName, bool on)
 {
     int opt = on ? 1 : 0;
-    return TEMP_FAILURE_RETRY(::setsockopt(fd(), level, optName, &opt, static_cast<socklen_t>(sizeof(opt))));
+    return TEMP_FAILURE_RETRY(
+        ::setsockopt(fd(), level, optName, &opt, static_cast<socklen_t>(sizeof(opt))));
 }
 
 void Socket::setTcpNoDelay(bool on)
 {
     int ret = setSocketOpt(IPPROTO_TCP, TCP_NODELAY, on);
     if (ret < 0) {
-        LOG_ERROR << "Socket(fd: " << fd() << ") setTcpNoDelay " << on << " failed: " << strerror(errno) << ".";
+        LOG_ERROR << "Socket(fd: " << fd() << ") setTcpNoDelay " << on
+                  << " failed: " << strerror(errno) << ".";
     }
 }
 
@@ -132,7 +136,8 @@ void Socket::setKeepAlive(bool on)
 {
     int ret = setSocketOpt(SOL_SOCKET, SO_KEEPALIVE, on);
     if (ret < 0) {
-        LOG_ERROR << "Socket(fd: " << fd() << ") setKeepAlive " << on << " failed: " << strerror(errno) << ".";
+        LOG_ERROR << "Socket(fd: " << fd() << ") setKeepAlive " << on
+                  << " failed: " << strerror(errno) << ".";
     }
 }
 
@@ -140,7 +145,8 @@ void Socket::setReusePort(bool on)
 {
     int ret = setSocketOpt(SOL_SOCKET, SO_REUSEPORT, on);
     if (ret < 0) {
-        LOG_ERROR << "Socket(fd: " << fd() << ") setReusePort " << on << " failed: " << strerror(errno) << ".";
+        LOG_ERROR << "Socket(fd: " << fd() << ") setReusePort " << on
+                  << " failed: " << strerror(errno) << ".";
     }
 }
 
@@ -148,7 +154,8 @@ void Socket::setReuseAddr(bool on)
 {
     int ret = setSocketOpt(SOL_SOCKET, SO_REUSEADDR, on);
     if (ret < 0) {
-        LOG_ERROR << "Socket(fd: " << fd() << ") setReuseAddr " << on << " failed: " << strerror(errno) << ".";
+        LOG_ERROR << "Socket(fd: " << fd() << ") setReuseAddr " << on
+                  << " failed: " << strerror(errno) << ".";
     }
 }
 } // namespace conn

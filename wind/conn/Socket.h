@@ -46,7 +46,10 @@ public:
     Socket(Socket &&other);
     Socket &operator=(Socket &&other);
 
-    int fd() const { return fd_.get(); }
+    int fd() const
+    {
+        return fd_.get();
+    }
 
     // will call abort() if bind failed.
     template <typename SockType>
@@ -73,10 +76,11 @@ public:
     }
 
     // will check ret value in this func and log err info, same as follows
-    void setTcpNoDelay(bool on); // set TCP_NODELAY of the socket (disable/enable Nagle's algorithm).
-    void setKeepAlive(bool on);  // set SO_KEEPALIVE
-    void setReusePort(bool on);  // set SO_REUSEPORT
-    void setReuseAddr(bool on);  // set SO_REUSEADDR
+    void
+    setTcpNoDelay(bool on);     // set TCP_NODELAY of the socket (disable/enable Nagle's algorithm).
+    void setKeepAlive(bool on); // set SO_KEEPALIVE
+    void setReusePort(bool on); // set SO_REUSEPORT
+    void setReuseAddr(bool on); // set SO_REUSEADDR
 
 private:
     int setSocketOpt(int level, int optName, bool on);

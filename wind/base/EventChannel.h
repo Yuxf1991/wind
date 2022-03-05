@@ -56,8 +56,14 @@ public:
 
     void handleEvent(TimeStamp receivedTime);
 
-    int fd() const { return fd_; }
-    EventLoop *getOwnerLoop() const { return eventLoop_; }
+    int fd() const
+    {
+        return fd_;
+    }
+    EventLoop *getOwnerLoop() const
+    {
+        return eventLoop_;
+    }
 
     void setReadCallback(ReadCallback cb)
     {
@@ -100,9 +106,18 @@ public:
         return closeCallback_;
     }
 
-    bool hasNoEvent() const { return listeningEvents() == enum_cast(EventType::NONE); }
-    bool isWriting() const { return listeningEvents() & enum_cast(EventType::WRITE_EVENT); }
-    bool isReading() const { return listeningEvents() & enum_cast(EventType::READ_EVNET); }
+    bool hasNoEvent() const
+    {
+        return listeningEvents() == enum_cast(EventType::NONE);
+    }
+    bool isWriting() const
+    {
+        return listeningEvents() & enum_cast(EventType::WRITE_EVENT);
+    }
+    bool isReading() const
+    {
+        return listeningEvents() & enum_cast(EventType::READ_EVNET);
+    }
 
     // @toUpdate: whether to update the channel in poller or not, true by default.
     void enableReading(bool toUpdate = true);
@@ -124,8 +139,14 @@ protected:
     // will abort if not in loop thread.
     void assertInLoopThread() const;
 
-    uint32_t listeningEvents() const { return listeningEvents_; }
-    void setRecevicedEvents(uint32_t events) { receivedEvents_ = events; }
+    uint32_t listeningEvents() const
+    {
+        return listeningEvents_;
+    }
+    void setRecevicedEvents(uint32_t events)
+    {
+        receivedEvents_ = events;
+    }
 
     int fd_ = -1;
     EventLoop *eventLoop_ = nullptr;

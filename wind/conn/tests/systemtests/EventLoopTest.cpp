@@ -34,9 +34,15 @@ public:
     Connection(int sockfd, EventLoop *loop)
         : sock_(sockfd), loop_(loop), channel_(std::make_shared<EventChannel>(sockfd, loop_))
     {}
-    ~Connection() noexcept { channel_->disableAll(); }
+    ~Connection() noexcept
+    {
+        channel_->disableAll();
+    }
 
-    std::shared_ptr<EventChannel> getChannel() const { return channel_; }
+    std::shared_ptr<EventChannel> getChannel() const
+    {
+        return channel_;
+    }
 
 private:
     Socket sock_;
@@ -46,15 +52,21 @@ private:
 
 class EchoServer {
 public:
-    EchoServer() : servSock_(sockets::createNonBlockSocketOrDie(AF_INET, SOCK_STREAM, 0)), loop_() {}
+    EchoServer() : servSock_(sockets::createNonBlockSocketOrDie(AF_INET, SOCK_STREAM, 0)), loop_()
+    {}
 
-    ~EchoServer() noexcept { acceptChannel_->disableAll(); }
+    ~EchoServer() noexcept
+    {
+        acceptChannel_->disableAll();
+    }
 
     void run(uint16_t port)
     {
         // tick every 5s, delayed 1s.
         loop_.runEvery(
-            []() { LOG_INFO << "main tick."; }, 5000 * MICRO_SECS_PER_MILLISECOND, 1000 * MICRO_SECS_PER_MILLISECOND);
+            []() { LOG_INFO << "main tick."; },
+            5000 * MICRO_SECS_PER_MILLISECOND,
+            1000 * MICRO_SECS_PER_MILLISECOND);
 
         // run after 5s.
         loop_.runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
@@ -65,7 +77,8 @@ public:
         servSock_.listenOrDie();
 
         acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), &loop_);
-        acceptChannel_->setReadCallback([this](TimeStamp receivedTime) { acceptFunc(receivedTime); });
+        acceptChannel_->setReadCallback(
+            [this](TimeStamp receivedTime) { acceptFunc(receivedTime); });
         acceptChannel_->enableReading();
 
         loop_.start();
@@ -76,12 +89,13 @@ private:
     {
         SockAddrInet clientAddr;
         int clientFd = servSock_.accept(clientAddr);
-        LOG_INFO << receivedTime.toFormattedString() << " accept client: fd(" << clientFd << "), addr("
-                 << clientAddr.toString() << ").";
+        LOG_INFO << receivedTime.toFormattedString() << " accept client: fd(" << clientFd
+                 << "), addr(" << clientAddr.toString() << ").";
 
         auto newConn = std::make_shared<Connection>(clientFd, &loop_);
         auto channel = newConn->getChannel();
-        channel->setReadCallback([this, clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
+        channel->setReadCallback(
+            [this, clientFd](TimeStamp receivedTime) { echoFunc(clientFd, receivedTime); });
         channel->enableReading();
         clients_[clientFd] = newConn;
     }
@@ -93,21 +107,27 @@ private:
         if (len < 0) {
             LOG_INFO << " recv msg err from client " << fd << ": " << strerror(errno);
         } else if (len == 0) {
-            LOG_INFO << receivedTime.toFormattedString() << " client " << fd << " closed, remove this conn.";
+            LOG_INFO << receivedTime.toFormattedString() << " client " << fd
+                     << " closed, remove this conn.";
             removeClient(fd);
         } else {
-            LOG_INFO << receivedTime.toFormattedString() << " recv msg from client " << fd << ": " << buf;
+            LOG_INFO << receivedTime.toFormattedString() << " recv msg from client " << fd << ": "
+                     << buf;
             int ret = TEMP_FAILURE_RETRY(write(fd, buf, len));
             if (ret < 0) {
-                LOG_INFO << receivedTime.toFormattedString() << " send msg err from client " << fd << ": "
-                         << strerror(errno);
+                LOG_INFO << receivedTime.toFormattedString() << " send msg err from client " << fd
+                         << ": " << strerror(errno);
             } else {
-                LOG_INFO << receivedTime.toFormattedString() << " send msg from client " << fd << ": " << buf;
+                LOG_INFO << receivedTime.toFormattedString() << " send msg from client " << fd
+                         << ": " << buf;
             }
         }
     }
 
-    void removeClient(int fd) { clients_.erase(fd); }
+    void removeClient(int fd)
+    {
+        clients_.erase(fd);
+    }
 
     Socket servSock_;
     EventLoop loop_;

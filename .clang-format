@@ -34,7 +34,7 @@ AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: true
 
 # 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
-AllowShortFunctionsOnASingleLine: Inline
+AllowShortFunctionsOnASingleLine: Empty
 
 # 允许短的if语句保持在同一行
 AllowShortIfStatementsOnASingleLine: false
@@ -110,12 +110,12 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
 
 # 每行字符的限制，0表示没有限制
-ColumnLimit: 120
+ColumnLimit: 100
 
 CompactNamespaces: false
 
 # 构造函数的初始化列表要么都在同一行，要么都各自一行
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 
 # 构造函数的初始化列表的缩进宽度
 ConstructorInitializerIndentWidth: 4
@@ -194,7 +194,7 @@ PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
 
 # 对于每个在行字符数限制之外的字符的penalty
-PenaltyExcessCharacter: 1000000
+PenaltyExcessCharacter: 100000000
 
 # 将函数的返回类型放到它自己的行的penalty
 PenaltyReturnTypeOnItsOwnLine: 60

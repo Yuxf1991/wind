@@ -46,7 +46,10 @@ void mainThreadInit()
 }
 
 struct MainThreadInitializer {
-    MainThreadInitializer() noexcept { mainThreadInit(); }
+    MainThreadInitializer() noexcept
+    {
+        mainThreadInit();
+    }
 };
 
 [[maybe_unused]] MainThreadInitializer mainThreadInitializer;
@@ -66,7 +69,8 @@ void cacheTid()
         t_tls.tid = detail::getThreadId();
     }
 
-    [[maybe_unused]] int len = ::snprintf(t_tls.tidString, sizeof(t_tls.tidString), "%d", t_tls.tid);
+    [[maybe_unused]] int len =
+        ::snprintf(t_tls.tidString, sizeof(t_tls.tidString), "%d", t_tls.tid);
     ASSERT(static_cast<size_t>(len) < sizeof(t_tls.tidString));
 }
 

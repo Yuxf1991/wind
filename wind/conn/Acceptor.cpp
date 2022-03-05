@@ -31,10 +31,17 @@ namespace detail {
 const string LOCK_SUFFIX = ".lock";
 } // namespace detail
 
-Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, bool reusePort, int type, int protocol)
-    : loop_(eventLoop), acceptSocket_(sockets::createNonBlockSocketOrDie(listenAddr.family(), type, protocol)),
+Acceptor::Acceptor(
+    base::EventLoop *eventLoop,
+    const SockAddrInet &listenAddr,
+    bool reusePort,
+    int type,
+    int protocol)
+    : loop_(eventLoop),
+      acceptSocket_(sockets::createNonBlockSocketOrDie(listenAddr.family(), type, protocol)),
       acceptChannel_(std::make_shared<base::EventChannel>(acceptSocket_.fd(), loop_)),
-      idleFd_(base::utils::createIdleFdOrDie()), acceptorType_(AcceptorType::INET_ACCEPTOR)
+      idleFd_(base::utils::createIdleFdOrDie()),
+      acceptorType_(AcceptorType::INET_ACCEPTOR)
 {
     acceptSocket_.setReuseAddr(true);
     acceptSocket_.setReusePort(reusePort);
@@ -42,10 +49,16 @@ Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, b
     acceptChannel_->setReadCallback([this](base::TimeStamp) { handleRead(); });
 }
 
-Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrUnix &listenAddr, int type, int protocol)
-    : loop_(eventLoop), acceptSocket_(sockets::createNonBlockSocketOrDie(listenAddr.family(), type, protocol)),
+Acceptor::Acceptor(
+    base::EventLoop *eventLoop,
+    const SockAddrUnix &listenAddr,
+    int type,
+    int protocol)
+    : loop_(eventLoop),
+      acceptSocket_(sockets::createNonBlockSocketOrDie(listenAddr.family(), type, protocol)),
       acceptChannel_(std::make_shared<base::EventChannel>(acceptSocket_.fd(), loop_)),
-      idleFd_(base::utils::createIdleFdOrDie()), acceptorType_(AcceptorType::UNIX_ACCEPTOR)
+      idleFd_(base::utils::createIdleFdOrDie()),
+      acceptorType_(AcceptorType::UNIX_ACCEPTOR)
 {
     reuseAndLockUnixAddrOrDie(listenAddr.toString());
     acceptSocket_.bindOrDie(listenAddr);
@@ -62,8 +75,8 @@ void Acceptor::reuseAndLockUnixAddrOrDie(const string &socketPath)
     string lockFileName = socketPath + detail::LOCK_SUFFIX;
     lockfd_.reset(TEMP_FAILURE_RETRY(::open(lockFileName.c_str(), O_RDONLY | O_CREAT, 0600)));
     if (!lockfd_.valid()) {
-        LOG_SYS_FATAL << "Create lock file for Socket(fd: " << acceptSocket_.fd() << ", path: " << socketPath
-                      << ") failed: " << strerror(errno) << ".";
+        LOG_SYS_FATAL << "Create lock file for Socket(fd: " << acceptSocket_.fd()
+                      << ", path: " << socketPath << ") failed: " << strerror(errno) << ".";
     }
 
     int ret = TEMP_FAILURE_RETRY(::flock(lockfd_.get(), LOCK_EX | LOCK_NB));

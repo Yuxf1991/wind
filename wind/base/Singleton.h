@@ -41,8 +41,8 @@ protected:
     ~Singleton() noexcept = default;
 };
 
-#define DECLARE_SINGLETON(T)                                                                                           \
-private:                                                                                                               \
+#define DECLARE_SINGLETON(T)                                                                       \
+private:                                                                                           \
     friend class Singleton<T>;
 } // namespace base
 } // namespace wind

@@ -46,12 +46,27 @@ public:
     {}
 
     static TimeStamp now() noexcept;
-    static TimeStamp invalid() noexcept { return TimeStamp(); }
+    static TimeStamp invalid() noexcept
+    {
+        return TimeStamp();
+    }
 
-    TimeType get() const noexcept { return microSecondsSinceEpoch_; }
-    TimeType micros() const noexcept { return get(); }
-    TimeType millis() const noexcept { return micros() / MICRO_SECS_PER_MILLISECOND; }
-    TimeType seconds() const noexcept { return millis() / MILLI_SECS_PER_SECOND; }
+    TimeType get() const noexcept
+    {
+        return microSecondsSinceEpoch_;
+    }
+    TimeType micros() const noexcept
+    {
+        return get();
+    }
+    TimeType millis() const noexcept
+    {
+        return micros() / MICRO_SECS_PER_MILLISECOND;
+    }
+    TimeType seconds() const noexcept
+    {
+        return millis() / MILLI_SECS_PER_SECOND;
+    }
 
     string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
     string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;

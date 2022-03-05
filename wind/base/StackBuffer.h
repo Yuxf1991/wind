@@ -36,22 +36,43 @@ public:
     StackBuffer() = default;
     ~StackBuffer() noexcept = default;
 
-    const char *data() const { return data_; }
+    const char *data() const
+    {
+        return data_;
+    }
 
     // expose curr_ to modify outside.
-    char *curr() const { return curr_; }
+    char *curr() const
+    {
+        return curr_;
+    }
     void grow(size_t len)
     {
         ASSERT(len < available());
         curr_ += len;
     }
 
-    const char *end() const { return data_ + sizeof(data_); }
-    size_t available() const { return static_cast<size_t>(end() - curr()); }
-    size_t length() const { return static_cast<size_t>(curr() - data()); }
-    constexpr size_t capacity() const { return sizeof(data_); }
+    const char *end() const
+    {
+        return data_ + sizeof(data_);
+    }
+    size_t available() const
+    {
+        return static_cast<size_t>(end() - curr());
+    }
+    size_t length() const
+    {
+        return static_cast<size_t>(curr() - data());
+    }
+    constexpr size_t capacity() const
+    {
+        return sizeof(data_);
+    }
 
-    void reset() { curr_ = data_; }
+    void reset()
+    {
+        curr_ = data_;
+    }
     void clear()
     {
         utils::memZero(data_, sizeof(data_));
@@ -64,9 +85,18 @@ public:
         ::memcpy(curr_, s, bytesToWrite);
         curr_ += bytesToWrite;
     }
-    void append(const char *s) { append(s, ::strlen(s)); }
-    void append(const string &s) { append(s.c_str(), s.size()); }
-    string toString() const { return string(data_, length()); }
+    void append(const char *s)
+    {
+        append(s, ::strlen(s));
+    }
+    void append(const string &s)
+    {
+        append(s.c_str(), s.size());
+    }
+    string toString() const
+    {
+        return string(data_, length());
+    }
 
 private:
     char data_[BUF_SIZE];

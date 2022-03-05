@@ -33,9 +33,10 @@
 namespace wind {
 namespace base {
 using TimerPtr = std::unique_ptr<Timer>;
-using TimerMap = std::unordered_map<TimerId, TimerPtr>; // To hold timers, manager the timers' onwership.
-using TimerEntry = std::pair<TimeStamp, TimerId>;       // Make sure every TimerEntry is unique.
-using TimerEntrySet = std::set<TimerEntry>;             // To sort timers ordered by expireTime
+using TimerMap =
+    std::unordered_map<TimerId, TimerPtr>;        // To hold timers, manager the timers' onwership.
+using TimerEntry = std::pair<TimeStamp, TimerId>; // Make sure every TimerEntry is unique.
+using TimerEntrySet = std::set<TimerEntry>;       // To sort timers ordered by expireTime
 
 class EventLoop;
 

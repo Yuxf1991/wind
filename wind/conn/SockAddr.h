@@ -40,16 +40,40 @@ string toIpStringV6(const sockaddr_in6 &addrV6);
 template <typename SockType>
 class SockAddr {
 public:
-    const sockaddr *getSockAddr() const { return constObjPtr()->getSockAddr(); }
-    sockaddr *data() { return const_cast<sockaddr *>(getSockAddr()); }
-    socklen_t len() const { return constObjPtr()->len(); }
-    socklen_t capacity() const { return constObjPtr()->capacity(); }
-    sa_family_t family() const { return constObjPtr()->family(); }
-    string toString() const { return constObjPtr()->toString(); }
+    const sockaddr *getSockAddr() const
+    {
+        return constObjPtr()->getSockAddr();
+    }
+    sockaddr *data()
+    {
+        return const_cast<sockaddr *>(getSockAddr());
+    }
+    socklen_t len() const
+    {
+        return constObjPtr()->len();
+    }
+    socklen_t capacity() const
+    {
+        return constObjPtr()->capacity();
+    }
+    sa_family_t family() const
+    {
+        return constObjPtr()->family();
+    }
+    string toString() const
+    {
+        return constObjPtr()->toString();
+    }
 
 private:
-    const SockType *const constObjPtr() const { return static_cast<const SockType *>(this); }
-    SockType *const objPtr() const { return const_cast<SockType *const>(constObjPtr()); }
+    const SockType *const constObjPtr() const
+    {
+        return static_cast<const SockType *>(this);
+    }
+    SockType *const objPtr() const
+    {
+        return const_cast<SockType *const>(constObjPtr());
+    }
 };
 
 // copyable
@@ -57,15 +81,33 @@ private:
 class SockAddrInet : public SockAddr<SockAddrInet> {
 public:
     // Mostly for listening address if all values are default.
-    explicit SockAddrInet(in_port_t port = 0, bool ipv6 = false, bool onlyLoopBack = false) noexcept;
+    explicit SockAddrInet(
+        in_port_t port = 0,
+        bool ipv6 = false,
+        bool onlyLoopBack = false) noexcept;
     SockAddrInet(const string &ip, in_port_t port, bool ipv6 = false);
     ~SockAddrInet() noexcept = default;
 
-    const sockaddr *getSockAddr() const { return reinterpret_cast<const sockaddr *>(&addr_); }
-    sockaddr *data() { return const_cast<sockaddr *>(getSockAddr()); }
-    socklen_t len() const { return static_cast<socklen_t>(sizeof(addr_)); }
-    socklen_t capacity() const { return len(); }
-    sa_family_t family() const { return getSockAddr()->sa_family; }
+    const sockaddr *getSockAddr() const
+    {
+        return reinterpret_cast<const sockaddr *>(&addr_);
+    }
+    sockaddr *data()
+    {
+        return const_cast<sockaddr *>(getSockAddr());
+    }
+    socklen_t len() const
+    {
+        return static_cast<socklen_t>(sizeof(addr_));
+    }
+    socklen_t capacity() const
+    {
+        return len();
+    }
+    sa_family_t family() const
+    {
+        return getSockAddr()->sa_family;
+    }
     string ip() const;
     in_port_t port() const;
     string portString() const;
@@ -86,12 +128,30 @@ public:
     explicit SockAddrUnix(const string &path);
     ~SockAddrUnix() noexcept = default;
 
-    const sockaddr *getSockAddr() const { return reinterpret_cast<const sockaddr *>(&addr_); }
-    sockaddr *data() { return const_cast<sockaddr *>(getSockAddr()); }
-    socklen_t len() const { return static_cast<socklen_t>(offsetof(sockaddr_un, sun_path) + strlen(addr_.sun_path)); }
-    socklen_t capacity() const { return static_cast<socklen_t>(sizeof(addr_)); }
-    sa_family_t family() const { return getSockAddr()->sa_family; }
-    string toString() const { return addr_.sun_path; }
+    const sockaddr *getSockAddr() const
+    {
+        return reinterpret_cast<const sockaddr *>(&addr_);
+    }
+    sockaddr *data()
+    {
+        return const_cast<sockaddr *>(getSockAddr());
+    }
+    socklen_t len() const
+    {
+        return static_cast<socklen_t>(offsetof(sockaddr_un, sun_path) + strlen(addr_.sun_path));
+    }
+    socklen_t capacity() const
+    {
+        return static_cast<socklen_t>(sizeof(addr_));
+    }
+    sa_family_t family() const
+    {
+        return getSockAddr()->sa_family;
+    }
+    string toString() const
+    {
+        return addr_.sun_path;
+    }
 
 private:
     sockaddr_un addr_;

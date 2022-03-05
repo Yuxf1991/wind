@@ -41,14 +41,23 @@ public:
     ThreadPool(string name);
     ~ThreadPool() noexcept;
 
-    string name() const { return name_; }
+    string name() const
+    {
+        return name_;
+    }
 
-    bool isRunning() const { return running_.load(std::memory_order_acquire); }
+    bool isRunning() const
+    {
+        return running_.load(std::memory_order_acquire);
+    }
 
     void setThreadNum(size_t threadNum);
     void setTaskQueueCapacity(size_t capacity);
 
-    bool empty() const { return taskSize() == 0; }
+    bool empty() const
+    {
+        return taskSize() == 0;
+    }
 
     size_t taskSize() const;
 
@@ -83,7 +92,10 @@ private:
         TaskWorker(string name, ThreadPool &pool);
         ~TaskWorker() noexcept;
 
-        string name() const { return name_; }
+        string name() const
+        {
+            return name_;
+        }
 
         // Can shrink and expand capacity.
         void setTaskCapacity(size_t capacity);
@@ -111,17 +123,32 @@ private:
         ThreadId start();
         void postTask(Task task);
 
-        TimeStamp readyTime() const { return readyTime_; }
+        TimeStamp readyTime() const
+        {
+            return readyTime_;
+        }
 
     private:
         void stop() noexcept;
         Task fetchTask();
         void threadMain();
 
-        bool isFullLocked() const { return getQueueSizeLocked() >= getQueueCapacityLocked(); }
-        bool isEmptyLocked() const { return tasks_.empty(); }
-        size_t getQueueSizeLocked() const { return tasks_.size(); }
-        size_t getQueueCapacityLocked() const { return taskQueueCapacity_; }
+        bool isFullLocked() const
+        {
+            return getQueueSizeLocked() >= getQueueCapacityLocked();
+        }
+        bool isEmptyLocked() const
+        {
+            return tasks_.empty();
+        }
+        size_t getQueueSizeLocked() const
+        {
+            return tasks_.size();
+        }
+        size_t getQueueCapacityLocked() const
+        {
+            return taskQueueCapacity_;
+        }
 
         string name_;
         ThreadPool &pool_;

@@ -43,9 +43,15 @@ public:
 
     ~Fmt() noexcept = default;
 
-    const char *data() const { return buf_.data(); }
+    const char *data() const
+    {
+        return buf_.data();
+    }
 
-    size_t length() const { return buf_.length(); }
+    size_t length() const
+    {
+        return buf_.length();
+    }
 
 private:
     DefaultFixedBuffer buf_;
@@ -56,27 +62,54 @@ public:
     LogStream() = default;
     ~LogStream() noexcept;
 
-    LogStream &self() { return *this; }
+    LogStream &self()
+    {
+        return *this;
+    }
 
-    LogStream &operator<<(int8_t val) { return self() << static_cast<int64_t>(val); }
-    LogStream &operator<<(int16_t val) { return self() << static_cast<int64_t>(val); }
-    LogStream &operator<<(int32_t val) { return self() << static_cast<int64_t>(val); }
+    LogStream &operator<<(int8_t val)
+    {
+        return self() << static_cast<int64_t>(val);
+    }
+    LogStream &operator<<(int16_t val)
+    {
+        return self() << static_cast<int64_t>(val);
+    }
+    LogStream &operator<<(int32_t val)
+    {
+        return self() << static_cast<int64_t>(val);
+    }
     LogStream &operator<<(int64_t val);
 
-    LogStream &operator<<(uint8_t val) { return self() << static_cast<uint64_t>(val); }
-    LogStream &operator<<(uint16_t val) { return self() << static_cast<uint64_t>(val); }
-    LogStream &operator<<(uint32_t val) { return self() << static_cast<uint64_t>(val); }
+    LogStream &operator<<(uint8_t val)
+    {
+        return self() << static_cast<uint64_t>(val);
+    }
+    LogStream &operator<<(uint16_t val)
+    {
+        return self() << static_cast<uint64_t>(val);
+    }
+    LogStream &operator<<(uint32_t val)
+    {
+        return self() << static_cast<uint64_t>(val);
+    }
     LogStream &operator<<(uint64_t val);
 
     LogStream &operator<<(const void *pointer);
 
     LogStream &operator<<(double val);
-    LogStream &operator<<(float val) { return self() << static_cast<double>(val); }
+    LogStream &operator<<(float val)
+    {
+        return self() << static_cast<double>(val);
+    }
 
     LogStream &operator<<(LogStream &(*func)(LogStream &));
     LogStream &operator<<(const string &s);
     LogStream &operator<<(const char *s);
-    LogStream &operator<<(char *s) { return self() << static_cast<const char *>(s); }
+    LogStream &operator<<(char *s)
+    {
+        return self() << static_cast<const char *>(s);
+    }
     LogStream &operator<<(const Fmt &fmt);
     void append(const char *data, size_t len);
 
