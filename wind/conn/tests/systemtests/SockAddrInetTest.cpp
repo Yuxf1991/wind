@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "SockAddrInet.h"
+#include "SockAddr.h"
 #include <iostream>
 
 using namespace std;
@@ -31,29 +31,29 @@ int main()
 {
     // TODO: Use google test.
     SockAddrInet addr0;
-    cout << addr0.ipPortString() << endl;
+    cout << addr0.toString() << endl;
 
     SockAddrInet addr1("0.0.0.0", 1645);
-    cout << addr1.ipPortString() << endl;
+    cout << addr1.toString() << endl;
 
     SockAddrInet addr2(8888, false, true);
-    cout << addr2.ipPortString() << endl;
+    cout << addr2.toString() << endl;
 
     SockAddrInet addr3("255.255.255.255", 1645);
-    cout << addr3.ipPortString() << endl;
+    cout << addr3.toString() << endl;
 
     SockAddrInet addr4("127.0.0.1", 12459);
-    cout << addr4.ipPortString() << endl;
+    cout << addr4.toString() << endl;
     cout << addr4.len() << endl;
 
     SockAddrInet addr5(8888, true, true);
-    cout << addr5.ipPortString() << endl;
+    cout << addr5.toString() << endl;
 
     SockAddrInet addr6(8888, true);
-    cout << addr6.ipPortString() << endl;
+    cout << addr6.toString() << endl;
 
     SockAddrInet addr7(8888);
-    cout << addr7.ipPortString() << endl;
+    cout << addr7.toString() << endl;
 
     // SockAddrInet addr5("127.0.0.1457", 12459); // not valid addr
     // SockAddrInet addr6("256.0.0.1", 12459); // not valid addr

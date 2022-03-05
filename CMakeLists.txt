@@ -26,7 +26,14 @@ project(Wind C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 # compile options
-add_compile_options(-Wextra -Wall -Werror -Wno-attributes -Wno-missing-field-initializers -std=c++17)
+add_compile_options(
+        -Wextra
+        -Wall
+        -Werror
+        -Wno-attributes
+        -Wno-missing-field-initializers
+        -std=c++17)
+
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
         add_compile_options(-pg)
 endif()

@@ -54,7 +54,9 @@ inline void memZero(void *data, size_t len)
     ::memset(data, 0, len);
 }
 
-int createEventFd();
+int createEventFdOrDie();
+
+int createIdleFdOrDie();
 } // namespace utils
 } // namespace base
 } // namespace wind

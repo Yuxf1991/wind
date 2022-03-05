@@ -20,12 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include(CheckFunctionExists)
+
+check_function_exists(accept4 HAVE_ACCEPT4)
+if(NOT HAVE_ACCEPT4)
+  set_source_files_properties(Socket.cpp PROPERTIES COMPILE_FLAGS "-DNO_ACCEPT4")
+endif()
+
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set(WIND_CONN_SRC
-    SockAddrInet.cpp
+    SockAddr.cpp
     Socket.cpp
     Acceptor.cpp)
 

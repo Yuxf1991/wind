@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "SockAddrInet.h"
+#include "SockAddr.h"
 
 #include <arpa/inet.h>
 
@@ -125,9 +125,21 @@ string SockAddrInet::portString() const
     return std::to_string(::ntohs(port()));
 }
 
-string SockAddrInet::ipPortString() const
+string SockAddrInet::toString() const
 {
     return ip() + ":" + portString();
+}
+
+SockAddrUnix::SockAddrUnix() : SockAddrUnix("") {}
+
+SockAddrUnix::SockAddrUnix(const string &path)
+{
+    base::utils::memZero(&addr_, sizeof(addr_));
+    addr_.sun_family = AF_LOCAL;
+    if (path.size() > sizeof(addr_.sun_path)) {
+        LOG_SYS_FATAL << "Failed to create SockAddr(un): path is too long.";
+    }
+    ::memcpy(addr_.sun_path, path.data(), path.size());
 }
 } // namespace conn
 } // namespace wind

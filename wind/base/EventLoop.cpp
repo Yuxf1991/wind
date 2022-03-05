@@ -30,7 +30,7 @@ namespace base {
 __thread EventLoop *t_currLoop = nullptr; // current thread's event_loop
 
 EventLoop::EventLoop()
-    : tid_(CurrentThread::tid()), poller_(std::make_unique<EventPoller>(this)), wakeUpFd_(utils::createEventFd()),
+    : tid_(CurrentThread::tid()), poller_(std::make_unique<EventPoller>(this)), wakeUpFd_(utils::createEventFdOrDie()),
       wakeUpChannel_(std::make_shared<EventChannel>(wakeUpFd_.get(), this)),
       timerManager_(std::make_unique<TimerManager>(this))
 {

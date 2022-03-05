@@ -27,21 +27,36 @@
 
 namespace wind {
 namespace conn {
-using AcceptCallback = std::function<void(int, const SockAddrInet &)>;
+// This Acceptor can be used for both network and unix local ipc.
+enum class AcceptorType { INET_ACCEPTOR, UNIX_ACCEPTOR, UNKNOWN };
+
+using AcceptCallbackInet = std::function<void(int, const SockAddrInet &)>;
+using AcceptCallbackUnix = std::function<void(int, const SockAddrUnix &)>;
 
 class Acceptor : base::NonCopyable {
 public:
-    Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, bool reusePort = true, int type = SOCK_STREAM);
+    Acceptor(
+        base::EventLoop *eventLoop,
+        const SockAddrInet &listenAddr,
+        bool reusePort = true,
+        int type = SOCK_STREAM,
+        int protocol = IPPROTO_TCP);
+    Acceptor(base::EventLoop *eventLoop, const SockAddrUnix &listenAddr, int type = SOCK_STREAM, int protocol = 0);
     ~Acceptor() noexcept;
 
-    void setAcceptCallback(const AcceptCallback &callback);
+    void setAcceptCallback(const AcceptCallbackInet &callback);
+    void setAcceptCallback(const AcceptCallbackUnix &callback);
 
     void listen();
 
     bool listening() const { return listening_; }
 
 private:
+    void reuseAndLockUnixAddrOrDie(const string &socketPath);
     void assertInLoopThread() const;
+    void handleAccptError();
+    void acceptNewInetConn();
+    void acceptNewUnixConn();
     void handleRead();
 
     std::atomic<bool> listening_ = false;
@@ -51,7 +66,11 @@ private:
     std::shared_ptr<base::EventChannel> acceptChannel_;
 
     base::UniqueFd idleFd_;
-    AcceptCallback acceptCallback_;
+
+    AcceptorType acceptorType_ = AcceptorType::UNKNOWN;
+    AcceptCallbackInet inetAcceptCallback_;
+    AcceptCallbackUnix unixAcceptCallback_;
+    base::UniqueFd lockfd_;
 };
 } // namespace conn
 } // namespace wind

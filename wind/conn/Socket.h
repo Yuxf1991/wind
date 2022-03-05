@@ -24,15 +24,21 @@
 
 #include "base/UniqueFd.h"
 
-#include "SockAddrInet.h"
+#include "SockAddr.h"
 
 namespace wind {
 namespace conn {
+namespace sockets {
+// will implicitly set CLOEXEC flag and call abort() if create socket failed.
+int createNonBlockSocketOrDie(int family, int type, int protocol);
+
+void bindOrDie(int fd, const sockaddr *addr, socklen_t addrLen);
+int accept(int fd, sockaddr *addr, socklen_t addrLen);
+int connect(int fd, const sockaddr *addr, socklen_t addrLen);
+} // namespace sockets
+
 class Socket : base::NonCopyable {
 public:
-    // Will call abort() if create socket failed.
-    static Socket createNonBlockSocket(int domain, int type, int protocol);
-
     explicit Socket(int sockfd);
     ~Socket() noexcept;
 
@@ -43,16 +49,28 @@ public:
     int fd() const { return fd_.get(); }
 
     // will call abort() if bind failed.
-    void bindOrDie(const SockAddrInet &addr) const;
+    template <typename SockType>
+    void bindOrDie(const SockAddr<SockType> &addr) const
+    {
+        sockets::bindOrDie(fd_.get(), addr.getSockAddr(), addr.len());
+    }
     // will call abort() if listen failed.
     void listenOrDie() const;
 
-    // success: return valid fd
+    // success: return a valid fd and fill peerAddr
     // failure: return -1
-    int accept(SockAddrInet &peerAddr) const;
+    template <typename SockType>
+    int accept(SockAddr<SockType> &peerAddr) const
+    {
+        return sockets::accept(fd_.get(), peerAddr.data(), peerAddr.capacity());
+    }
     // success: return 0
     // failure: return -1
-    int connect(const SockAddrInet &addr) const;
+    template <typename SockType>
+    int connect(const SockAddr<SockType> &remoteAddr) const
+    {
+        return sockets::connect(fd_.get(), remoteAddr.getSockAddr(), remoteAddr.len());
+    }
 
     // will check ret value in this func and log err info, same as follows
     void setTcpNoDelay(bool on); // set TCP_NODELAY of the socket (disable/enable Nagle's algorithm).

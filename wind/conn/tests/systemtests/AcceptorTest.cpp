@@ -20,12 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "base/Thread.h"
-#include <unistd.h>
 #ifndef LOG_TAG
 #define LOG_TAG "AcceptorTest"
 #endif
-#include "base/Log.h"
 
 #include "Acceptor.h"
 
@@ -33,9 +30,9 @@ using namespace wind;
 using namespace wind::base;
 using namespace wind::conn;
 
-void acceptFunc(int peerfd, const SockAddrInet &peerAddr)
+void acceptFunc(int peerfd, const SockAddrUnix &peerAddr)
 {
-    LOG_INFO << "New conn accepted: " << peerAddr.ipPortString() << ", fd: " << peerfd << ".";
+    LOG_INFO << "New conn accepted: " << peerAddr.toString() << ", fd: " << peerfd << ".";
 
     // close it
     // DefaultFdCloser()(peerfd);
@@ -44,7 +41,7 @@ void acceptFunc(int peerfd, const SockAddrInet &peerAddr)
 int main()
 {
     EventLoop loop;
-    SockAddrInet listenAddr(23456);
+    SockAddrUnix listenAddr("/tmp/yxf");
     Acceptor acceptor(&loop, listenAddr);
     acceptor.setAcceptCallback(&acceptFunc);
     acceptor.listen();

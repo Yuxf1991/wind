@@ -49,7 +49,8 @@ private:
 class EchoServer {
 public:
     EchoServer()
-        : servSock_(Socket::createNonBlockSocket(AF_INET6, SOCK_STREAM, 0)), loopThread_("EchoServerEventLoopThread")
+        : servSock_(sockets::createNonBlockSocketOrDie(AF_INET6, SOCK_STREAM, 0)),
+          loopThread_("EchoServerEventLoopThread")
     {}
 
     ~EchoServer() noexcept { acceptChannel_->disableAll(); }
@@ -72,7 +73,7 @@ public:
         // init socket
         SockAddrInet secvAddr(port, true);
         servSock_.bindOrDie(secvAddr);
-        LOG_INFO << "Listen on: " << secvAddr.ipPortString() << ".";
+        LOG_INFO << "Listen on: " << secvAddr.toString() << ".";
         servSock_.listenOrDie();
 
         acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), loop_);
@@ -99,7 +100,7 @@ private:
         SockAddrInet clientAddr;
         int clientFd = servSock_.accept(clientAddr);
         LOG_INFO << receivedTime.toFormattedString() << " accept client: fd(" << clientFd << "), addr("
-                 << clientAddr.ipPortString() << ").";
+                 << clientAddr.toString() << ").";
 
         auto newConn = std::make_shared<Connection>(clientFd, loop_);
         auto channel = newConn->getChannel();

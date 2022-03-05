@@ -22,17 +22,30 @@
 
 #include "Utils.h"
 
+#include <fcntl.h>
+
 #include "Log.h"
 
 namespace wind {
 namespace base {
 namespace utils {
-int createEventFd()
+int createEventFdOrDie()
 {
-    int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-    LOG_FATAL_IF(eventFd < 0) << "Failed to create eventfd!";
+    int fd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if (fd < 0) {
+        LOG_SYS_FATAL << "Create eventfd failed: " << strerror(errno) << ".";
+    }
 
-    return eventFd;
+    return fd;
+}
+
+int createIdleFdOrDie()
+{
+    int fd = TEMP_FAILURE_RETRY(::open("/dev/null", O_RDONLY | O_CLOEXEC));
+    if (fd < 0) {
+        LOG_SYS_FATAL << "Create idleFd failed: " << strerror(errno) << ".";
+    }
+    return fd;
 }
 } // namespace utils
 } // namespace base
