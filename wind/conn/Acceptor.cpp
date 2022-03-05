@@ -173,9 +173,15 @@ void Acceptor::handleRead()
 {
     assertInLoopThread();
     switch (acceptorType_) {
-        case AcceptorType::INET_ACCEPTOR: acceptNewInetConn(); break;
-        case AcceptorType::UNIX_ACCEPTOR: acceptNewUnixConn(); break;
-        default: LOG_ERROR << "Not support acceptor type."; break;
+        case AcceptorType::INET_ACCEPTOR:
+            acceptNewInetConn();
+            break;
+        case AcceptorType::UNIX_ACCEPTOR:
+            acceptNewUnixConn();
+            break;
+        default:
+            LOG_ERROR << "Not support acceptor type.";
+            break;
     }
 }
 } // namespace conn

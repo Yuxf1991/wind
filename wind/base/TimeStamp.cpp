@@ -62,7 +62,8 @@ string TimeStamp::toString(TimePrecision precision) const noexcept
             ss << std::setw(6) << micros;
             break;
         }
-        default: break;
+        default:
+            break;
     }
 
     return ss.str();
@@ -89,7 +90,8 @@ string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
             ss << std::setw(6) << micros;
             break;
         }
-        default: break;
+        default:
+            break;
     }
 
     return ss.str();

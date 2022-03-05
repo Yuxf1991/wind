@@ -32,10 +32,14 @@ namespace detail {
 string epollOperationToString(int operation)
 {
     switch (operation) {
-        case EPOLL_CTL_ADD: return "EpollCtlAdd";
-        case EPOLL_CTL_MOD: return "EpollCtlMod";
-        case EPOLL_CTL_DEL: return "EpollCtlDel";
-        default: return "UnknownEpollCtl";
+        case EPOLL_CTL_ADD:
+            return "EpollCtlAdd";
+        case EPOLL_CTL_MOD:
+            return "EpollCtlMod";
+        case EPOLL_CTL_DEL:
+            return "EpollCtlDel";
+        default:
+            return "UnknownEpollCtl";
     }
 }
 } // namespace detail
