@@ -27,7 +27,7 @@
 
 namespace wind {
 namespace conn {
-// This Acceptor can be used for both network and unix local ipc.
+// This Acceptor can support for both network and unix local ipc.
 enum class AcceptorType { INET_ACCEPTOR, UNIX_ACCEPTOR, UNKNOWN };
 
 using AcceptCallbackInet = std::function<void(int, const SockAddrInet &)>;
@@ -41,11 +41,7 @@ public:
         bool reusePort = true,
         int type = SOCK_STREAM,
         int protocol = IPPROTO_TCP);
-    Acceptor(
-        base::EventLoop *eventLoop,
-        const SockAddrUnix &listenAddr,
-        int type = SOCK_STREAM,
-        int protocol = 0);
+    Acceptor(base::EventLoop *eventLoop, const SockAddrUnix &listenAddr, int type = SOCK_STREAM, int protocol = 0);
     ~Acceptor() noexcept;
 
     void setAcceptCallback(const AcceptCallbackInet &callback);

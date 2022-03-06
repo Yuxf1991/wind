@@ -46,7 +46,7 @@ public:
     }
     sockaddr *data()
     {
-        return const_cast<sockaddr *>(getSockAddr());
+        return objPtr()->data();
     }
     socklen_t len() const
     {
@@ -66,13 +66,13 @@ public:
     }
 
 private:
-    const SockType *const constObjPtr() const
+    const SockType *constObjPtr() const
     {
         return static_cast<const SockType *>(this);
     }
-    SockType *const objPtr() const
+    SockType *objPtr() const
     {
-        return const_cast<SockType *const>(constObjPtr());
+        return const_cast<SockType *>(constObjPtr());
     }
 };
 
@@ -80,11 +80,8 @@ private:
 // For both ipv4 and ipv6
 class SockAddrInet : public SockAddr<SockAddrInet> {
 public:
-    // Mostly for listening address if all values are default.
-    explicit SockAddrInet(
-        in_port_t port = 0,
-        bool ipv6 = false,
-        bool onlyLoopBack = false) noexcept;
+    // Mostly for listening address.
+    explicit SockAddrInet(in_port_t port = 0, bool ipv6 = false, bool onlyLoopBack = false) noexcept;
     SockAddrInet(const string &ip, in_port_t port, bool ipv6 = false);
     ~SockAddrInet() noexcept = default;
 

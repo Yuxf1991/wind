@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <unistd.h>
-
 #include "Log.h"
 
 namespace wind {

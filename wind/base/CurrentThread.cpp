@@ -41,7 +41,7 @@ void mainThreadInit()
     CurrentThread::cacheTid();
     CurrentThread::t_tls.name = "main";
     pid = CurrentThread::pid();
-    [[maybe_unused]] int len = ::snprintf(pidString, sizeof(pidString), "%d", pid);
+    int len = ::snprintf(pidString, sizeof(pidString), "%d", pid);
     ASSERT(static_cast<size_t>(len) < sizeof(pidString));
 }
 
@@ -69,8 +69,7 @@ void cacheTid()
         t_tls.tid = detail::getThreadId();
     }
 
-    [[maybe_unused]] int len =
-        ::snprintf(t_tls.tidString, sizeof(t_tls.tidString), "%d", t_tls.tid);
+    int len = ::snprintf(t_tls.tidString, sizeof(t_tls.tidString), "%d", t_tls.tid);
     ASSERT(static_cast<size_t>(len) < sizeof(t_tls.tidString));
 }
 

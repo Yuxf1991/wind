@@ -71,7 +71,7 @@ public:
     // and can not be called after calling ThreadPool::stop(),
     void runTask(Task task);
 
-    // dump all workers' infomation.
+    // Dump all workers' infomation.
     void dump(std::string &out) const;
 
 private:

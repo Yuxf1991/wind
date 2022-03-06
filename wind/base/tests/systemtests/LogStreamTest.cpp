@@ -33,10 +33,7 @@ int main()
     string s2("what is your name? please tell me.\n");
     ss << s2;
 
-    ss << Fmt("%.12g, %s",
-              15674.1545,
-              "huighaskdhasuifghqwepfmwef[paiojhzndckihbfciuabvsaklnhbackuy")
-       << "hhhhhh\n";
+    ss << Fmt("%.12g, %s", 15674.1545, "huighaskdhasuifghqwepfmwef[paiojhzndckihbfciuabvsaklnhbackuy") << "hhhhhh\n";
 
     ss << 0 << ", " << -0 << ", " << 154757 << ", " << -3829732 << ", " << 786283232u << endl;
 

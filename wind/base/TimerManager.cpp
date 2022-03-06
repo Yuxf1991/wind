@@ -22,17 +22,9 @@
 
 #include "TimerManager.h"
 
-#include <algorithm>
-#include <iterator>
 #include <sys/timerfd.h>
-#include <utility>
 
 #include "EventLoop.h"
-#include "Log.h"
-#include "TimeStamp.h"
-#include "TimerId.h"
-#include "UniqueFd.h"
-#include "Utils.h"
 
 namespace wind {
 namespace base {
@@ -177,8 +169,8 @@ void TimerManager::timerfdRead()
     uint64_t one = 0;
     int len = TEMP_FAILURE_RETRY(::read(timerfd_.get(), &one, sizeof(one)));
     if (len != sizeof(one)) {
-        LOG_WARN << "Read from timerfd " << timerfd_.get() << " " << len << " bytes, should be "
-                 << sizeof(one) << " bytes.";
+        LOG_WARN << "Read from timerfd " << timerfd_.get() << " " << len << " bytes, should be " << sizeof(one)
+                 << " bytes.";
     }
 }
 

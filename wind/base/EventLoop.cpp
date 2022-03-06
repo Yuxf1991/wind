@@ -37,8 +37,7 @@ EventLoop::EventLoop()
       timerManager_(std::make_unique<TimerManager>(this))
 {
     if (t_currLoop != nullptr) {
-        LOG_SYS_FATAL << "Construct EventLoop failed: current thread already have a loop("
-                      << &t_currLoop << ")!";
+        LOG_SYS_FATAL << "Construct EventLoop failed: current thread already have a loop(" << &t_currLoop << ")!";
     }
 
     // wakeUpCallback do not need TimeStamp

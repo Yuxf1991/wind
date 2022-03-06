@@ -71,8 +71,7 @@ inline LogLevel getLogLevelFromEnv()
 
     if (stringToLogLevelMap.count(env) == 0) {
         int envVal = ::atoi(env);
-        if (envVal < static_cast<int>(LogLevel::TRACE) ||
-            envVal > static_cast<int>(LogLevel::ERROR)) {
+        if (envVal < static_cast<int>(LogLevel::TRACE) || envVal > static_cast<int>(LogLevel::ERROR)) {
             return defaultLogLevel();
         }
 
@@ -97,8 +96,7 @@ Logger::Logger(SourceFileName fileName, int line, LogLevel level, std::string ta
     : fileName_(fileName), line_(line), level_(level), tag_(std::move(tag)), isFatal_(isFatal)
 {
     stream_ << TimeStamp::now().toFormattedString() << " " << CurrentThread::pidString() << " "
-            << CurrentThread::tidString() << " " << tag_ << " " << detail::logLevelToString(level_)
-            << ": ";
+            << CurrentThread::tidString() << " " << tag_ << " " << detail::logLevelToString(level_) << ": ";
 }
 
 Logger::~Logger() noexcept

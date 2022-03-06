@@ -30,7 +30,6 @@ add_compile_options(
         -Wextra
         -Wall
         -Werror
-        -Wno-attributes
         -Wno-missing-field-initializers
         -std=c++17)
 

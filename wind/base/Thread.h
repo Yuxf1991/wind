@@ -48,8 +48,7 @@ inline Thread make_thread(string name, Func &&func, Args &&... args)
             std::apply([&](auto &&... args) { func(args...); }, std::move(args));
             CurrentThread::t_tls.name = "finished";
         } catch (const std::exception &e) {
-            LOG_ERROR << "Thread (name: " << CurrentThread::name() << ") failed: " << e.what()
-                      << ".";
+            LOG_ERROR << "Thread (name: " << CurrentThread::name() << ") failed: " << e.what() << ".";
             CurrentThread::t_tls.name = "crashed";
         } catch (...) {
             LOG_ERROR << "Thread (name: " << CurrentThread::name() << ") failed.";
