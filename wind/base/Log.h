@@ -44,18 +44,6 @@ enum class LogLevel {
     ERROR,
 };
 
-// Read log level from env: WIND_LOG_LEVEL
-// "TRACE" or 1 --> LogLevel::TRACE
-// "DEBUG" or 2 --> LogLevel::DEBUG
-// "INFO" or 3 --> LogLevel::INFO
-// "WARN" or 4 --> LogLevel::WARN
-// "ERROR" or 5 --> LogLevel::ERROR
-// else --> defaultLogLevel: DEBUG in Debug mode, and INFO in release mode.
-
-// we can change the env at runtime use gdb to test this function:
-// https://stackoverflow.com/questions/205064/is-there-a-way-to-change-the-environment-variables-of-another-process-in-unix
-LogLevel currentLogLevel();
-
 class SourceFileName {
 public:
     // not explicit cause we use its implicit constructor.
@@ -102,6 +90,16 @@ private:
 
 class Logger : NonCopyable {
 public:
+    // Read log level from env: WIND_LOG_LEVEL
+    // "TRACE" or 1 --> LogLevel::TRACE
+    // "DEBUG" or 2 --> LogLevel::DEBUG
+    // "INFO" or 3 --> LogLevel::INFO
+    // "WARN" or 4 --> LogLevel::WARN
+    // "ERROR" or 5 --> LogLevel::ERROR
+    // else --> defaultLogLevel: DEBUG in Debug mode, and INFO in release mode.
+    static LogLevel currentLogLevel();
+    static void setLogLevel(LogLevel level);
+
     Logger(SourceFileName fileName, int line, LogLevel level, std::string tag = LOG_TAG, bool isFatal = false);
     ~Logger() noexcept;
     LogStream &stream()
@@ -113,24 +111,22 @@ private:
     LogStream stream_;
     SourceFileName fileName_;
     int line_;
-    LogLevel level_;
-    std::string tag_;
     bool isFatal_;
 };
 } // namespace base
 } // namespace wind
 
 #define LOG_TRACE                                                                                                      \
-    if (wind::base::currentLogLevel() <= wind::base::LogLevel::TRACE)                                                  \
+    if (wind::base::Logger::currentLogLevel() <= wind::base::LogLevel::TRACE)                                          \
     wind::base::Logger(__FILE__, __LINE__, wind::base::LogLevel::TRACE, LOG_TAG).stream()
 #define LOG_DEBUG                                                                                                      \
-    if (wind::base::currentLogLevel() <= wind::base::LogLevel::DEBUG)                                                  \
+    if (wind::base::Logger::currentLogLevel() <= wind::base::LogLevel::DEBUG)                                          \
     wind::base::Logger(__FILE__, __LINE__, wind::base::LogLevel::DEBUG, LOG_TAG).stream()
 #define LOG_INFO                                                                                                       \
-    if (wind::base::currentLogLevel() <= wind::base::LogLevel::INFO)                                                   \
+    if (wind::base::Logger::currentLogLevel() <= wind::base::LogLevel::INFO)                                           \
     wind::base::Logger(__FILE__, __LINE__, wind::base::LogLevel::INFO, LOG_TAG).stream()
 #define LOG_WARN                                                                                                       \
-    if (wind::base::currentLogLevel() <= wind::base::LogLevel::WARN)                                                   \
+    if (wind::base::Logger::currentLogLevel() <= wind::base::LogLevel::WARN)                                           \
     wind::base::Logger(__FILE__, __LINE__, wind::base::LogLevel::WARN, LOG_TAG).stream()
 #define LOG_ERROR wind::base::Logger(__FILE__, __LINE__, wind::base::LogLevel::ERROR, LOG_TAG).stream()
 #define LOG_SYS_FATAL wind::base::Logger(__FILE__, __LINE__, wind::base::LogLevel::ERROR, LOG_TAG, true).stream()

@@ -80,23 +80,25 @@ inline LogLevel getLogLevelFromEnv()
 
     return stringToLogLevelMap[env];
 }
+
+LogLevel g_logLevel = getLogLevelFromEnv();
 } // namespace detail
 
-LogLevel currentLogLevel()
+LogLevel Logger::currentLogLevel()
 {
-#ifdef NDEBUG
-    static LogLevel level = detail::getLogLevelFromEnv();
-    return level;
-#else
-    return detail::getLogLevelFromEnv();
-#endif // NDEBUG
+    return detail::g_logLevel;
+}
+
+void Logger::setLogLevel(LogLevel level)
+{
+    detail::g_logLevel = level;
 }
 
 Logger::Logger(SourceFileName fileName, int line, LogLevel level, std::string tag, bool isFatal)
-    : fileName_(fileName), line_(line), level_(level), tag_(std::move(tag)), isFatal_(isFatal)
+    : fileName_(fileName), line_(line), isFatal_(isFatal)
 {
     stream_ << TimeStamp::now().toFormattedString() << " " << CurrentThread::pidString() << " "
-            << CurrentThread::tidString() << " " << tag_ << " " << detail::logLevelToString(level_) << ": ";
+            << CurrentThread::tidString() << " " << tag << " " << detail::logLevelToString(level) << ": ";
 }
 
 Logger::~Logger() noexcept
@@ -106,6 +108,7 @@ Logger::~Logger() noexcept
     stream_.append(fileName_.data(), fileName_.length());
     stream_ << ":" << line_ << "\n";
 #else
+    UNUSED(line_);
     stream_ << "\n";
 #endif // NDEBUG
 

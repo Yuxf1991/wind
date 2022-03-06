@@ -30,13 +30,13 @@
 
 #define ENABLE_EXCEPTION 1
 
+#define UNUSED(val) (void)val;
+
 #ifdef NDEBUG
-#define ASSERT(exp)
+#define ASSERT(exp) UNUSED((exp))
 #else
 #define ASSERT(exp) assert((exp))
 #endif
-
-#define UNUSED(val) (void)val;
 
 #ifdef __cplusplus
 #define WIND_LIKELY(x) (__builtin_expect(!!(x), true))
