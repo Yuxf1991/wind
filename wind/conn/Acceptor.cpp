@@ -83,7 +83,6 @@ void Acceptor::setAcceptCallback(const AcceptCallbackInet &callback)
 {
     if (acceptorType_ != AcceptorType::INET_ACCEPTOR) {
         LOG_WARN << "Unix Acceptor can't set AcceptCallbackInet.";
-
         return;
     }
 
@@ -154,7 +153,7 @@ void Acceptor::handleAccptError()
     if (errno == EMFILE) {
         idleFd_.reset();
         base::UniqueFd remoteFd(sockets::accept(acceptSocket_.fd(), nullptr, 0));
-        LOG_INFO << "It is too busy, so close new connection(fd: " << remoteFd.get() << ").";
+        LOG_INFO << "It is too busy, so close new connection.";
         remoteFd.reset();
         idleFd_.reset(base::utils::createIdleFdOrDie());
     }
@@ -171,7 +170,7 @@ void Acceptor::handleRead()
             acceptNewUnixConn();
             break;
         default:
-            LOG_ERROR << "Not support acceptor type.";
+            LOG_ERROR << "Not supported acceptor type.";
             break;
     }
 }
