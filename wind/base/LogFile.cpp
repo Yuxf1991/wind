@@ -20,23 +20,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
-
-#include <string>
-#include <type_traits>
-#include <unistd.h>
+#include "LogFile.h"
 
 namespace wind {
-using TimeType = int64_t;
-using ThreadId = pid_t;
-using ProcessId = pid_t;
-using FileSize = std::uintmax_t;
-using std::size_t;
-using std::string;
-
-template <typename EnumType>
-inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)
+namespace base {
+LogFile::LogFile(const string &fileName) : output_(fileName, std::ios::out)
 {
-    return static_cast<typename std::underlying_type<EnumType>::type>(e);
 }
-} // namespace wind
+
+LogFile::~LogFile() noexcept {
+    output_.flush();
+    output_.close();
+}
+
+void LogFile::write(const char *data, size_t len)
+{
+    output_.write(data, len);
+    size_ += len;
+}
+
+void LogFile::flush() {
+    output_.flush();
+}
+}
+}

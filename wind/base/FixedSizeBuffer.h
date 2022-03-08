@@ -29,12 +29,13 @@
 namespace wind {
 namespace base {
 constexpr size_t DEFAULT_BUFFER_SIZE = 4096;
+constexpr size_t LARGE_BUFFER_SIZE = DEFAULT_BUFFER_SIZE * 1024;
 
 template <size_t BUF_SIZE>
-class StackBuffer : NonCopyable {
+class FixedSizeBuffer : NonCopyable {
 public:
-    StackBuffer() = default;
-    ~StackBuffer() noexcept = default;
+    FixedSizeBuffer() = default;
+    ~FixedSizeBuffer() noexcept = default;
 
     const char *data() const
     {
@@ -103,6 +104,6 @@ private:
     char *curr_ = data_;
 };
 
-typedef StackBuffer<DEFAULT_BUFFER_SIZE> DefaultFixedBuffer;
+typedef FixedSizeBuffer<DEFAULT_BUFFER_SIZE> DefaultFixedBuffer;
 } // namespace base
 } // namespace wind

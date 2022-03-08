@@ -24,6 +24,6 @@ link_libraries(gtest_main wind_base)
 
 add_executable(TimeStampTest TimeStampTest.cpp)
 add_executable(CurrentThreadTest CurrentThreadTest.cpp)
-add_executable(StackBufferTest StackBufferTest.cpp)
+add_executable(FixedSizeBufferTest FixedSizeBufferTest.cpp)
 add_executable(UniqueFdTest UniqueFdTest.cpp)
 add_executable(SingletonTest SingletonTest.cpp)

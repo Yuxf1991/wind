@@ -22,21 +22,26 @@
 
 #pragma once
 
-#include <string>
-#include <type_traits>
-#include <unistd.h>
+#include <fstream>
+
+#include "NonCopyable.h"
+#include "Types.h"
 
 namespace wind {
-using TimeType = int64_t;
-using ThreadId = pid_t;
-using ProcessId = pid_t;
-using FileSize = std::uintmax_t;
-using std::size_t;
-using std::string;
+namespace base {
+class LogFile : NonCopyable {
+public:
+    explicit LogFile(const string &fileName);
+    ~LogFile() noexcept;
 
-template <typename EnumType>
-inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)
-{
-    return static_cast<typename std::underlying_type<EnumType>::type>(e);
+    void write(const char *data, size_t len);
+    void flush();
+    FileSize size() const {
+        return size_;
+    }
+private:
+    std::ofstream output_;
+    FileSize size_ = 0;
+};
 }
-} // namespace wind
+}

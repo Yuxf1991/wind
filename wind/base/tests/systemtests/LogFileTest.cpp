@@ -20,23 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include "LogFile.h"
 
-#include <string>
-#include <type_traits>
-#include <unistd.h>
+using namespace wind;
+using namespace wind::base;
 
-namespace wind {
-using TimeType = int64_t;
-using ThreadId = pid_t;
-using ProcessId = pid_t;
-using FileSize = std::uintmax_t;
-using std::size_t;
-using std::string;
-
-template <typename EnumType>
-inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)
-{
-    return static_cast<typename std::underlying_type<EnumType>::type>(e);
+int main() {
+    LogFile file("test.txt");
+    char buf[] = "Hello world!";
+    file.write(buf, sizeof buf);
+    file.write(buf, sizeof buf);
+    file.write(buf, sizeof buf);
+    return 0;
 }
-} // namespace wind

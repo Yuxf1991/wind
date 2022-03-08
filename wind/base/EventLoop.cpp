@@ -132,7 +132,7 @@ TimerId EventLoop::runEvery(Functor func, TimeType interval, TimeType delay)
 
 void EventLoop::cancel(const TimerId &timerId)
 {
-    runInLoop([this, &timerId]() { timerManager_->cancelTimerInLoop(timerId); });
+    timerManager_->cancelTimer(timerId);
 }
 
 void EventLoop::start()

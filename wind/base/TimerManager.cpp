@@ -96,6 +96,13 @@ void TimerManager::addTimerInLoop(std::unique_ptr<Timer> &&timer)
     }
 }
 
+void TimerManager::cancelTimer(const TimerId &timerId)
+{
+    loop_->runInLoop([=]() {
+        cancelTimerInLoop(timerId);
+    });
+}
+
 void TimerManager::cancelTimerInLoop(const TimerId &timerId)
 {
     assertInLoopThread();

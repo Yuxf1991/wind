@@ -24,7 +24,7 @@
 
 #include <functional>
 
-#include "StackBuffer.h"
+#include "FixedSizeBuffer.h"
 
 namespace wind {
 namespace base {

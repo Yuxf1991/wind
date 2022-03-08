@@ -20,12 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "StackBuffer.h"
+#include "FixedSizeBuffer.h"
 #include "TestHelper.h"
 
 namespace wind {
 namespace base {
-TEST(StackBufferTest, InitTest)
+TEST(FixedSizeBufferTest, InitTest)
 {
     WIND_TEST_BEGIN(BufferTest, InitTest);
 
@@ -37,7 +37,7 @@ TEST(StackBufferTest, InitTest)
     EXPECT_EQ(buf0.end(), buf0.data() + DEFAULT_BUFFER_SIZE);
     EXPECT_EQ(buf0.length(), 0);
 
-    StackBuffer<10> buf1;
+    FixedSizeBuffer<10> buf1;
     EXPECT_EQ(buf1.capacity(), 10);
     EXPECT_EQ(buf1.available(), 10);
     EXPECT_EQ(buf1.curr(), buf1.data());
@@ -45,7 +45,7 @@ TEST(StackBufferTest, InitTest)
     EXPECT_EQ(buf1.length(), 0);
 }
 
-TEST(BufferTest, AppendAndResetTest)
+TEST(FixedSizeBufferTest, AppendAndResetTest)
 {
     WIND_TEST_BEGIN(BufferTest, AppendAndResetTest);
 
@@ -81,11 +81,11 @@ TEST(BufferTest, AppendAndResetTest)
     EXPECT_EQ(buf0.length(), tmp0.length() + tmp1.length());
 }
 
-TEST(BufferTest, AppendExceedTest)
+TEST(FixedSizeBufferTest, AppendExceedTest)
 {
     WIND_TEST_BEGIN(BufferTest, AppendExceedTest);
 
-    StackBuffer<10> buf;
+    FixedSizeBuffer<10> buf;
     string tmp = "hello world!";
     buf.append(tmp);
     std::cout << "After appending tmp, the buf is " << buf.toString() << std::endl;

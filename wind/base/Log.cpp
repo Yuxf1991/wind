@@ -103,7 +103,7 @@ Logger::Logger(SourceFileName fileName, int line, LogLevel level, std::string ta
 
 Logger::~Logger() noexcept
 {
-#ifndef NDEBUG
+#ifndef LOG_HIDE_FILE_LINE
     stream_ << " -- ";
     stream_.append(fileName_.data(), fileName_.length());
     stream_ << ":" << line_ << "\n";

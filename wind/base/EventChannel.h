@@ -52,7 +52,7 @@ enum class EventType : uint32_t {
 class EventChannel : public std::enable_shared_from_this<EventChannel>, NonCopyable {
 public:
     EventChannel(int fd, EventLoop *eventLoop);
-    virtual ~EventChannel() noexcept;
+    ~EventChannel() noexcept;
 
     void handleEvent(TimeStamp receivedTime);
 

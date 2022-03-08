@@ -31,13 +31,12 @@
 
 namespace wind {
 namespace base {
+class EventLoop;
+
 using TimerPtr = std::unique_ptr<Timer>;
 using TimerMap = std::unordered_map<TimerId, TimerPtr>; // To hold timers, manager the timers' onwership.
 using TimerEntry = std::pair<TimeStamp, TimerId>;       // Make sure every TimerEntry is unique.
 using TimerEntrySet = std::set<TimerEntry>;             // To sort timers ordered by expireTime
-
-class EventLoop;
-
 class TimerManager : NonCopyable {
 public:
     TimerManager(EventLoop *loop);
@@ -51,12 +50,13 @@ public:
 
     // @timerId: TimerId to cancel
     // can only be called in loop thread
-    void cancelTimerInLoop(const TimerId &timerId);
+    void cancelTimer(const TimerId &timerId);
 
 private:
     void assertInLoopThread();
 
     void addTimerInLoop(std::unique_ptr<Timer> &&timer);
+    void cancelTimerInLoop(const TimerId &timerId);
     std::vector<TimerEntry> getExpiredTimers(TimeStamp receivedTime);
 
     void handleRead(TimeStamp receivedTime);

@@ -28,8 +28,6 @@
 namespace wind {
 namespace conn {
 // This Acceptor can support for both network and unix local ipc.
-enum class AcceptorType { INET_ACCEPTOR, UNIX_ACCEPTOR, UNKNOWN };
-
 using AcceptCallbackInet = std::function<void(int, const SockAddrInet &)>;
 using AcceptCallbackUnix = std::function<void(int, const SockAddrUnix &)>;
 
@@ -70,10 +68,14 @@ private:
 
     base::UniqueFd idleFd_;
 
-    AcceptorType acceptorType_ = AcceptorType::UNKNOWN;
     AcceptCallbackInet inetAcceptCallback_;
     AcceptCallbackUnix unixAcceptCallback_;
-    base::UniqueFd lockfd_;
+    enum class AcceptorType { INET_ACCEPTOR, UNIX_ACCEPTOR, UNKNOWN };
+    AcceptorType acceptorType_ = AcceptorType::UNKNOWN;
+
+    // Only for unix domain socket.
+    base::UniqueFd sockLockfd_;
+    string lockFileName_;
 };
 } // namespace conn
 } // namespace wind

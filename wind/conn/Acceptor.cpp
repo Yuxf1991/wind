@@ -58,21 +58,27 @@ Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrUnix &listenAddr, i
 
 Acceptor::~Acceptor() noexcept
 {
+    if (!lockFileName_.empty()) {
+        // FIXME: check ret
+        (void)TEMP_FAILURE_RETRY(::flock(sockLockfd_.get(), LOCK_UN | LOCK_NB));
+        (void)TEMP_FAILURE_RETRY(::unlink(lockFileName_.c_str()));
+    }
+
     acceptChannel_->disableAll();
 }
 
 void Acceptor::reuseAndLockUnixAddrOrDie(const string &socketPath)
 {
-    string lockFileName = socketPath + detail::LOCK_SUFFIX;
-    lockfd_.reset(TEMP_FAILURE_RETRY(::open(lockFileName.c_str(), O_RDONLY | O_CREAT, 0600)));
-    if (!lockfd_.valid()) {
+    lockFileName_ = socketPath + detail::LOCK_SUFFIX;
+    sockLockfd_.reset(TEMP_FAILURE_RETRY(::open(lockFileName_.c_str(), O_RDONLY | O_CREAT, 0600)));
+    if (!sockLockfd_.valid()) {
         LOG_SYS_FATAL << "Create lock file for Socket(fd: " << acceptSocket_.fd() << ", path: " << socketPath
                       << ") failed: " << strerror(errno) << ".";
     }
 
-    int ret = TEMP_FAILURE_RETRY(::flock(lockfd_.get(), LOCK_EX | LOCK_NB));
+    int ret = TEMP_FAILURE_RETRY(::flock(sockLockfd_.get(), LOCK_EX | LOCK_NB));
     if (ret < 0) {
-        LOG_SYS_FATAL << "flock for fd: " << lockfd_.get() << " failed: " << strerror(errno) << ".";
+        LOG_SYS_FATAL << "flock for fd: " << sockLockfd_.get() << " failed: " << strerror(errno) << ".";
     }
 
     // FIXME: check ret
@@ -153,7 +159,7 @@ void Acceptor::handleAccptError()
     if (errno == EMFILE) {
         idleFd_.reset();
         base::UniqueFd remoteFd(sockets::accept(acceptSocket_.fd(), nullptr, 0));
-        LOG_INFO << "It is too busy, so close new connection.";
+        LOG_INFO << "It is too busy to accept new connection.";
         remoteFd.reset();
         idleFd_.reset(base::utils::createIdleFdOrDie());
     }
@@ -162,6 +168,7 @@ void Acceptor::handleAccptError()
 void Acceptor::handleRead()
 {
     assertInLoopThread();
+
     switch (acceptorType_) {
         case AcceptorType::INET_ACCEPTOR:
             acceptNewInetConn();
