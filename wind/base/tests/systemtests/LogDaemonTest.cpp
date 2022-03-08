@@ -20,27 +20,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "LogFile.h"
+#define LOG_TAG "LogDaemonTest"
+#include "Log.h"
 
-namespace wind {
-namespace base {
-LogFile::LogFile(const string &fileName) : output_(fileName, std::ios::out) {}
+#include "LogDaemon.h"
+#include "EventLoop.h"
 
-LogFile::~LogFile() noexcept
+using namespace wind;
+using namespace base;
+
+void logFunc()
 {
-    output_.flush();
-    output_.close();
+    LOG_TRACE << "This is logFunc";
+    LOG_DEBUG << "This is logFunc";
+    LOG_INFO << "This is logFunc";
+    LOG_WARN << "This is logFunc";
+    LOG_ERROR << "This is logFunc";
 }
 
-void LogFile::write(const char *data, size_t len)
+int main()
 {
-    output_.write(data, len);
-    size_ += len;
-}
+    LogDaemon logDaemon("log_daemon_test");
+    logDaemon.start();
 
-void LogFile::flush()
-{
-    output_.flush();
+    EventLoop loop;
+    // run logFunc every 16ms
+    loop.runEvery(&logFunc, 16 * 1000);
+    loop.start();
+
+    return 0;
 }
-} // namespace base
-} // namespace wind

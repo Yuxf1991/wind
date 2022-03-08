@@ -36,12 +36,14 @@ public:
 
     void write(const char *data, size_t len);
     void flush();
-    FileSize size() const {
+    FileSize size() const
+    {
         return size_;
     }
+
 private:
     std::ofstream output_;
     FileSize size_ = 0;
 };
-}
-}
+} // namespace base
+} // namespace wind

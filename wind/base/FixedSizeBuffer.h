@@ -74,7 +74,9 @@ public:
     {
         curr_ = data_;
     }
-    void clear()
+
+    // Set all bits to zero.
+    void clean()
     {
         utils::memZero(data_, sizeof(data_));
         reset();

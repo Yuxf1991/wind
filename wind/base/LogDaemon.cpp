@@ -29,21 +29,22 @@ namespace base {
 namespace fs = std::filesystem;
 
 LogDaemon::LogDaemon(string baseName, string logDir, FileSize rollSize, int flushInterval)
-    : baseName_(std::move(baseName)), logDir_(std::move(logDir)), rollSize_(rollSize), flushInterval_(flushInterval),
-      frontBuffer_(std::make_unique<LogBuffer>()), reservedBuffer_(std::make_unique<LogBuffer>())
+    : baseName_(std::move(baseName)),
+      logDir_(std::move(logDir)),
+      file_(std::make_unique<LogFile>(generateLogFileName())),
+      rollSize_(rollSize),
+      flushInterval_(flushInterval),
+      frontBuffer_(std::make_unique<LogBuffer>()),
+      reservedBuffer_(std::make_unique<LogBuffer>())
 {
-    frontBuffer_->clear();
-    reservedBuffer_->clear();
+    frontBuffer_->clean();
+    reservedBuffer_->clean();
     if (!fs::is_directory(logDir_)) {
         logDir_ = logDir_.parent_path();
     }
 
-    LogStream::setOutputFunc([this](const char *data, size_t len) {
-        append(data, len);
-    });
-    LogStream::setFlushFunc([this]() {
-        flush();
-    });
+    LogStream::setOutputFunc([this](const char *data, size_t len) { append(data, len); });
+    LogStream::setFlushFunc([this]() { flush(); });
 }
 
 LogDaemon::~LogDaemon() noexcept
@@ -57,9 +58,26 @@ LogDaemon::~LogDaemon() noexcept
 
 string LogDaemon::generateLogFileName()
 {
-    TimeStamp now = TimeStamp::now();
-    string fileName = logDir_.append(baseName_).string() + now.toString();
-    return fileName;
+    // BaseName
+    std::stringstream ss;
+    ss << logDir_.append(baseName_).string();
+
+    // TimeStamp
+    TimeType microSecondsSinceEpoch = TimeStamp::now().get();
+    TimeType seconds = microSecondsSinceEpoch / MICRO_SECS_PER_SECOND;
+    ss << "." << std::put_time(::localtime(&seconds), "%Y%m%d-%H%M%S");
+
+    // HostName
+    char buf[256] = {0};
+    (void)::gethostname(buf, sizeof(buf));
+    ss << "." << buf;
+
+    // Pid
+    ss << "." << CurrentThread::pidString();
+
+    // Suffix
+    ss << ".log";
+    return ss.str();
 }
 
 void LogDaemon::start()
@@ -68,31 +86,62 @@ void LogDaemon::start()
         return;
     }
 
-    thread_ = make_thread("WindLogDaemon", [this]() {
-        threadMain();
-    });
+    running_ = true;
+    thread_ = make_thread("WindLogDaemon", [this]() { threadMain(); });
 }
 
 void LogDaemon::threadMain()
 {
     std::vector<LogBufferPtr> buffersToWrite;
-    LogBufferPtr tmpBuffer = std::make_unique<LogBuffer>();
-    tmpBuffer->clear();
+    LogBufferPtr tmpBuffer1 = std::make_unique<LogBuffer>();
+    LogBufferPtr tmpBuffer2 = std::make_unique<LogBuffer>();
+    tmpBuffer1->clean();
+    tmpBuffer2->clean();
     while (running_) {
         {
             std::unique_lock<std::mutex> lock(mutex_);
             if (stagingBuffers_.empty()) {
-                cond_.wait_for(lock, std::chrono::seconds(flushInterval_));
+                cond_.wait_for(
+                    lock, std::chrono::seconds(flushInterval_), [this]() { return !stagingBuffers_.empty(); });
             }
             if (stagingBuffers_.empty()) {
                 stagingBuffers_.push_back(std::move(frontBuffer_));
-                frontBuffer_ = std::move(tmpBuffer);
+                frontBuffer_ = std::move(tmpBuffer1);
             }
 
             buffersToWrite.swap(stagingBuffers_);
             ASSERT(!buffersToWrite.empty());
         }
 
+        for (const auto &buf : buffersToWrite) {
+            file_->write(buf->data(), buf->length());
+            if (file_->size() >= rollSize_) {
+                file_ = std::make_unique<LogFile>(generateLogFileName());
+            }
+        }
+
+        if (tmpBuffer1 == nullptr) {
+            tmpBuffer1 = std::move(buffersToWrite.back());
+            tmpBuffer1->clean();
+            buffersToWrite.pop_back();
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (reservedBuffer_ == nullptr) {
+                reservedBuffer_ = std::move(tmpBuffer2);
+            }
+        }
+
+        if (tmpBuffer2 == nullptr) {
+            if (buffersToWrite.empty()) {
+                tmpBuffer2 = std::make_unique<LogBuffer>();
+            } else {
+                tmpBuffer2 = std::move(buffersToWrite.back());
+                buffersToWrite.pop_back();
+            }
+            tmpBuffer2->clean();
+        }
     }
 }
 
@@ -110,11 +159,12 @@ void LogDaemon::appendLocked(const char *data, size_t len)
             frontBuffer_ = std::move(reservedBuffer_);
         } else {
             frontBuffer_ = std::make_unique<LogBuffer>();
-            frontBuffer_->clear();
+            frontBuffer_->clean();
         }
-    } else {
-        frontBuffer_->append(data, len);
+        cond_.notify_one();
     }
+
+    frontBuffer_->append(data, len);
 }
 
 void LogDaemon::flush()
@@ -123,8 +173,6 @@ void LogDaemon::flush()
     flushLocked();
 }
 
-void LogDaemon::flushLocked()
-{
-}
-}
-}
+void LogDaemon::flushLocked() {}
+} // namespace base
+} // namespace wind

@@ -25,7 +25,8 @@
 using namespace wind;
 using namespace wind::base;
 
-int main() {
+int main()
+{
     LogFile file("test.txt");
     char buf[] = "Hello world!";
     file.write(buf, sizeof buf);

@@ -31,6 +31,7 @@ set(WIND_BASE_SRC
     EventLoop.cpp
     EventLoopThread.cpp
     Log.cpp
+    LogDaemon.cpp
     LogFile.cpp
     LogStream.cpp
     ThreadPool.cpp

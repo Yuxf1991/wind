@@ -36,12 +36,17 @@ namespace base {
 class LogDaemon : NonCopyable {
     using LogBuffer = FixedSizeBuffer<LARGE_BUFFER_SIZE>;
     using LogBufferPtr = std::unique_ptr<LogBuffer>;
+
 public:
     // @baseName: logFile's baseName.
     // @logDir: current dir by default.
     // @rollSize: size for per logFile, 100MB by default.
     // @flushInterval: flush every interval seconds, 5s by default.
-    explicit LogDaemon(string baseName, string logDir = "./", FileSize rollSize=100*1024*1024, int flushInterval = 5);
+    explicit LogDaemon(
+        string baseName,
+        string logDir = "./",
+        FileSize rollSize = 100 * 1024 * 1024,
+        int flushInterval = 5);
     ~LogDaemon() noexcept;
 
     void start();
@@ -64,12 +69,12 @@ private:
     std::filesystem::path logDir_;
     std::unique_ptr<LogFile> file_;
 
-    FileSize rollSize_ = 100*1024*1024; // 100MB for per log file.
-    int flushInterval_ = 5; // flush every 5 seconds by default.
+    FileSize rollSize_ = 100 * 1024 * 1024; // 100MB for per log file.
+    int flushInterval_ = 5;                 // flush every 5 seconds by default.
 
     LogBufferPtr frontBuffer_;
     LogBufferPtr reservedBuffer_; // Backstore of the front buffer
     std::vector<LogBufferPtr> stagingBuffers_;
-};  
-}
-}
+};
+} // namespace base
+} // namespace wind
