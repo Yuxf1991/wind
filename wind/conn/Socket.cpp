@@ -22,7 +22,6 @@
 
 #include "Socket.h"
 
-#include <fcntl.h>
 #include <netinet/tcp.h>
 
 #include "base/Log.h"

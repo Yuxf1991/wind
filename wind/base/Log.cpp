@@ -24,8 +24,6 @@
 #include "CurrentThread.h"
 #include "TimeStamp.h"
 
-#include <unordered_map>
-
 namespace wind {
 namespace base {
 namespace detail {

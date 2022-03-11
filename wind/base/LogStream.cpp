@@ -22,8 +22,6 @@
 
 #include "LogStream.h"
 
-#include <algorithm>
-
 namespace wind {
 namespace base {
 namespace detail {
