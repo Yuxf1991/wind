@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <netinet/tcp.h>
 
+#include "base/Log.h"
+
 namespace wind {
 namespace conn {
 namespace sockets {

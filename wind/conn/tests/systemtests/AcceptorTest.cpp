@@ -20,11 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef LOG_TAG
 #define LOG_TAG "AcceptorTest"
-#endif
 
 #include "Acceptor.h"
+#include "base/Log.h"
 
 using namespace wind;
 using namespace wind::base;

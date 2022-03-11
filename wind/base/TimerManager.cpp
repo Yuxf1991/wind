@@ -25,6 +25,7 @@
 #include <sys/timerfd.h>
 
 #include "EventLoop.h"
+#include "Log.h"
 
 namespace wind {
 namespace base {

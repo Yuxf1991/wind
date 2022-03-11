@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <sys/file.h>
 
+#include "base/Log.h"
+
 namespace wind {
 namespace conn {
 namespace detail {

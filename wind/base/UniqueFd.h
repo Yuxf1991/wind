@@ -22,7 +22,8 @@
 
 #pragma once
 
-#include "Log.h"
+#include "NonCopyable.h"
+#include "Types.h"
 
 namespace wind {
 namespace base {
@@ -36,7 +37,6 @@ constexpr int INVALID_FD = -1;
 struct DefaultFdCloser {
     void operator()(int fd)
     {
-        LOG_DEBUG << "DefaultFdCloser::operator(int): closing... fd " << fd;
         TEMP_FAILURE_RETRY(::close(fd));
     }
 };
@@ -93,6 +93,7 @@ private:
         static Closer closer;
         if (!isInvalidFd(fd_)) {
             closer(fd_);
+            fd_ = INVALID_FD;
         }
     }
 

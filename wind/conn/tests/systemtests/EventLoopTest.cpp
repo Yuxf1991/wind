@@ -22,6 +22,7 @@
 
 #define LOG_TAG "EventLoopTest"
 #include "base/EventLoop.h"
+#include "base/Log.h"
 
 #include "Socket.h"
 
