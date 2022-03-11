@@ -37,7 +37,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
         add_compile_options(-pg)
 endif()
 
-include_directories(wind)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(thirdparty)
 add_subdirectory(wind)
