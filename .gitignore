@@ -3,6 +3,7 @@
 
 # cache
 .cache
+.clangd
 
 # macOS
 .DS_Store

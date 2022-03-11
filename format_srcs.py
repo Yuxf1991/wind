@@ -25,24 +25,27 @@
 # format all c/c++ source files in directory wind by using clang-format
 import os
 
+
 format_cmd = "clang-format -i "
 to_format_exts = [".c", ".cc", ".cxx", ".cpp", ".h", ".hpp"]
 
+
 def format_srcs(abs_src_path):
-    for [dirpath, dirnames, filenames] in os.walk(abs_src_path):
+    for [dirpath, _, filenames] in os.walk(abs_src_path):
         cur_abs_path = os.path.join(abs_src_path, dirpath)
         for filename in filenames:
             abs_file_name = os.path.join(cur_abs_path, filename)
-            to_format_flag = False
+            need_to_format = False
             for ext in to_format_exts:
                 if abs_file_name.endswith(ext):
-                    to_format_flag = True
+                    need_to_format = True
                     break
-            if to_format_flag:
+            if need_to_format:
                 format_cmd_tmp = format_cmd + abs_file_name
                 print(format_cmd_tmp)
                 os.system(format_cmd_tmp)
                 print(format_cmd_tmp + " done.")
+
 
 if __name__ == "__main__":
     cur_abs_path = os.path.abspath(os.path.dirname(__file__))
