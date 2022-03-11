@@ -173,6 +173,9 @@ void LogDaemon::flush()
     flushLocked();
 }
 
-void LogDaemon::flushLocked() {}
+void LogDaemon::flushLocked()
+{
+    cond_.notify_one();
+}
 } // namespace base
 } // namespace wind

@@ -72,9 +72,9 @@ private:
     FileSize rollSize_ = 100 * 1024 * 1024; // 100MB for per log file.
     int flushInterval_ = 5;                 // flush every 5 seconds by default.
 
-    LogBufferPtr frontBuffer_;
-    LogBufferPtr reservedBuffer_; // Backstore of the front buffer
-    std::vector<LogBufferPtr> stagingBuffers_;
+    LogBufferPtr frontBuffer_;                 // Frontend threads will write logs to this buffer.
+    LogBufferPtr reservedBuffer_;              // Backstore of the front buffer
+    std::vector<LogBufferPtr> stagingBuffers_; // Backend thread will swap these buffers and write them to a file.
 };
 } // namespace base
 } // namespace wind
