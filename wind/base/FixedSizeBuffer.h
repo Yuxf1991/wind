@@ -84,12 +84,18 @@ public:
 
     void append(const char *s, size_t len)
     {
+        if (WIND_UNLIKELY(len == 0) || WIND_UNLIKELY(s == nullptr)) {
+            return;
+        }
         size_t bytesToWrite = (available() > len ? len : available());
         ::memcpy(curr_, s, bytesToWrite);
         curr_ += bytesToWrite;
     }
     void append(const char *s)
     {
+        if (WIND_UNLIKELY(s == nullptr)) {
+            return;
+        }
         append(s, ::strlen(s));
     }
     void append(const string &s)
