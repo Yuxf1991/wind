@@ -74,7 +74,7 @@ private:
     AcceptorType acceptorType_ = AcceptorType::UNKNOWN;
 
     // Only for unix domain socket.
-    base::UniqueFd sockLockfd_;
+    base::UniqueFd sockLockFileFd_;
     string lockFileName_;
 };
 } // namespace conn

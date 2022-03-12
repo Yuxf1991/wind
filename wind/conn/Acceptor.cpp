@@ -62,7 +62,7 @@ Acceptor::~Acceptor() noexcept
 {
     if (!lockFileName_.empty()) {
         // FIXME: check ret
-        (void)TEMP_FAILURE_RETRY(::flock(sockLockfd_.get(), LOCK_UN | LOCK_NB));
+        (void)TEMP_FAILURE_RETRY(::flock(sockLockFileFd_.get(), LOCK_UN | LOCK_NB));
         (void)TEMP_FAILURE_RETRY(::unlink(lockFileName_.c_str()));
     }
 
@@ -72,15 +72,15 @@ Acceptor::~Acceptor() noexcept
 void Acceptor::reuseAndLockUnixAddrOrDie(const string &socketPath)
 {
     lockFileName_ = socketPath + detail::LOCK_SUFFIX;
-    sockLockfd_.reset(TEMP_FAILURE_RETRY(::open(lockFileName_.c_str(), O_RDONLY | O_CREAT, 0600)));
-    if (!sockLockfd_.valid()) {
+    sockLockFileFd_.reset(TEMP_FAILURE_RETRY(::open(lockFileName_.c_str(), O_RDONLY | O_CREAT, 0600)));
+    if (!sockLockFileFd_.valid()) {
         LOG_SYS_FATAL << "Create lock file for Socket(fd: " << acceptSocket_.fd() << ", path: " << socketPath
                       << ") failed: " << strerror(errno) << ".";
     }
 
-    int ret = TEMP_FAILURE_RETRY(::flock(sockLockfd_.get(), LOCK_EX | LOCK_NB));
+    int ret = TEMP_FAILURE_RETRY(::flock(sockLockFileFd_.get(), LOCK_EX | LOCK_NB));
     if (ret < 0) {
-        LOG_SYS_FATAL << "flock for fd: " << sockLockfd_.get() << " failed: " << strerror(errno) << ".";
+        LOG_SYS_FATAL << "flock for fd: " << sockLockFileFd_.get() << " failed: " << strerror(errno) << ".";
     }
 
     // FIXME: check ret
