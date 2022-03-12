@@ -42,7 +42,6 @@ public:
     Buffer &operator=(const Buffer &other) = default;
 
     void swap(Buffer &other);
-    void swap(Buffer &&other) noexcept;
 
     Buffer(Buffer &&other) noexcept;
     Buffer &operator=(Buffer &&other) noexcept;

@@ -35,20 +35,13 @@ void Buffer::swap(Buffer &other)
     std::swap(writeIdx_, other.writeIdx_);
 }
 
-void Buffer::swap(Buffer &&other) noexcept
-{
-    data_ = std::move(other.data_);
-    readIdx_ = other.readIdx_;
-    writeIdx_ = other.writeIdx_;
-}
-
 Buffer::Buffer(Buffer &&other) noexcept
     : data_(std::move(other.data_)), readIdx_(other.readIdx_), writeIdx_(other.writeIdx_)
 {}
 
 Buffer &Buffer::operator=(Buffer &&other) noexcept
 {
-    swap(std::move(other));
+    swap(other);
     return *this;
 }
 
