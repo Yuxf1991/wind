@@ -29,6 +29,7 @@
 #endif
 
 #include "base/Log.h"
+#include "Endian.h"
 
 namespace wind {
 namespace conn {
@@ -37,7 +38,7 @@ bool fromIpPortV4(const string &ip, in_port_t port, sockaddr_in *outAddr)
 {
     ASSERT(outAddr != nullptr);
     outAddr->sin_family = AF_INET;
-    outAddr->sin_port = ::htons(port);
+    outAddr->sin_port = endian::hostToNet(port);
     if (::inet_pton(AF_INET, ip.c_str(), &outAddr->sin_addr) <= 0) {
         LOG_ERROR << "fromIpPortV4 error for ip: " << ip << "!";
         return false;
@@ -50,7 +51,7 @@ bool fromIpPortV6(const string &ip, in_port_t port, sockaddr_in6 *outAddr)
 {
     ASSERT(outAddr != nullptr);
     outAddr->sin6_family = AF_INET6;
-    outAddr->sin6_port = ::htons(port);
+    outAddr->sin6_port = endian::hostToNet(port);
     if (::inet_pton(AF_INET6, ip.c_str(), &outAddr->sin6_addr) <= 0) {
         LOG_ERROR << "fromIpPortV6 error for ip: " << ip << "!";
         return false;
@@ -79,12 +80,12 @@ SockAddrInet::SockAddrInet(in_port_t port, bool ipv6, bool onlyLoopBack) noexcep
     base::utils::memZero(&addr_, sizeof(addr_));
     if (ipv6) {
         addr_.v6.sin6_family = AF_INET6;
-        addr_.v6.sin6_port = ::htons(port);
+        addr_.v6.sin6_port = endian::hostToNet(port);
         addr_.v6.sin6_addr = (onlyLoopBack ? in6addr_loopback : in6addr_any);
     } else {
         addr_.v4.sin_family = AF_INET;
-        addr_.v4.sin_port = ::htons(port);
-        addr_.v4.sin_addr.s_addr = (onlyLoopBack ? ::htonl(INADDR_LOOPBACK) : ::htonl(INADDR_ANY));
+        addr_.v4.sin_port = endian::hostToNet(port);
+        addr_.v4.sin_addr.s_addr = (onlyLoopBack ? endian::hostToNet(INADDR_LOOPBACK) : endian::hostToNet(INADDR_ANY));
     }
 }
 
@@ -117,12 +118,12 @@ string SockAddrInet::ip() const
 
 in_port_t SockAddrInet::port() const
 {
-    return family() == AF_INET ? addr_.v4.sin_port : addr_.v6.sin6_port;
+    return family() == AF_INET ? endian::netToHost(addr_.v4.sin_port) : endian::netToHost(addr_.v6.sin6_port);
 }
 
 string SockAddrInet::portString() const
 {
-    return std::to_string(::ntohs(port()));
+    return std::to_string(port());
 }
 
 string SockAddrInet::toString() const
