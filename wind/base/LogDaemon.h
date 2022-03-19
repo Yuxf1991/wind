@@ -46,7 +46,7 @@ public:
         string baseName,
         string logDir = "./",
         FileSize rollSize = 100 * 1024 * 1024,
-        int flushInterval = 5);
+        uint32_t flushInterval = 5);
     ~LogDaemon() noexcept;
 
     void start();
@@ -54,9 +54,7 @@ public:
 private:
     string generateLogFileName();
     void append(const char *data, size_t len);
-    void appendLocked(const char *data, size_t len);
     void flush();
-    void flushLocked();
 
     void threadMain();
 
@@ -70,7 +68,7 @@ private:
     std::unique_ptr<LogFile> file_;
 
     FileSize rollSize_ = 100 * 1024 * 1024; // 100MB for per log file.
-    int flushInterval_ = 5;                 // flush every 5 seconds by default.
+    uint32_t flushInterval_ = 5;                 // flush every 5 seconds by default.
 
     LogBufferPtr frontBuffer_;                 // Frontend threads will write logs to this buffer.
     LogBufferPtr reservedBuffer_;              // Backstore of the front buffer

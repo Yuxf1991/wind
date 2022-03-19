@@ -28,7 +28,7 @@ namespace wind {
 namespace base {
 namespace fs = std::filesystem;
 
-LogDaemon::LogDaemon(string baseName, string logDir, FileSize rollSize, int flushInterval)
+LogDaemon::LogDaemon(string baseName, string logDir, FileSize rollSize, uint32_t flushInterval)
     : baseName_(std::move(baseName)),
       logDir_(std::move(logDir)),
       file_(std::make_unique<LogFile>(generateLogFileName())),
@@ -148,11 +148,7 @@ void LogDaemon::threadMain()
 void LogDaemon::append(const char *data, size_t len)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    appendLocked(data, len);
-}
 
-void LogDaemon::appendLocked(const char *data, size_t len)
-{
     if (frontBuffer_->available() < len) {
         stagingBuffers_.push_back(std::move(frontBuffer_));
         if (reservedBuffer_ != nullptr) {
@@ -170,11 +166,6 @@ void LogDaemon::appendLocked(const char *data, size_t len)
 void LogDaemon::flush()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    flushLocked();
-}
-
-void LogDaemon::flushLocked()
-{
     cond_.notify_one();
 }
 } // namespace base
