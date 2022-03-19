@@ -22,6 +22,8 @@
 
 #include "Buffer.h"
 
+#include <sys/uio.h>
+
 namespace wind {
 namespace conn {
 Buffer::Buffer(size_t initialSize, size_t prependSize)
@@ -45,17 +47,20 @@ Buffer &Buffer::operator=(Buffer &&other) noexcept
     return *this;
 }
 
-string Buffer::readAll()
+void Buffer::resume(size_t len)
 {
-    string res{peek(), peek() + bytesReadable()};
-    retrieveAll();
-    return res;
+    ASSERT(len <= bytesReadable());
+    if (WIND_LIKELY(len < bytesReadable())) {
+        readIdx_ += len;
+    } else {
+        resumeAll();
+    }
 }
 
 void Buffer::makeMoreSpace(size_t len)
 {
     // make more space or move the data to the front inside this buffer.
-    if ((len + PREPEND_SIZE) > (bytesWritable() + bytesPrepend())) {
+    if ((len + PREPEND_SIZE) > (bytesWritable() + prependBytes())) {
         // make more space.
         std::vector<char> newBuf(writeIdx_ + len);
         std::move(data_.begin(), data_.end(), newBuf.begin());
@@ -82,6 +87,31 @@ void Buffer::append(const char *data, size_t len)
     ASSERT(bytesWritable() >= len);
     std::copy(data, data + len, writeBegin());
     writeIdx_ += len;
+}
+
+// See muduo's Buffer::readFd() in https://github.com/chenshuo/muduo/blob/master/muduo/net/Buffer.cc
+int Buffer::handleSocketRead(int sockFd, int &savedErrno)
+{
+    char extraBuf[65536];
+    iovec vec[2];
+    const size_t writable = bytesWritable();
+    vec[0].iov_base = begin() + writeIdx_;
+    vec[0].iov_len = writable;
+    vec[1].iov_base = extraBuf;
+    vec[1].iov_len = sizeof(extraBuf);
+    // when there is enough space in this buffer, don't read into extraBuf.
+    const int iovCnt = (writable < sizeof(extraBuf)) ? 2 : 1;
+    const auto len = ::readv(sockFd, vec, iovCnt);
+    if (len < 0) {
+        savedErrno = errno;
+    } else if (static_cast<size_t>(len) <= writable) {
+        writeIdx_ += len;
+    } else {
+        writeIdx_ = data_.size();
+        append(extraBuf, len - writable);
+    }
+
+    return static_cast<int>(len);
 }
 } // namespace conn
 } // namespace wind
