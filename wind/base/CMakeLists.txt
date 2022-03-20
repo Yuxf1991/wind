@@ -30,6 +30,7 @@ set(WIND_BASE_SRC
     EventPoller.cpp
     EventLoop.cpp
     EventLoopThread.cpp
+    EventLoopThreadPool.cpp
     Log.cpp
     LogDaemon.cpp
     LogFile.cpp

@@ -89,6 +89,46 @@ int connect(int fd, const sockaddr *addr, socklen_t addrLen)
 {
     return TEMP_FAILURE_RETRY(::connect(fd, addr, addrLen));
 }
+
+SockAddrInet getLocalAddrInet(int sockFd)
+{
+    SockAddrInet addr;
+    socklen_t addrLen = addr.len();
+    if (::getsockname(sockFd, addr.data(), &addrLen) < 0) {
+        LOG_ERROR << "getLocalAddrInet error for Socket(fd: " << sockFd << "): " << strerror(errno) << ".";
+    }
+    return addr;
+}
+
+SockAddrInet getPeerAddrInet(int sockFd)
+{
+    SockAddrInet addr;
+    socklen_t addrLen = addr.len();
+    if (::getpeername(sockFd, addr.data(), &addrLen) < 0) {
+        LOG_ERROR << "getPeerAddrInet error for Socket(fd: " << sockFd << "): " << strerror(errno) << ".";
+    }
+    return addr;
+}
+
+SockAddrUnix getLocalAddrUnix(int sockFd)
+{
+    SockAddrUnix addr;
+    socklen_t addrLen = addr.capacity();
+    if (::getsockname(sockFd, addr.data(), &addrLen) < 0) {
+        LOG_ERROR << "getLocalAddrUnix error for Socket(fd: " << sockFd << "): " << strerror(errno) << ".";
+    }
+    return addr;
+}
+
+SockAddrUnix getPeerAddrUnix(int sockFd)
+{
+    SockAddrUnix addr;
+    socklen_t addrLen = addr.capacity();
+    if (::getpeername(sockFd, addr.data(), &addrLen) < 0) {
+        LOG_ERROR << "getPeerAddrUnix error for Socket(fd: " << sockFd << "): " << strerror(errno) << ".";
+    }
+    return addr;
+}
 } // namespace sockets
 
 Socket::Socket(int sockfd) : fd_(sockfd) {}
@@ -96,9 +136,9 @@ Socket::Socket(int sockfd) : fd_(sockfd) {}
 Socket::~Socket() noexcept {}
 
 // movable
-Socket::Socket(Socket &&other) : fd_(std::move(other.fd_)) {}
+Socket::Socket(Socket &&other) noexcept : fd_(std::move(other.fd_)) {}
 
-Socket &Socket::operator=(Socket &&other)
+Socket &Socket::operator=(Socket &&other) noexcept
 {
     fd_ = std::move(other.fd_);
     return *this;

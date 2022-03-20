@@ -31,7 +31,7 @@ namespace base {
 EventChannel::EventChannel(int fd, EventLoop *eventLoop)
     : std::enable_shared_from_this<EventChannel>(), fd_(fd), eventLoop_(eventLoop)
 {
-    LOG_FATAL_IF(eventLoop_ == nullptr) << "EventLoop is null!";
+    LOG_FATAL_IF(eventLoop_ == nullptr) << "EventChannel::ctor: EventLoop is null!";
 }
 
 EventChannel::~EventChannel() noexcept {}

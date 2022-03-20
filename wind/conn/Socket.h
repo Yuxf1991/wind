@@ -35,6 +35,11 @@ int createNonBlockSocketOrDie(int family, int type, int protocol);
 void bindOrDie(int fd, const sockaddr *addr, socklen_t addrLen);
 int accept(int fd, sockaddr *addr, socklen_t addrLen);
 int connect(int fd, const sockaddr *addr, socklen_t addrLen);
+
+SockAddrInet getLocalAddrInet(int sockFd);
+SockAddrInet getPeerAddrInet(int sockFd);
+SockAddrUnix getLocalAddrUnix(int sockFd);
+SockAddrUnix getPeerAddrUnix(int sockFd);
 } // namespace sockets
 
 class Socket : base::NonCopyable {
@@ -43,8 +48,8 @@ public:
     ~Socket() noexcept;
 
     // movable
-    Socket(Socket &&other);
-    Socket &operator=(Socket &&other);
+    Socket(Socket &&other) noexcept;
+    Socket &operator=(Socket &&other) noexcept;
 
     int fd() const
     {
