@@ -114,7 +114,7 @@ private:
     union Addr {
         sockaddr_in v4;
         sockaddr_in6 v6;
-    } addr_;
+    } addr_{};
 };
 
 // copyable
@@ -151,7 +151,7 @@ public:
     }
 
 private:
-    sockaddr_un addr_;
+    sockaddr_un addr_{};
 };
 } // namespace conn
 } // namespace wind

@@ -36,6 +36,10 @@ public:
     ~EventLoopThread() noexcept;
 
     EventLoop *start();
+    const string &name() const
+    {
+        return name_;
+    }
 
 private:
     void loopThreadFunc();

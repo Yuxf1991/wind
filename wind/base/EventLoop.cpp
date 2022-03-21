@@ -69,7 +69,7 @@ void EventLoop::updateChannel(std::shared_ptr<EventChannel> channel)
         return;
     }
 
-    runInLoop([this, channel]() { poller_->updateChannel(std::move(channel)); });
+    runInLoop([this, channel]() mutable { poller_->updateChannel(std::move(channel)); });
 }
 
 void EventLoop::removeChannel(int channelFd)
@@ -111,23 +111,23 @@ void EventLoop::runInLoop(Functor func)
     if (isInLoopThread()) {
         func();
     } else {
-        queueToPendingFunctors(func);
+        queueToPendingFunctors(std::move(func));
     }
 }
 
 TimerId EventLoop::runAt(Functor func, TimeStamp dstTime)
 {
-    return timerManager_->addTimer(func, dstTime);
+    return timerManager_->addTimer(std::move(func), dstTime);
 }
 
 TimerId EventLoop::runAfter(Functor func, TimeType delay)
 {
-    return timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay));
+    return timerManager_->addTimer(std::move(func), timeAdd(TimeStamp::now(), delay));
 }
 
 TimerId EventLoop::runEvery(Functor func, TimeType interval, TimeType delay)
 {
-    return timerManager_->addTimer(func, timeAdd(TimeStamp::now(), delay), interval);
+    return timerManager_->addTimer(std::move(func), timeAdd(TimeStamp::now(), delay), interval);
 }
 
 void EventLoop::cancel(const TimerId &timerId)

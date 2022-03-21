@@ -51,7 +51,7 @@ void EventChannel::remove()
 
 void EventChannel::enableReading(bool toUpdate)
 {
-    listeningEvents_ |= enum_cast(EventType::READ_EVNET);
+    listeningEvents_ |= enum_cast(EventType::READ_EVENT);
 
     if (toUpdate) {
         update();
@@ -60,7 +60,7 @@ void EventChannel::enableReading(bool toUpdate)
 
 void EventChannel::disableReading(bool toUpdate)
 {
-    listeningEvents_ &= (~enum_cast(EventType::READ_EVNET));
+    listeningEvents_ &= (~enum_cast(EventType::READ_EVENT));
 
     if (toUpdate) {
         update();

@@ -37,8 +37,6 @@ LogDaemon::LogDaemon(string baseName, string logDir, FileSize rollSize, uint32_t
       frontBuffer_(std::make_unique<LogBuffer>()),
       reservedBuffer_(std::make_unique<LogBuffer>())
 {
-    frontBuffer_->clean();
-    reservedBuffer_->clean();
     if (!fs::is_directory(logDir_)) {
         logDir_ = logDir_.parent_path();
     }
@@ -95,8 +93,6 @@ void LogDaemon::threadMain()
     std::vector<LogBufferPtr> buffersToWrite;
     LogBufferPtr tmpBuffer1 = std::make_unique<LogBuffer>();
     LogBufferPtr tmpBuffer2 = std::make_unique<LogBuffer>();
-    tmpBuffer1->clean();
-    tmpBuffer2->clean();
     while (running_) {
         {
             std::unique_lock<std::mutex> lock(mutex_);
@@ -122,7 +118,6 @@ void LogDaemon::threadMain()
 
         if (tmpBuffer1 == nullptr) {
             tmpBuffer1 = std::move(buffersToWrite.back());
-            tmpBuffer1->clean();
             buffersToWrite.pop_back();
         }
 
@@ -140,7 +135,6 @@ void LogDaemon::threadMain()
                 tmpBuffer2 = std::move(buffersToWrite.back());
                 buffersToWrite.pop_back();
             }
-            tmpBuffer2->clean();
         }
     }
 }
@@ -155,7 +149,6 @@ void LogDaemon::append(const char *data, size_t len)
             frontBuffer_ = std::move(reservedBuffer_);
         } else {
             frontBuffer_ = std::make_unique<LogBuffer>();
-            frontBuffer_->clean();
         }
         cond_.notify_one();
     }

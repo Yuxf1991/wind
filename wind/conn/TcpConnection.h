@@ -32,7 +32,7 @@ namespace conn {
 class TcpConnection : private base::NonCopyable, public std::enable_shared_from_this<TcpConnection> {
 public:
     TcpConnection(base::EventLoop *loop, string name, int sockFd);
-    ~TcpConnection() noexcept;
+    virtual ~TcpConnection() noexcept;
 
     string name() const
     {

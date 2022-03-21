@@ -25,7 +25,7 @@
 #include "LogStream.h"
 
 // If you want to define your custom log tag,
-// plese define it before including Log.h, here is a sample:
+// please define it before including Log.h, here is a sample:
 // -------------------------------------------
 //      #define LOG_TAG "MyLogTag"
 //      #include "Log.h"
@@ -46,7 +46,7 @@ enum class LogLevel {
 
 class SourceFileName {
 public:
-    // not explicit cause we use its implicit constructor.
+    // not explicit because we use its implicit constructor.
     SourceFileName(const char *s)
     {
         size_t len = ::strlen(s);
@@ -74,7 +74,7 @@ private:
     void append(const char *data, size_t len)
     {
         const char *p = ::strrchr(data, '/') + 1;
-        if (WIND_UNLIKELY(p == NULL)) {
+        if (WIND_UNLIKELY(p == nullptr)) {
             return;
         }
 

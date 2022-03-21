@@ -132,7 +132,7 @@ void Acceptor::acceptNewInetConn()
     base::UniqueFd remoteFd(acceptSocket_.accept(remoteAddr));
     if (!remoteFd.valid()) {
         LOG_ERROR << "Socket(fd:" << acceptSocket_.fd() << ") failed: " << strerror(errno) << ".";
-        handleAccptError();
+        handleAcceptError();
     } else {
         if (inetAcceptCallback_ != nullptr) {
             inetAcceptCallback_(remoteFd.release(), remoteAddr);
@@ -146,7 +146,7 @@ void Acceptor::acceptNewUnixConn()
     base::UniqueFd remoteFd(acceptSocket_.accept(remoteAddr));
     if (!remoteFd.valid()) {
         LOG_ERROR << "Socket(fd:" << acceptSocket_.fd() << ") failed: " << strerror(errno) << ".";
-        handleAccptError();
+        handleAcceptError();
     } else {
         if (unixAcceptCallback_ != nullptr) {
             unixAcceptCallback_(remoteFd.release(), remoteAddr);
@@ -154,7 +154,7 @@ void Acceptor::acceptNewUnixConn()
     }
 }
 
-void Acceptor::handleAccptError()
+void Acceptor::handleAcceptError()
 {
     // "The special problem of accept()ing when you can't"
     // By Marc Lehmann, author of libev.

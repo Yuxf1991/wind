@@ -44,7 +44,7 @@ SockAddrUnix getPeerAddrUnix(int sockFd);
 
 class Socket : base::NonCopyable {
 public:
-    explicit Socket(int sockfd);
+    explicit Socket(int sockFd);
     ~Socket() noexcept;
 
     // movable

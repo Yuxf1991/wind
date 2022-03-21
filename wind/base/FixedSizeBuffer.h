@@ -108,7 +108,7 @@ public:
     }
 
 private:
-    char data_[BUF_SIZE];
+    char data_[BUF_SIZE] = {0}; // Maybe we do not need to initialize this buffer?
     char *curr_ = data_;
 };
 

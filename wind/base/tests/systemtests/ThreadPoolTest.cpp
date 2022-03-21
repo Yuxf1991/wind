@@ -24,8 +24,6 @@
 #define LOG_TAG "ThreadPoolTest"
 #include "ThreadPool.h"
 
-#include <fcntl.h>
-
 #include "UniqueFd.h"
 using namespace wind;
 using namespace wind::base;

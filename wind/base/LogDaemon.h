@@ -71,7 +71,7 @@ private:
     uint32_t flushInterval_ = 5;            // flush every 5 seconds by default.
 
     LogBufferPtr frontBuffer_;                 // Frontend threads will write logs to this buffer.
-    LogBufferPtr reservedBuffer_;              // Backstore of the front buffer
+    LogBufferPtr reservedBuffer_;              // BackStore of the front buffer
     std::vector<LogBufferPtr> stagingBuffers_; // Backend thread will swap these buffers and write them to a file.
 };
 } // namespace base

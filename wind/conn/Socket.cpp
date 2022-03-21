@@ -131,7 +131,7 @@ SockAddrUnix getPeerAddrUnix(int sockFd)
 }
 } // namespace sockets
 
-Socket::Socket(int sockfd) : fd_(sockfd) {}
+Socket::Socket(int sockFd) : fd_(sockFd) {}
 
 Socket::~Socket() noexcept {}
 

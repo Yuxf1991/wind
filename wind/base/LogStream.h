@@ -34,7 +34,7 @@ using FlushFunc = std::function<void()>;
 class Fmt {
 public:
     template <typename... Args>
-    Fmt(const char *fmt, Args... args)
+    explicit Fmt(const char *fmt, Args... args)
     {
         int len = ::snprintf(buf_.curr(), buf_.available(), fmt, args...);
         ASSERT(static_cast<size_t>(len) <= buf_.available());

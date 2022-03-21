@@ -34,7 +34,7 @@ int createTimerFd()
 {
     int fd = TEMP_FAILURE_RETRY(::timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC));
     if (isInvalidFd(fd)) {
-        LOG_SYS_FATAL << "Create timerfd error: " << strerror(errno) << "!";
+        LOG_SYS_FATAL << "Create timerFd error: " << strerror(errno) << "!";
     }
 
     return fd;
@@ -42,11 +42,10 @@ int createTimerFd()
 
 itimerspec generateTimerSpec(TimeStamp dstTime)
 {
-    itimerspec newValue;
-    utils::memZero(&newValue, sizeof(newValue));
+    itimerspec newValue{};
 
     auto diffMicros = timeDiff(dstTime, TimeStamp::now());
-    // set minimum diffMicros to 1 us to make sure the timer can be triggerd.
+    // set minimum diffMicros to 1 us to make sure the timer can be triggered.
     diffMicros = std::max(decltype(diffMicros)(1), diffMicros);
 
     newValue.it_value.tv_sec = diffMicros / MICRO_SECS_PER_SECOND;
@@ -57,16 +56,16 @@ itimerspec generateTimerSpec(TimeStamp dstTime)
 
 TimerManager::TimerManager(EventLoop *loop)
     : loop_(loop),
-      timerfd_(detail::createTimerFd()),
-      timerfdChannel_(std::make_shared<EventChannel>(timerfd_.get(), loop_))
+      timerFd_(detail::createTimerFd()),
+      timerFdChannel_(std::make_shared<EventChannel>(timerFd_.get(), loop_))
 {
-    timerfdChannel_->setReadCallback([this](TimeStamp t) { handleRead(t); });
-    timerfdChannel_->enableReading();
+    timerFdChannel_->setReadCallback([this](TimeStamp t) { handleRead(t); });
+    timerFdChannel_->enableReading();
 }
 
 TimerManager::~TimerManager() noexcept
 {
-    timerfdChannel_->disableAll();
+    timerFdChannel_->disableAll();
 }
 
 TimerId TimerManager::addTimer(TimerCallback callback, TimeStamp expireTime, TimeType interval)
@@ -93,7 +92,7 @@ void TimerManager::addTimerInLoop(std::unique_ptr<Timer> &&timer)
     timers_[timerId] = std::move(timer);
 
     if (needToResetTimerFd) {
-        timerfdReset(expireTime);
+        timerFdReset(expireTime);
     }
 }
 
@@ -122,7 +121,7 @@ void TimerManager::cancelTimerInLoop(const TimerId &timerId)
     timerEntries_.erase(timerEntry);
 
     if (needToResetTimerFd) {
-        timerfdReset(timerEntries_.cbegin()->first);
+        timerFdReset(timerEntries_.cbegin()->first);
     }
 }
 
@@ -148,7 +147,7 @@ std::vector<TimerEntry> TimerManager::getExpiredTimers(TimeStamp receivedTime)
 void TimerManager::handleRead(TimeStamp receivedTime)
 {
     assertInLoopThread();
-    timerfdRead();
+    timerFdRead();
 
     {
         auto expiredTimers = getExpiredTimers(receivedTime);
@@ -167,25 +166,25 @@ void TimerManager::handleRead(TimeStamp receivedTime)
     }
 
     auto nextExpiredTime = timerEntries_.cbegin()->first;
-    timerfdReset(nextExpiredTime);
+    timerFdReset(nextExpiredTime);
 }
 
-void TimerManager::timerfdRead()
+void TimerManager::timerFdRead()
 {
     uint64_t one = 0;
-    int len = TEMP_FAILURE_RETRY(::read(timerfd_.get(), &one, sizeof(one)));
+    int len = TEMP_FAILURE_RETRY(::read(timerFd_.get(), &one, sizeof(one)));
     if (len != sizeof(one)) {
-        LOG_WARN << "Read from timerfd " << timerfd_.get() << " " << len << " bytes, should be " << sizeof(one)
+        LOG_WARN << "Read from timerFd " << timerFd_.get() << " " << len << " bytes, should be " << sizeof(one)
                  << " bytes.";
     }
 }
 
-void TimerManager::timerfdReset(TimeStamp expireTime)
+void TimerManager::timerFdReset(TimeStamp expireTime)
 {
     auto newValue = detail::generateTimerSpec(expireTime);
-    int ret = TEMP_FAILURE_RETRY(::timerfd_settime(timerfd_.get(), 0, &newValue, nullptr));
+    int ret = TEMP_FAILURE_RETRY(::timerfd_settime(timerFd_.get(), 0, &newValue, nullptr));
     if (ret != 0) {
-        LOG_SYS_FATAL << "timerfd_settime error: " << strerror(errno) << "!";
+        LOG_SYS_FATAL << "TimerFd set time error: " << strerror(errno) << "!";
     }
 }
 } // namespace base

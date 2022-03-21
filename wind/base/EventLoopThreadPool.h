@@ -41,6 +41,10 @@ public:
 
     EventLoop *getNextLoop();
     void start();
+    const string &name() const
+    {
+        return name_;
+    }
 
 private:
     EventLoop *mainLoop_ = nullptr;

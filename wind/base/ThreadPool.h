@@ -41,7 +41,7 @@ public:
     ThreadPool(string name);
     ~ThreadPool() noexcept;
 
-    string name() const
+    const string &name() const
     {
         return name_;
     }
@@ -158,7 +158,7 @@ private:
         std::condition_variable notFullCond_;
         std::condition_variable notEmptyCond_;
 
-        std::atomic<bool> running_;
+        std::atomic<bool> running_ = false;
         ThreadId tid_ = 0;
         Thread thread_;
 

@@ -70,7 +70,7 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
             }
 
             const auto &channel = channels_.at(fd);
-            channel->setRecevicedEvents(event.events);
+            channel->setReceivedEvents(event.events);
             activeChannels.emplace_back(channel);
         }
 

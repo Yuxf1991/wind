@@ -32,8 +32,8 @@ using namespace wind::conn;
 
 class Connection {
 public:
-    Connection(int sockfd, EventLoop *loop)
-        : sock_(sockfd), loop_(loop), channel_(std::make_shared<EventChannel>(sockfd, loop_))
+    Connection(int sockFd, EventLoop *loop)
+        : sock_(sockFd), loop_(loop), channel_(std::make_shared<EventChannel>(sockFd, loop_))
     {}
     ~Connection() noexcept
     {
@@ -67,11 +67,11 @@ public:
             []() { LOG_INFO << "main tick."; }, 5000 * MICRO_SECS_PER_MILLISECOND, 1000 * MICRO_SECS_PER_MILLISECOND);
 
         // run after 5s.
-        loop_.runAfter([]() { LOG_INFO << "hahahahaha."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
+        loop_.runAfter([]() { LOG_INFO << "hah."; }, 5000 * MICRO_SECS_PER_MILLISECOND);
 
         // init socket
-        SockAddrInet secvAddr(port);
-        servSock_.bindOrDie(secvAddr);
+        SockAddrInet servAddr(port);
+        servSock_.bindOrDie(servAddr);
         servSock_.listenOrDie();
 
         acceptChannel_ = std::make_shared<EventChannel>(servSock_.fd(), &loop_);
@@ -101,12 +101,12 @@ private:
         char buf[1024] = {0};
         int len = TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)));
         if (len < 0) {
-            LOG_INFO << " recv msg err from client " << fd << ": " << strerror(errno);
+            LOG_INFO << " receive msg err from client " << fd << ": " << strerror(errno);
         } else if (len == 0) {
             LOG_INFO << receivedTime.toFormattedString() << " client " << fd << " closed, remove this conn.";
             removeClient(fd);
         } else {
-            LOG_INFO << receivedTime.toFormattedString() << " recv msg from client " << fd << ": " << buf;
+            LOG_INFO << receivedTime.toFormattedString() << " receive msg from client " << fd << ": " << buf;
             int ret = TEMP_FAILURE_RETRY(write(fd, buf, len));
             if (ret < 0) {
                 LOG_INFO << receivedTime.toFormattedString() << " send msg err from client " << fd << ": "

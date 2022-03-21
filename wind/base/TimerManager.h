@@ -34,12 +34,12 @@ namespace base {
 class EventLoop;
 
 using TimerPtr = std::unique_ptr<Timer>;
-using TimerMap = std::unordered_map<TimerId, TimerPtr>; // To hold timers, manager the timers' onwership.
+using TimerMap = std::unordered_map<TimerId, TimerPtr>; // To hold timers, manager the timers' ownership.
 using TimerEntry = std::pair<TimeStamp, TimerId>;       // Make sure every TimerEntry is unique.
 using TimerEntrySet = std::set<TimerEntry>;             // To sort timers ordered by expireTime
 class TimerManager : NonCopyable {
 public:
-    TimerManager(EventLoop *loop);
+    explicit TimerManager(EventLoop *loop);
     ~TimerManager() noexcept;
 
     // @callback: TimerCallback
@@ -60,12 +60,12 @@ private:
     std::vector<TimerEntry> getExpiredTimers(TimeStamp receivedTime);
 
     void handleRead(TimeStamp receivedTime);
-    void timerfdRead();
-    void timerfdReset(TimeStamp expireTime);
+    void timerFdRead();
+    void timerFdReset(TimeStamp expireTime);
 
     EventLoop *loop_ = nullptr;
-    UniqueFd timerfd_;
-    std::shared_ptr<EventChannel> timerfdChannel_;
+    UniqueFd timerFd_;
+    std::shared_ptr<EventChannel> timerFdChannel_;
 
     TimerMap timers_;
     TimerEntrySet timerEntries_;

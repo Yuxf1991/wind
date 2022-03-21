@@ -33,7 +33,7 @@ int createEventFdOrDie()
 {
     int fd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     if (fd < 0) {
-        LOG_SYS_FATAL << "Create eventfd failed: " << strerror(errno) << ".";
+        LOG_SYS_FATAL << "Create eventFd failed: " << strerror(errno) << ".";
     }
 
     return fd;

@@ -42,7 +42,7 @@ class EventLoop;
 // use EPOLL_EVENTS to define channel event types.
 enum class EventType : uint32_t {
     NONE = 0x0,
-    READ_EVNET = EPOLLIN | EPOLLPRI,
+    READ_EVENT = EPOLLIN | EPOLLPRI,
     WRITE_EVENT = EPOLLOUT,
     EDGE_EVENT = EPOLLET,
 };
@@ -116,7 +116,7 @@ public:
     }
     bool isReading() const
     {
-        return listeningEvents() & enum_cast(EventType::READ_EVNET);
+        return listeningEvents() & enum_cast(EventType::READ_EVENT);
     }
 
     // @toUpdate: whether to update the channel in poller or not, true by default.
@@ -143,7 +143,7 @@ protected:
     {
         return listeningEvents_;
     }
-    void setRecevicedEvents(uint32_t events)
+    void setReceivedEvents(uint32_t events)
     {
         receivedEvents_ = events;
     }

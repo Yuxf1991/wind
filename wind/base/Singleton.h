@@ -35,10 +35,11 @@ public:
         return instance;
     }
 
+    // It can be non-virtual since we won't use singleton in a polymorphism way.
+    ~Singleton() noexcept = default;
+
 protected:
     Singleton() = default;
-    // It can be non virtual since we won't use singleton in a polymorphism way.
-    ~Singleton() noexcept = default;
 };
 
 #define DECLARE_SINGLETON(T)                                                                                           \

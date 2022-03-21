@@ -55,7 +55,7 @@ public:
 private:
     void reuseAndLockUnixAddrOrDie(const string &socketPath);
     void assertInLoopThread() const;
-    void handleAccptError();
+    void handleAcceptError();
     void acceptNewInetConn();
     void acceptNewUnixConn();
     void handleRead();

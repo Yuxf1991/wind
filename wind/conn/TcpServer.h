@@ -40,7 +40,7 @@ public:
         const SockAddrInet &listenAddr,
         string name = "WindTcpServer",
         bool reusePort = true);
-    ~TcpServer() noexcept;
+    virtual ~TcpServer() noexcept;
     void start();
 
 private:

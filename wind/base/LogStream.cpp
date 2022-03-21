@@ -25,7 +25,7 @@
 namespace wind {
 namespace base {
 namespace detail {
-void defaultOuput(const char *buf, size_t len)
+void defaultOutput(const char *buf, size_t len)
 {
     (void)::fwrite(buf, sizeof(char), len, stdout);
 }
@@ -56,7 +56,7 @@ inline char hexDigitToChar(int idx, bool upper = false)
     return upper ? hexDigitsUpper[idx] : hexDigits[idx];
 }
 
-// ensure the out buf's capacity is bigger than MAX_NUMERIC_SIZE.
+// ensure the out buffer's capacity is bigger than MAX_NUMERIC_SIZE.
 // return the real buf size after converting.
 template <typename T>
 size_t convertDigitToString(char *outBuf, T inValue)
@@ -96,8 +96,7 @@ size_t convertPointerToString(char *outBuf, uintptr_t p)
 }
 } // namespace detail
 
-OutputFunc LogStream::outputFunc_ = &detail::defaultOuput;
-
+OutputFunc LogStream::outputFunc_ = &detail::defaultOutput;
 FlushFunc LogStream::flushFunc_ = &detail::defaultFlush;
 
 void LogStream::setOutputFunc(OutputFunc func)

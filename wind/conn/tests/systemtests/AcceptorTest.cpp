@@ -29,12 +29,12 @@ using namespace wind;
 using namespace wind::base;
 using namespace wind::conn;
 
-void acceptFunc(int peerfd, const SockAddrUnix &peerAddr)
+void acceptFunc(int peerFd, const SockAddrUnix &peerAddr)
 {
-    LOG_INFO << "New conn accepted: " << peerAddr.toString() << ", fd: " << peerfd << ".";
+    LOG_INFO << "New conn accepted: " << peerAddr.toString() << ", fd: " << peerFd << ".";
 
     // close it
-    // DefaultFdCloser()(peerfd);
+    // DefaultFdCloser()(peerFd);
 }
 
 int main()

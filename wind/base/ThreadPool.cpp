@@ -156,7 +156,7 @@ void ThreadPool::TaskWorker::threadMain()
 
 ThreadPool::ThreadPool() : ThreadPool("WindThreadPool") {}
 
-ThreadPool::ThreadPool(string name) : name_(name) {}
+ThreadPool::ThreadPool(string name) : name_(std::move(name)) {}
 
 ThreadPool::~ThreadPool() noexcept
 {
@@ -230,7 +230,8 @@ ThreadId ThreadPool::getNextWorker()
 
     double minLoad = 100.0;
     for (const auto &[id, worker] : workers_) {
-        double workerLoad = worker->getQueueSize() * 1.0 / worker->getQueueCapacity() * 100.0;
+        double workerLoad =
+            static_cast<double>(worker->getQueueSize()) * 1.0 / static_cast<double>(worker->getQueueCapacity()) * 100.0;
         if (workerLoad < minLoad) {
             minLoad = workerLoad;
             selectedWorker = id;
@@ -299,7 +300,7 @@ void ThreadPool::dump(std::string &out) const
     for (const auto &[_, worker] : workers_) {
         auto queueSize = worker->getQueueSize();
         auto queueCapacity = worker->getQueueCapacity();
-        double load = queueSize * 1.0 / queueCapacity * 100.0;
+        double load = static_cast<double>(queueSize) * 1.0 / static_cast<double>(queueCapacity) * 100.0;
         out +=
             (worker->name() + "  |   " + std::to_string(queueSize) + "  |   " + std::to_string(queueCapacity) +
              "   |   " + std::to_string(load) + "    |   " + worker->readyTime().toFormattedString());
