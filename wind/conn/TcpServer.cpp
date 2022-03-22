@@ -46,6 +46,17 @@ TcpServer::TcpServer(base::EventLoop *loop, const SockAddrInet &listenAddr, stri
 
 TcpServer::~TcpServer() noexcept {}
 
+void TcpServer::setThreadNum(size_t threadNum)
+{
+    if (running_) {
+        LOG_INFO << "TcpServer::setThreadNum: server already started.";
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    threadPool_->setThreadNum(threadNum);
+}
+
 void TcpServer::start()
 {
     if (running_) {
