@@ -41,17 +41,21 @@ public:
         string name = "WindTcpServer",
         bool reusePort = true);
     virtual ~TcpServer() noexcept;
+
+    // Should be called before calling start().
+    void setThreadNum(size_t threadNum);
     void start();
 
 private:
     void assertInMainLoopThread();
     void onNewConnection(int peerFd, const SockAddrInet &peerAddr);
 
+    std::atomic<bool> running_ = false;
+    mutable std::mutex mutex_;
     base::EventLoop *mainLoop_ = nullptr;
     string name_;
     std::unique_ptr<base::EventLoopThreadPool> threadPool_;
     std::unique_ptr<Acceptor> acceptor_;
-    std::atomic<bool> running_ = false;
     ConnectionMap conns_;
 };
 } // namespace conn
