@@ -113,8 +113,6 @@ void EventChannel::handleEvent(TimeStamp receivedTime)
         auto closeCallback = getCloseCallback();
         if (closeCallback != nullptr) {
             closeCallback();
-            LOG_DEBUG << "Remove channel fd " << fd_ << " from poller.";
-            disableAll();
             return;
         }
     }
@@ -124,8 +122,6 @@ void EventChannel::handleEvent(TimeStamp receivedTime)
         auto errorCallback = getErrorCallback();
         if (errorCallback != nullptr) {
             errorCallback();
-            LOG_DEBUG << "Remove channel fd " << fd_ << " from poller.";
-            disableAll();
             return;
         }
     }
