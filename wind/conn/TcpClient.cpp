@@ -20,44 +20,58 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include "TcpClient.h"
 
-#include <map>
-
-#include "base/EventLoopThreadPool.h"
-#include "Acceptor.h"
+#include "base/Log.h"
 #include "TcpConnection.h"
 
 namespace wind {
 namespace conn {
-class TcpServer : base::NonCopyable {
-    using ConnectionPtr = std::shared_ptr<TcpConnection>;
-    using ConnectionMap = std::map<string, ConnectionPtr>;
+using namespace base;
+TcpClient::TcpClient(base::EventLoop *loop, string name, const SockAddrInet &remoteAddr)
+    : loop_(loop), name_(std::move(name)), connector_(std::make_shared<Connector>(loop, remoteAddr))
+{
+    connector_->setOnConnectCallback([this](int sockFd) { onConnect(sockFd); });
+}
 
-public:
-    TcpServer(
-        base::EventLoop *loop,
-        const SockAddrInet &listenAddr,
-        string name = "WindTcpServer",
-        bool reusePort = true);
-    virtual ~TcpServer() noexcept;
+TcpClient::~TcpClient() noexcept {}
 
-    // Should be called before calling start().
-    void setThreadNum(size_t threadNum);
-    void start();
+void TcpClient::start()
+{
+    if (started_) {
+        return;
+    }
 
-private:
-    void assertInMainLoopThread();
-    void onNewConnection(int peerFd, const SockAddrInet &peerAddr);
+    started_ = true;
+    LOG_INFO << "TcpClient(" << name_ << ") start connecting to " << connector_->remoteAddr() << "...";
+    connector_->start();
+}
 
-    std::atomic<bool> running_ = false;
-    mutable std::mutex mutex_;
-    base::EventLoop *mainLoop_ = nullptr;
-    string name_;
-    std::unique_ptr<base::EventLoopThreadPool> threadPool_;
-    std::unique_ptr<Acceptor> acceptor_;
-    std::atomic<uint64_t> connId_ = 0;
-    ConnectionMap conns_;
-};
+void TcpClient::stop()
+{
+    started_ = false;
+
+    LOG_INFO << "TcpClient(" << name_ << ") stop connecting.";
+    connector_->stop();
+}
+
+void TcpClient::assertInLoopThread()
+{
+    loop_->assertInLoopThread();
+}
+
+void TcpClient::onConnect(int sockFd)
+{
+    assertInLoopThread();
+
+    const auto peerAddr = sockets::getPeerAddrInet(sockFd);
+    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(connId_++);
+    auto newConn = std::make_shared<TcpConnection>(loop_, connName, sockFd);
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        connection_ = newConn;
+    }
+}
 } // namespace conn
 } // namespace wind

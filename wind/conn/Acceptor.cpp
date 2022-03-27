@@ -30,7 +30,7 @@
 namespace wind {
 namespace conn {
 namespace detail {
-const string LOCK_SUFFIX = ".lock";
+const char *LOCK_SUFFIX = ".lock";
 } // namespace detail
 
 Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, bool reusePort, int type, int protocol)
@@ -38,7 +38,7 @@ Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, b
       acceptSocket_(sockets::createNonBlockSocketOrDie(listenAddr.family(), type, protocol)),
       acceptChannel_(std::make_shared<base::EventChannel>(acceptSocket_.fd(), loop_)),
       idleFd_(base::utils::createIdleFdOrDie()),
-      acceptorType_(AcceptorType::INET_ACCEPTOR)
+      acceptorType_(AcceptorType::INET)
 {
     acceptSocket_.setReuseAddr(true);
     acceptSocket_.setReusePort(reusePort);
@@ -51,7 +51,7 @@ Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrUnix &listenAddr, i
       acceptSocket_(sockets::createNonBlockSocketOrDie(listenAddr.family(), type, protocol)),
       acceptChannel_(std::make_shared<base::EventChannel>(acceptSocket_.fd(), loop_)),
       idleFd_(base::utils::createIdleFdOrDie()),
-      acceptorType_(AcceptorType::UNIX_ACCEPTOR)
+      acceptorType_(AcceptorType::LOCAL)
 {
     reuseAndLockUnixAddrOrDie(listenAddr.toString());
     acceptSocket_.bindOrDie(listenAddr);
@@ -89,7 +89,7 @@ void Acceptor::reuseAndLockUnixAddrOrDie(const string &socketPath)
 
 void Acceptor::setAcceptCallback(const AcceptCallbackInet &callback)
 {
-    if (acceptorType_ != AcceptorType::INET_ACCEPTOR) {
+    if (acceptorType_ != AcceptorType::INET) {
         LOG_WARN << "Unix Acceptor can't set AcceptCallbackInet.";
         return;
     }
@@ -99,7 +99,7 @@ void Acceptor::setAcceptCallback(const AcceptCallbackInet &callback)
 
 void Acceptor::setAcceptCallback(const AcceptCallbackUnix &callback)
 {
-    if (acceptorType_ != AcceptorType::UNIX_ACCEPTOR) {
+    if (acceptorType_ != AcceptorType::LOCAL) {
         LOG_WARN << "Inet Acceptor can't set AcceptCallbackUnix.";
         return;
     }
@@ -172,10 +172,10 @@ void Acceptor::handleRead()
     assertInLoopThread();
 
     switch (acceptorType_) {
-        case AcceptorType::INET_ACCEPTOR:
+        case AcceptorType::INET:
             acceptNewInetConn();
             break;
-        case AcceptorType::UNIX_ACCEPTOR:
+        case AcceptorType::LOCAL:
             acceptNewUnixConn();
             break;
         default:

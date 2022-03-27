@@ -56,5 +56,7 @@ private:
     SockAddrInet peerAddr_;
     std::shared_ptr<base::EventChannel> channel_;
 };
+
+using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
 } // namespace conn
 } // namespace wind

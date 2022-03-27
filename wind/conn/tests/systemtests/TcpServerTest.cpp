@@ -30,7 +30,7 @@ using namespace wind::conn;
 int main()
 {
     EventLoop loop;
-    SockAddrInet listenAddr(12345, true);
+    SockAddrInet listenAddr(12345);
     TcpServer server(&loop, listenAddr);
     server.start();
     loop.start();

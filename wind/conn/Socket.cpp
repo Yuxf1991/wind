@@ -90,6 +90,30 @@ int connect(int fd, const sockaddr *addr, socklen_t addrLen)
     return TEMP_FAILURE_RETRY(::connect(fd, addr, addrLen));
 }
 
+int getSocketError(int sockFd)
+{
+    int err = 0;
+    auto errLen = static_cast<socklen_t>(sizeof(err));
+    if (::getsockopt(sockFd, SOL_SOCKET, SO_ERROR, &err, &errLen) < 0) {
+        err = errno;
+    }
+    return err;
+}
+
+bool isSelfConnectInet(int sockFd)
+{
+    auto localAddr = getLocalAddrInet(sockFd);
+    auto peerAddr = getPeerAddrInet(sockFd);
+    return localAddr == peerAddr;
+}
+
+bool isSelfConnectUnix(int sockFd)
+{
+    auto localAddr = getLocalAddrUnix(sockFd);
+    auto peerAddr = getPeerAddrUnix(sockFd);
+    return localAddr == peerAddr;
+}
+
 SockAddrInet getLocalAddrInet(int sockFd)
 {
     SockAddrInet addr;

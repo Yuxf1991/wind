@@ -20,44 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include "TcpClient.h"
 
-#include <map>
+using namespace wind;
+using namespace wind::base;
+using namespace wind::conn;
 
-#include "base/EventLoopThreadPool.h"
-#include "Acceptor.h"
-#include "TcpConnection.h"
-
-namespace wind {
-namespace conn {
-class TcpServer : base::NonCopyable {
-    using ConnectionPtr = std::shared_ptr<TcpConnection>;
-    using ConnectionMap = std::map<string, ConnectionPtr>;
-
-public:
-    TcpServer(
-        base::EventLoop *loop,
-        const SockAddrInet &listenAddr,
-        string name = "WindTcpServer",
-        bool reusePort = true);
-    virtual ~TcpServer() noexcept;
-
-    // Should be called before calling start().
-    void setThreadNum(size_t threadNum);
-    void start();
-
-private:
-    void assertInMainLoopThread();
-    void onNewConnection(int peerFd, const SockAddrInet &peerAddr);
-
-    std::atomic<bool> running_ = false;
-    mutable std::mutex mutex_;
-    base::EventLoop *mainLoop_ = nullptr;
-    string name_;
-    std::unique_ptr<base::EventLoopThreadPool> threadPool_;
-    std::unique_ptr<Acceptor> acceptor_;
-    std::atomic<uint64_t> connId_ = 0;
-    ConnectionMap conns_;
-};
-} // namespace conn
-} // namespace wind
+// TcpServer smoke test.
+int main()
+{
+    EventLoop loop;
+    SockAddrInet remoteAddr("127.0.0.1", 12345);
+    TcpClient client(&loop, "WindTcpClientTest", remoteAddr);
+    client.start();
+    loop.start();
+    return 0;
+}

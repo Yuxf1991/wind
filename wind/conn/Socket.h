@@ -40,6 +40,10 @@ SockAddrInet getLocalAddrInet(int sockFd);
 SockAddrInet getPeerAddrInet(int sockFd);
 SockAddrUnix getLocalAddrUnix(int sockFd);
 SockAddrUnix getPeerAddrUnix(int sockFd);
+
+int getSocketError(int sockFd);
+bool isSelfConnectInet(int sockFd);
+bool isSelfConnectUnix(int sockFd);
 } // namespace sockets
 
 class Socket : base::NonCopyable {

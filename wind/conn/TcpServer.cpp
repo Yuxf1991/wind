@@ -26,14 +26,6 @@ namespace wind {
 namespace conn {
 using namespace base;
 
-namespace detail {
-inline uint64_t getConnSequenceNum()
-{
-    static std::atomic<uint64_t> sequence(0);
-    return sequence.fetch_add(1, std::memory_order_relaxed);
-}
-} // namespace detail
-
 TcpServer::TcpServer(base::EventLoop *loop, const SockAddrInet &listenAddr, string name, bool reusePort)
     : mainLoop_(loop),
       name_(std::move(name)),
@@ -80,7 +72,7 @@ void TcpServer::onNewConnection(int peerFd, const SockAddrInet &peerAddr)
     assertInMainLoopThread();
 
     EventLoop *ioLoop = threadPool_->getNextLoop();
-    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(detail::getConnSequenceNum());
+    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(connId_++);
     auto newConn = std::make_shared<TcpConnection>(ioLoop, connName, peerFd);
     conns_[connName] = newConn;
     LOG_INFO << "New connection in: " << newConn->name() << ", localAddr: " << newConn->getLocalAddr().toString()

@@ -110,6 +110,11 @@ public:
     string portString() const;
     string toString() const;
 
+    bool operator==(const SockAddrInet &other) const
+    {
+        return family() == other.family() && ip() == other.ip() && port() == other.port();
+    }
+
 private:
     union Addr {
         sockaddr_in v4;
@@ -148,6 +153,10 @@ public:
     string toString() const
     {
         return addr_.sun_path;
+    }
+    bool operator==(const SockAddrUnix &other) const
+    {
+        return family() == other.family() && toString() == other.toString();
     }
 
 private:

@@ -70,7 +70,7 @@ private:
 
     AcceptCallbackInet inetAcceptCallback_;
     AcceptCallbackUnix unixAcceptCallback_;
-    enum class AcceptorType { INET_ACCEPTOR, UNIX_ACCEPTOR, UNKNOWN };
+    enum class AcceptorType { INET, LOCAL, UNKNOWN };
     AcceptorType acceptorType_ = AcceptorType::UNKNOWN;
 
     // Only for unix domain socket.

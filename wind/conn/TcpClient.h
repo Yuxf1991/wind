@@ -22,42 +22,34 @@
 
 #pragma once
 
-#include <map>
-
-#include "base/EventLoopThreadPool.h"
-#include "Acceptor.h"
-#include "TcpConnection.h"
+#include "Connector.h"
+#include "TcpCallbacks.h"
 
 namespace wind {
 namespace conn {
-class TcpServer : base::NonCopyable {
-    using ConnectionPtr = std::shared_ptr<TcpConnection>;
-    using ConnectionMap = std::map<string, ConnectionPtr>;
-
+class TcpClient : base::NonCopyable {
 public:
-    TcpServer(
-        base::EventLoop *loop,
-        const SockAddrInet &listenAddr,
-        string name = "WindTcpServer",
-        bool reusePort = true);
-    virtual ~TcpServer() noexcept;
+    TcpClient(base::EventLoop *loop, string name, const SockAddrInet &remoteAddr);
+    ~TcpClient() noexcept;
 
-    // Should be called before calling start().
-    void setThreadNum(size_t threadNum);
     void start();
+    void stop();
 
 private:
-    void assertInMainLoopThread();
-    void onNewConnection(int peerFd, const SockAddrInet &peerAddr);
+    void assertInLoopThread();
 
-    std::atomic<bool> running_ = false;
-    mutable std::mutex mutex_;
-    base::EventLoop *mainLoop_ = nullptr;
+    // callback for connector_, would be called in loop thread.
+    void onConnect(int sockFd);
+
+    base::EventLoop *loop_ = nullptr;
     string name_;
-    std::unique_ptr<base::EventLoopThreadPool> threadPool_;
-    std::unique_ptr<Acceptor> acceptor_;
-    std::atomic<uint64_t> connId_ = 0;
-    ConnectionMap conns_;
+    ConnectorPtr connector_;
+
+    std::atomic<bool> started_ = false;
+
+    std::atomic<uint64_t> connId_;
+    mutable std::mutex mutex_;
+    TcpConnectionPtr connection_; // guarded by mutex_.
 };
 } // namespace conn
 } // namespace wind

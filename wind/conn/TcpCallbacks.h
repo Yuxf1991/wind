@@ -22,42 +22,14 @@
 
 #pragma once
 
-#include <map>
-
-#include "base/EventLoopThreadPool.h"
-#include "Acceptor.h"
-#include "TcpConnection.h"
+#include "base/TimeStamp.h"
+#include "Buffer.h"
 
 namespace wind {
 namespace conn {
-class TcpServer : base::NonCopyable {
-    using ConnectionPtr = std::shared_ptr<TcpConnection>;
-    using ConnectionMap = std::map<string, ConnectionPtr>;
-
-public:
-    TcpServer(
-        base::EventLoop *loop,
-        const SockAddrInet &listenAddr,
-        string name = "WindTcpServer",
-        bool reusePort = true);
-    virtual ~TcpServer() noexcept;
-
-    // Should be called before calling start().
-    void setThreadNum(size_t threadNum);
-    void start();
-
-private:
-    void assertInMainLoopThread();
-    void onNewConnection(int peerFd, const SockAddrInet &peerAddr);
-
-    std::atomic<bool> running_ = false;
-    mutable std::mutex mutex_;
-    base::EventLoop *mainLoop_ = nullptr;
-    string name_;
-    std::unique_ptr<base::EventLoopThreadPool> threadPool_;
-    std::unique_ptr<Acceptor> acceptor_;
-    std::atomic<uint64_t> connId_ = 0;
-    ConnectionMap conns_;
-};
+class TcpConnection;
+using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
+using NewConnectionCallback = std::function<void(const TcpConnectionPtr &)>;
+using NewMessageCallback = std::function<void(const TcpConnectionPtr &, base::TimeStamp receivedTime)>;
 } // namespace conn
 } // namespace wind
