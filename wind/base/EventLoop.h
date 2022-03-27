@@ -74,13 +74,22 @@ public:
         runInLoop([t(std::move(packagedTask))]() { t->Run(); });
         return std::move(future);
     }
+
+    // run func immediately if in loop thread, or call queueToLoop() if in other thread.
     void runInLoop(Functor func);
 
+    // add this func to the last of the loop's pending functors.
+    void queueToLoop(Functor func);
+
     TimerId runAt(Functor func, TimeStamp dstTime);
+
+    // delay in micro seconds, 0 means run immediately
+    TimerId runAfter(Functor func, TimeType delay);
+
     // delay in micro seconds, 0 means run immediately
     // interval in micro seconds, 0 means only run once.
-    TimerId runAfter(Functor func, TimeType delay);
     TimerId runEvery(Functor func, TimeType interval, TimeType delay = 0);
+
     void cancel(const TimerId &timerId);
 
     static EventLoop *eventLoopOfCurrThread();
@@ -96,7 +105,6 @@ private:
     void wakeUp();
     void wakeUpCallback();
 
-    void queueToPendingFunctors(Functor func);
     void execPendingFunctors();
 
     ThreadId tid_ = -1; // indicates which thread is this loop in.

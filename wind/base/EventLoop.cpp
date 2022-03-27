@@ -94,7 +94,7 @@ void EventLoop::execPendingFunctors()
     executingPendingFunctors_ = false;
 }
 
-void EventLoop::queueToPendingFunctors(Functor func)
+void EventLoop::queueToLoop(Functor func)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -111,7 +111,7 @@ void EventLoop::runInLoop(Functor func)
     if (isInLoopThread()) {
         func();
     } else {
-        queueToPendingFunctors(std::move(func));
+        queueToLoop(std::move(func));
     }
 }
 
