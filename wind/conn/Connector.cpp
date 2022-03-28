@@ -79,17 +79,16 @@ void Connector::setOnConnectCallback(OnConnectCallback callback)
 void Connector::stop()
 {
     started_ = false;
-    loop_
-        ->schedule([this]() {
-            if (state_ == State::CONNECTING) {
-                state_ = State::DISCONNECTED;
-                removeChannel();
-                if (retryingTimer_.has_value()) {
-                    loop_->cancel(retryingTimer_.value());
-                }
+    auto future = loop_->schedule([this]() {
+        if (state_ == State::CONNECTING) {
+            state_ = State::DISCONNECTED;
+            removeChannel();
+            if (retryingTimer_.has_value()) {
+                loop_->cancel(retryingTimer_.value());
             }
-        })
-        .wait();
+        }
+    });
+    future.wait();
 }
 
 void Connector::restart()
@@ -206,7 +205,9 @@ void Connector::removeChannel()
         return;
     }
     channel_->disableAll(true);
-    channel_ = nullptr;
+
+    // we can't reset channel_ immediately since we may in channel_'s handleEvent() probably.
+    loop_->queueToLoop([this]() { channel_ = nullptr; });
 }
 
 // check if isSelfConnect
