@@ -38,6 +38,28 @@ TcpServer::TcpServer(base::EventLoop *loop, const SockAddrInet &listenAddr, stri
 
 TcpServer::~TcpServer() noexcept {}
 
+void TcpServer::setConnectionCallback(TcpConnectionCallback callback)
+{
+    if (running_) {
+        LOG_INFO << "TcpServer::setNewConnectionCallback: server already started.";
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    connectionCallback_ = std::move(callback);
+}
+
+void TcpServer::setMessageCallback(TcpMessageCallback callback)
+{
+    if (running_) {
+        LOG_INFO << "TcpServer::setNewMessageCallback: server already started.";
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    messageCallback_ = std::move(callback);
+}
+
 void TcpServer::setThreadNum(size_t threadNum)
 {
     if (running_) {
@@ -74,9 +96,25 @@ void TcpServer::onNewConnection(int peerFd, const SockAddrInet &peerAddr)
     EventLoop *ioLoop = threadPool_->getNextLoop();
     string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(connId_++);
     auto newConn = std::make_shared<TcpConnection>(ioLoop, connName, peerFd);
-    conns_[connName] = newConn;
+
     LOG_INFO << "New connection in: " << newConn->name() << ", localAddr: " << newConn->getLocalAddr().toString()
              << ", peerAddr: " << newConn->getPeerAddr().toString();
+
+    conns_[connName] = newConn;
+    if (connectionCallback_ != nullptr) {
+        connectionCallback_(newConn);
+    }
+}
+
+void TcpServer::onRemoveConnection(const TcpConnectionPtr &conn)
+{
+    mainLoop_->runInLoop([this, conn]() {
+        if (conn == nullptr) {
+            return;
+        }
+        auto n = conns_.erase(conn->name());
+        ASSERT(n == 1);
+    });
 }
 } // namespace conn
 } // namespace wind

@@ -33,8 +33,40 @@ TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
       localAddr_(sockets::getLocalAddrInet(sockFd)),
       peerAddr_(sockets::getPeerAddrInet(sockFd)),
       channel_(std::make_shared<EventChannel>(sockFd, loop_))
-{}
+{
+    channel_->setReadCallback([this](TimeStamp receivedTime) { onChannelReadable(receivedTime); });
+    channel_->setWriteCallback([this]() { onChannelWritable(); });
+    channel_->setErrorCallback([this]() { onChannelError(); });
+    channel_->setCloseCallback([this]() { onChannelClose(); });
+    socket_.setKeepAlive(true);
+    setState(TcpConnectionState::CONNECTING);
+}
 
 TcpConnection::~TcpConnection() noexcept {}
+
+void TcpConnection::connectionEstablished()
+{
+    loop_->runInLoop([this]() {
+        ASSERT(state() == TcpConnectionState::CONNECTING);
+        auto sharedObj = shared_from_this();
+        channel_->tie(sharedObj);
+        channel_->enableReading(true);
+        setState(TcpConnectionState::CONNECTED);
+        if (connectionCallback_ != nullptr) {
+            connectionCallback_(sharedObj);
+        }
+    });
+}
+
+void TcpConnection::connectionRemoved() {}
+
+// TODO: handle channel events.
+void TcpConnection::onChannelReadable(TimeStamp receivedTime)
+{
+    (void)receivedTime;
+}
+void TcpConnection::onChannelWritable() {}
+void TcpConnection::onChannelError() {}
+void TcpConnection::onChannelClose() {}
 } // namespace conn
 } // namespace wind

@@ -23,20 +23,46 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include "base/EventLoop.h"
 #include "Socket.h"
+#include "TcpCallbacks.h"
 
 namespace wind {
 namespace conn {
+enum class TcpConnectionState {
+    CONNECTING,
+    CONNECTED,
+    DISCONNECTING,
+    DISCONNECTED,
+};
+
 class TcpConnection : private base::NonCopyable, public std::enable_shared_from_this<TcpConnection> {
 public:
     TcpConnection(base::EventLoop *loop, string name, int sockFd);
     virtual ~TcpConnection() noexcept;
 
-    string name() const
+    const string &name() const
     {
         return name_;
+    }
+    TcpConnectionState state() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return state_;
+    }
+    bool connected() const
+    {
+        return state() == TcpConnectionState::CONNECTED;
+    }
+    bool disConnected() const
+    {
+        return state() == TcpConnectionState::DISCONNECTED;
+    }
+    base::EventLoop *getOwnerLoop() const
+    {
+        return loop_;
     }
 
     SockAddrInet getLocalAddr() const
@@ -48,13 +74,54 @@ public:
         return peerAddr_;
     }
 
+    // not thread safe.
+    void setConnectionCallback(TcpConnectionCallback callback)
+    {
+        connectionCallback_ = std::move(callback);
+    }
+    // not thread safe.
+    void setMessageCallback(TcpMessageCallback callback)
+    {
+        messageCallback_ = std::move(callback);
+    }
+    // not thread safe.
+    void setCloseCallback(TcpCloseCallback callback)
+    {
+        closeCallback_ = std::move(callback);
+    }
+
+    // called by TcpServer when accepting a new connection.
+    // enable this connection's read channel and set it's state to connected.
+    void connectionEstablished();
+    // called by TcpServer when removing this connection from its ConnectionMap.
+    // disable this connection's channel and set it's state to disConnected.
+    void connectionRemoved();
+
 private:
+    void setState(TcpConnectionState state)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        state_ = state;
+    }
+
+    void onChannelReadable(base::TimeStamp receivedTime);
+    void onChannelWritable();
+    void onChannelError();
+    void onChannelClose();
+
     base::EventLoop *loop_;
     string name_;
     Socket socket_;
     SockAddrInet localAddr_;
     SockAddrInet peerAddr_;
     std::shared_ptr<base::EventChannel> channel_;
+
+    mutable std::mutex mutex_;
+    TcpConnectionState state_ = TcpConnectionState::DISCONNECTED;
+
+    TcpConnectionCallback connectionCallback_;
+    TcpMessageCallback messageCallback_;
+    TcpCloseCallback closeCallback_;
 };
 
 using TcpConnectionPtr = std::shared_ptr<TcpConnection>;

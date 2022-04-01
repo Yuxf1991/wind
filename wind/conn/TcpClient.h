@@ -23,14 +23,19 @@
 #pragma once
 
 #include "Connector.h"
-#include "TcpCallbacks.h"
+#include "TcpConnection.h"
 
 namespace wind {
 namespace conn {
 class TcpClient : base::NonCopyable {
 public:
     TcpClient(base::EventLoop *loop, string name, const SockAddrInet &remoteAddr);
-    ~TcpClient() noexcept;
+    virtual ~TcpClient() noexcept;
+
+    const string &name() const
+    {
+        return name_;
+    }
 
     void start();
     void stop();

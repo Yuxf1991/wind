@@ -23,7 +23,6 @@
 #include "TcpClient.h"
 
 #include "base/Log.h"
-#include "TcpConnection.h"
 
 namespace wind {
 namespace conn {

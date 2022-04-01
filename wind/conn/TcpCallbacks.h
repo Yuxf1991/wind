@@ -22,6 +22,9 @@
 
 #pragma once
 
+#include <functional>
+#include <memory>
+
 #include "base/TimeStamp.h"
 #include "Buffer.h"
 
@@ -29,7 +32,8 @@ namespace wind {
 namespace conn {
 class TcpConnection;
 using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
-using NewConnectionCallback = std::function<void(const TcpConnectionPtr &)>;
-using NewMessageCallback = std::function<void(const TcpConnectionPtr &, base::TimeStamp receivedTime)>;
+using TcpConnectionCallback = std::function<void(const TcpConnectionPtr &)>;
+using TcpMessageCallback = std::function<void(const TcpConnectionPtr &, base::TimeStamp receivedTime)>;
+using TcpCloseCallback = std::function<void(const TcpConnectionPtr &)>;
 } // namespace conn
 } // namespace wind

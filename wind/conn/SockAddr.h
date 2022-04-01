@@ -42,27 +42,27 @@ class SockAddr {
 public:
     const sockaddr *getSockAddr() const
     {
-        return constObjPtr()->getSockAddr();
+        return constObjPtr()->SockType::getSockAddr();
     }
     sockaddr *data()
     {
-        return objPtr()->data();
+        return objPtr()->SockType::data();
     }
     socklen_t len() const
     {
-        return constObjPtr()->len();
+        return constObjPtr()->SockType::len();
     }
     socklen_t capacity() const
     {
-        return constObjPtr()->capacity();
+        return constObjPtr()->SockType::capacity();
     }
     sa_family_t family() const
     {
-        return constObjPtr()->family();
+        return constObjPtr()->SockType::family();
     }
     string toString() const
     {
-        return constObjPtr()->toString();
+        return constObjPtr()->SockType::toString();
     }
 
 private:

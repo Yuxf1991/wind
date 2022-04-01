@@ -65,45 +65,25 @@ public:
         return eventLoop_;
     }
 
+    // not thread safe.
     void setReadCallback(ReadCallback cb)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         readCallback_ = std::move(cb);
     }
-    ReadCallback getReadCallback() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return readCallback_;
-    }
+    // not thread safe.
     void setWriteCallback(EventCallback cb)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         writeCallback_ = std::move(cb);
     }
-    EventCallback getWriteCallback() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return writeCallback_;
-    }
+    // not thread safe.
     void setErrorCallback(EventCallback cb)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         errorCallback_ = std::move(cb);
     }
-    EventCallback getErrorCallback() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return errorCallback_;
-    }
+    // not thread safe.
     void setCloseCallback(EventCallback cb)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         closeCallback_ = std::move(cb);
-    }
-    EventCallback getCloseCallback() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return closeCallback_;
     }
 
     bool hasNoEvent() const
@@ -133,12 +113,21 @@ public:
     void update();
     void remove();
 
-protected:
-    friend class EventPoller;
+    // the owner object should call this function
+    // to prevent itself from being destroyed in handleEvent.
+    void tie(std::weak_ptr<void> ownerObj)
+    {
+        ownerObj_ = ownerObj;
+        tied_ = true;
+    }
 
+protected:
     // will abort if not in loop thread.
     void assertInLoopThread() const;
 
+    void handleEventInner(TimeStamp receivedTime);
+
+    friend class EventPoller;
     uint32_t listeningEvents() const
     {
         return listeningEvents_;
@@ -155,11 +144,13 @@ protected:
     uint32_t listeningEvents_ = enum_cast(EventType::NONE);
     uint32_t receivedEvents_ = enum_cast(EventType::NONE);
 
-    mutable std::mutex mutex_; // to guard these callbacks
     ReadCallback readCallback_;
     EventCallback writeCallback_;
     EventCallback errorCallback_;
     EventCallback closeCallback_;
+
+    std::weak_ptr<void> ownerObj_;
+    std::atomic<bool> tied_ = false;
 };
 } // namespace base
 } // namespace wind

@@ -108,37 +108,48 @@ void EventChannel::handleEvent(TimeStamp receivedTime)
 {
     assertInLoopThread();
 
+    if (tied_) {
+        // make sure the owner object will not be destroyed.
+        std::shared_ptr<void> guard = ownerObj_.lock();
+        if (guard == nullptr) {
+            LOG_WARN << "EventChannel::handleEvent: the owner object was dead, do nothing.";
+            return;
+        }
+        handleEventInner(receivedTime);
+    } else {
+        handleEventInner(receivedTime);
+    }
+}
+
+void EventChannel::handleEventInner(TimeStamp receivedTime)
+{
     if ((receivedEvents_ & EPOLLHUP) && !(receivedEvents_ & EPOLLIN)) {
         LOG_TRACE << "close event in channel " << fd_ << ".";
-        auto closeCallback = getCloseCallback();
-        if (closeCallback != nullptr) {
-            closeCallback();
+        if (closeCallback_ != nullptr) {
+            closeCallback_();
             return;
         }
     }
 
     if (receivedEvents_ & EPOLLERR) {
         LOG_TRACE << "error event in channel " << fd_ << ".";
-        auto errorCallback = getErrorCallback();
-        if (errorCallback != nullptr) {
-            errorCallback();
+        if (errorCallback_ != nullptr) {
+            errorCallback_();
             return;
         }
     }
 
     if (receivedEvents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
         LOG_TRACE << "read event in channel " << fd_ << ".";
-        auto readCallback = getReadCallback();
-        if (readCallback != nullptr) {
-            readCallback(receivedTime);
+        if (readCallback_ != nullptr) {
+            readCallback_(receivedTime);
         }
     }
 
     if (receivedEvents_ & EPOLLOUT) {
         LOG_TRACE << "write event in channel " << fd_ << ".";
-        auto writeCallback = getWriteCallback();
-        if (writeCallback != nullptr) {
-            writeCallback();
+        if (writeCallback_ != nullptr) {
+            writeCallback_();
         }
     }
 }
