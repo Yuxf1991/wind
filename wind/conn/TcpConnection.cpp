@@ -22,9 +22,57 @@
 
 #include "TcpConnection.h"
 
+#include "base/Log.h"
+
 namespace wind {
 namespace conn {
 using namespace base;
+
+namespace detail {
+string connectionStateString(TcpConnectionState state)
+{
+    string res;
+    switch (state) {
+        case TcpConnectionState::CONNECTING: {
+            res = "Connecting";
+            break;
+        }
+        case TcpConnectionState::CONNECTED: {
+            res = "Connected";
+            break;
+        }
+        case TcpConnectionState::DISCONNECTING: {
+            res = "Disconnecting";
+            break;
+        }
+        case TcpConnectionState::DISCONNECTED: {
+            res = "Disconnected";
+            break;
+        }
+        default: {
+            res = "Unknown";
+            break;
+        }
+    }
+
+    return res;
+}
+
+void defaultConnectionCallback(const TcpConnectionPtr &conn)
+{
+    if (conn == nullptr) {
+        return;
+    }
+
+    LOG_INFO << "Connection " << conn->name() << " " << connectionStateString(conn->state()) << ".";
+}
+
+void defaultMessageCallback(const TcpConnectionPtr &conn, TimeStamp receivedTime)
+{
+    (void)receivedTime;
+    (void)conn;
+}
+} // namespace detail
 
 TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
     : loop_(loop),
@@ -44,6 +92,24 @@ TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
 
 TcpConnection::~TcpConnection() noexcept {}
 
+void TcpConnection::callConnectionCallback()
+{
+    if (connectionCallback_) {
+        connectionCallback_(shared_from_this());
+    } else {
+        detail::defaultConnectionCallback(shared_from_this());
+    }
+}
+
+void TcpConnection::callMessageCallback(TimeStamp receivedTime)
+{
+    if (messageCallback_) {
+        messageCallback_(shared_from_this(), receivedTime);
+    } else {
+        detail::defaultMessageCallback(shared_from_this(), receivedTime);
+    }
+}
+
 void TcpConnection::connectionEstablished()
 {
     loop_->runInLoop([this]() {
@@ -52,9 +118,7 @@ void TcpConnection::connectionEstablished()
         channel_->tie(sharedObj);
         channel_->enableReading(true);
         setState(TcpConnectionState::CONNECTED);
-        if (connectionCallback_ != nullptr) {
-            connectionCallback_(sharedObj);
-        }
+        callConnectionCallback();
     });
 }
 

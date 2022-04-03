@@ -33,7 +33,7 @@ namespace conn {
 class TcpConnection;
 using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
 using TcpConnectionCallback = std::function<void(const TcpConnectionPtr &)>;
-using TcpMessageCallback = std::function<void(const TcpConnectionPtr &, base::TimeStamp receivedTime)>;
+using TcpMessageCallback = std::function<void(const TcpConnectionPtr &, base::TimeStamp)>;
 using TcpCloseCallback = std::function<void(const TcpConnectionPtr &)>;
 } // namespace conn
 } // namespace wind

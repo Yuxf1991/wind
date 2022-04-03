@@ -104,6 +104,9 @@ private:
         state_ = state;
     }
 
+    void callConnectionCallback();
+    void callMessageCallback(base::TimeStamp receivedTime);
+
     void onChannelReadable(base::TimeStamp receivedTime);
     void onChannelWritable();
     void onChannelError();
