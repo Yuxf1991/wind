@@ -52,7 +52,7 @@ private:
 
     std::atomic<bool> started_ = false;
 
-    std::atomic<uint64_t> connId_;
+    std::atomic<uint64_t> nextConnId_;
     mutable std::mutex mutex_;
     TcpConnectionPtr connection_; // guarded by mutex_.
 };

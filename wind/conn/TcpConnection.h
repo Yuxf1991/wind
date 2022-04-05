@@ -26,6 +26,7 @@
 #include <mutex>
 
 #include "base/EventLoop.h"
+#include "Buffer.h"
 #include "Socket.h"
 #include "TcpCallbacks.h"
 
@@ -60,6 +61,9 @@ public:
     {
         return state() == TcpConnectionState::DISCONNECTED;
     }
+
+    string stateString() const;
+
     base::EventLoop *getOwnerLoop() const
     {
         return loop_;
@@ -97,7 +101,26 @@ public:
     // disable this connection's channel and set it's state to disConnected.
     void connectionRemoved();
 
+    const Buffer *sendBuffer() const
+    {
+        return &sendBuffer_;
+    }
+    Buffer *sendBuffer()
+    {
+        return const_cast<Buffer *>(static_cast<const TcpConnection &>(*this).sendBuffer());
+    }
+    const Buffer *recvBuffer() const
+    {
+        return &recvBuffer_;
+    }
+    Buffer *recvBuffer()
+    {
+        return const_cast<Buffer *>(static_cast<const TcpConnection &>(*this).recvBuffer());
+    }
+
 private:
+    void assertInLoopThread();
+
     void setState(TcpConnectionState state)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -125,6 +148,9 @@ private:
     TcpConnectionCallback connectionCallback_;
     TcpMessageCallback messageCallback_;
     TcpCloseCallback closeCallback_;
+
+    Buffer sendBuffer_;
+    Buffer recvBuffer_;
 };
 
 using TcpConnectionPtr = std::shared_ptr<TcpConnection>;

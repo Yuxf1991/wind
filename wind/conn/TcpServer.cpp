@@ -94,26 +94,28 @@ void TcpServer::onNewConnection(int peerFd, const SockAddrInet &peerAddr)
     assertInMainLoopThread();
 
     EventLoop *ioLoop = threadPool_->getNextLoop();
-    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(connId_++);
+    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(nextConnId_++);
     auto newConn = std::make_shared<TcpConnection>(ioLoop, connName, peerFd);
-
     LOG_INFO << "New connection in: " << newConn->name() << ", localAddr: " << newConn->getLocalAddr().toString()
              << ", peerAddr: " << newConn->getPeerAddr().toString();
 
+    newConn->setConnectionCallback(connectionCallback_);
+    newConn->setMessageCallback(messageCallback_);
+    newConn->setCloseCallback([this](const TcpConnectionPtr &conn) { onRemoveConnection(conn); });
+    newConn->connectionEstablished();
+
     conns_[connName] = newConn;
-    if (connectionCallback_ != nullptr) {
-        connectionCallback_(newConn);
-    }
 }
 
 void TcpServer::onRemoveConnection(const TcpConnectionPtr &conn)
 {
     mainLoop_->runInLoop([this, conn]() {
-        if (conn == nullptr) {
+        if (WIND_UNLIKELY(conn == nullptr)) {
             return;
         }
         auto n = conns_.erase(conn->name());
         ASSERT(n == 1);
+        conn->connectionRemoved();
     });
 }
 } // namespace conn

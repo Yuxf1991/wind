@@ -247,7 +247,7 @@ public:
         writeInteger(val);
     }
 
-    int handleSocketRead(int sockFd, int &savedErrno);
+    ssize_t handleSocketRead(int sockFd, int &savedErrno);
 
 private:
     template <typename T>

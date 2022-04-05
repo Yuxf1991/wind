@@ -90,7 +90,7 @@ void Buffer::append(const char *data, size_t len)
 }
 
 // See muduo's Buffer::readFd() in https://github.com/chenshuo/muduo/blob/master/muduo/net/Buffer.cc
-int Buffer::handleSocketRead(int sockFd, int &savedErrno)
+ssize_t Buffer::handleSocketRead(int sockFd, int &savedErrno)
 {
     char extraBuf[65536];
     iovec vec[2];
@@ -111,7 +111,7 @@ int Buffer::handleSocketRead(int sockFd, int &savedErrno)
         append(extraBuf, len - writable);
     }
 
-    return static_cast<int>(len);
+    return len;
 }
 } // namespace conn
 } // namespace wind

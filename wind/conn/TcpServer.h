@@ -66,7 +66,7 @@ private:
     string name_;
     std::unique_ptr<base::EventLoopThreadPool> threadPool_;
     std::unique_ptr<Acceptor> acceptor_;
-    std::atomic<uint64_t> connId_ = 0;
+    std::atomic<uint64_t> nextConnId_ = 0;
     ConnectionMap conns_;
 
     TcpConnectionCallback connectionCallback_;

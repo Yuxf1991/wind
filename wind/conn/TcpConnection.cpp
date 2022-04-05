@@ -29,10 +29,49 @@ namespace conn {
 using namespace base;
 
 namespace detail {
-string connectionStateString(TcpConnectionState state)
+void defaultConnectionCallback(const TcpConnectionPtr &conn)
+{
+    if (WIND_UNLIKELY(conn == nullptr)) {
+        return;
+    }
+
+    LOG_INFO << "Connection " << conn->name() << " " << conn->stateString() << ".";
+}
+
+void defaultMessageCallback(const TcpConnectionPtr &conn, TimeStamp receivedTime)
+{
+    if (WIND_UNLIKELY(conn == nullptr)) {
+        return;
+    }
+
+    Buffer *buffer = conn->recvBuffer();
+    buffer->resumeAll(); // drop all messages by default.
+    UNUSED(receivedTime);
+}
+} // namespace detail
+
+TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
+    : loop_(loop),
+      name_(std::move(name)),
+      socket_(sockFd),
+      localAddr_(sockets::getLocalAddrInet(sockFd)),
+      peerAddr_(sockets::getPeerAddrInet(sockFd)),
+      channel_(std::make_shared<EventChannel>(sockFd, loop_))
+{
+    channel_->setReadCallback([this](TimeStamp receivedTime) { onChannelReadable(receivedTime); });
+    channel_->setWriteCallback([this]() { onChannelWritable(); });
+    channel_->setErrorCallback([this]() { onChannelError(); });
+    channel_->setCloseCallback([this]() { onChannelClose(); });
+    socket_.setKeepAlive(true);
+    setState(TcpConnectionState::CONNECTING);
+}
+
+TcpConnection::~TcpConnection() noexcept {}
+
+string TcpConnection::stateString() const
 {
     string res;
-    switch (state) {
+    switch (state()) {
         case TcpConnectionState::CONNECTING: {
             res = "Connecting";
             break;
@@ -58,40 +97,6 @@ string connectionStateString(TcpConnectionState state)
     return res;
 }
 
-void defaultConnectionCallback(const TcpConnectionPtr &conn)
-{
-    if (conn == nullptr) {
-        return;
-    }
-
-    LOG_INFO << "Connection " << conn->name() << " " << connectionStateString(conn->state()) << ".";
-}
-
-void defaultMessageCallback(const TcpConnectionPtr &conn, TimeStamp receivedTime)
-{
-    (void)receivedTime;
-    (void)conn;
-}
-} // namespace detail
-
-TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
-    : loop_(loop),
-      name_(std::move(name)),
-      socket_(sockFd),
-      localAddr_(sockets::getLocalAddrInet(sockFd)),
-      peerAddr_(sockets::getPeerAddrInet(sockFd)),
-      channel_(std::make_shared<EventChannel>(sockFd, loop_))
-{
-    channel_->setReadCallback([this](TimeStamp receivedTime) { onChannelReadable(receivedTime); });
-    channel_->setWriteCallback([this]() { onChannelWritable(); });
-    channel_->setErrorCallback([this]() { onChannelError(); });
-    channel_->setCloseCallback([this]() { onChannelClose(); });
-    socket_.setKeepAlive(true);
-    setState(TcpConnectionState::CONNECTING);
-}
-
-TcpConnection::~TcpConnection() noexcept {}
-
 void TcpConnection::callConnectionCallback()
 {
     if (connectionCallback_) {
@@ -110,27 +115,65 @@ void TcpConnection::callMessageCallback(TimeStamp receivedTime)
     }
 }
 
+void TcpConnection::assertInLoopThread()
+{
+    loop_->assertInLoopThread();
+}
+
 void TcpConnection::connectionEstablished()
 {
     loop_->runInLoop([this]() {
         ASSERT(state() == TcpConnectionState::CONNECTING);
-        auto sharedObj = shared_from_this();
-        channel_->tie(sharedObj);
+        channel_->tie(shared_from_this());
         channel_->enableReading(true);
         setState(TcpConnectionState::CONNECTED);
         callConnectionCallback();
     });
 }
 
-void TcpConnection::connectionRemoved() {}
+void TcpConnection::connectionRemoved()
+{
+    loop_->runInLoop([this]() {
+        if (WIND_UNLIKELY(state() == TcpConnectionState::CONNECTED)) {
+            setState(TcpConnectionState::DISCONNECTED);
+            channel_->disableAll(true);
 
-// TODO: handle channel events.
+            callConnectionCallback();
+        }
+    });
+}
+
 void TcpConnection::onChannelReadable(TimeStamp receivedTime)
 {
-    (void)receivedTime;
+    assertInLoopThread();
+
+    int savedError = 0;
+    auto n = recvBuffer_.handleSocketRead(socket_.fd(), savedError);
+
+    if (n == 0) {
+        onChannelClose();
+    } else if (n > 0) {
+        callMessageCallback(receivedTime);
+    } else {
+        // n < 0
+        // TODO: error handle.
+    }
 }
+
 void TcpConnection::onChannelWritable() {}
 void TcpConnection::onChannelError() {}
-void TcpConnection::onChannelClose() {}
+
+void TcpConnection::onChannelClose()
+{
+    assertInLoopThread();
+
+    setState(TcpConnectionState::DISCONNECTED);
+    channel_->disableAll(true);
+    callConnectionCallback();
+
+    if (WIND_LIKELY(closeCallback_ != nullptr)) {
+        closeCallback_(shared_from_this());
+    }
+}
 } // namespace conn
 } // namespace wind

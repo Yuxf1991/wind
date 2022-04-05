@@ -22,8 +22,7 @@
 
 link_libraries(wind_conn)
 
-add_executable(EventLoopTest EventLoopTest.cpp)
-add_executable(EventLoopThreadTest EventLoopThreadTest.cpp)
+add_executable(EchoServerTest EchoServerTest.cpp)
 add_executable(SockAddrInetTest SockAddrInetTest.cpp)
 add_executable(SocketTest SocketTest.cpp)
 add_executable(AcceptorTest AcceptorTest.cpp)

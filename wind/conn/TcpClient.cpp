@@ -64,7 +64,7 @@ void TcpClient::onConnect(int sockFd)
     assertInLoopThread();
 
     const auto peerAddr = sockets::getPeerAddrInet(sockFd);
-    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(connId_++);
+    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(nextConnId_++);
     auto newConn = std::make_shared<TcpConnection>(loop_, connName, sockFd);
 
     {
