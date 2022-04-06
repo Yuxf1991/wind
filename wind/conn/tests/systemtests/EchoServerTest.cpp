@@ -47,8 +47,10 @@ private:
     void onMessage(const TcpConnectionPtr &conn, TimeStamp receivedTime)
     {
         Buffer *buffer = conn->recvBuffer();
-        LOG_INFO << "Connection " << conn->name() << " received message: " << buffer->readAll() << " at "
+        string message = buffer->readAll();
+        LOG_INFO << "Connection " << conn->name() << " received message: " << message << " at "
                  << receivedTime.toFormattedString();
+        conn->send(message);
     }
 };
 

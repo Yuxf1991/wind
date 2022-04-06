@@ -102,7 +102,7 @@ void TcpServer::onNewConnection(int peerFd, const SockAddrInet &peerAddr)
     newConn->setConnectionCallback(connectionCallback_);
     newConn->setMessageCallback(messageCallback_);
     newConn->setCloseCallback([this](const TcpConnectionPtr &conn) { onRemoveConnection(conn); });
-    newConn->connectionEstablished();
+    newConn->onEstablished();
 
     conns_[connName] = newConn;
 }
@@ -115,7 +115,7 @@ void TcpServer::onRemoveConnection(const TcpConnectionPtr &conn)
         }
         auto n = conns_.erase(conn->name());
         ASSERT(n == 1);
-        conn->connectionRemoved();
+        conn->onRemoved();
     });
 }
 } // namespace conn

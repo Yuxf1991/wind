@@ -36,6 +36,8 @@ void bindOrDie(int fd, const sockaddr *addr, socklen_t addrLen);
 int accept(int fd, sockaddr *addr, socklen_t addrLen);
 int connect(int fd, const sockaddr *addr, socklen_t addrLen);
 
+ssize_t write(int fd, const char *message, size_t len);
+
 SockAddrInet getLocalAddrInet(int sockFd);
 SockAddrInet getPeerAddrInet(int sockFd);
 SockAddrUnix getLocalAddrUnix(int sockFd);
@@ -82,6 +84,16 @@ public:
     int connect(const SockAddr<SockType> &remoteAddr) const
     {
         return sockets::connect(fd_.get(), remoteAddr.getSockAddr(), remoteAddr.len());
+    }
+
+    ssize_t write(const string &message)
+    {
+        return sockets::write(fd_.get(), message.c_str(), message.size());
+    }
+
+    ssize_t write(const char *message, size_t len)
+    {
+        return sockets::write(fd_.get(), message, len);
     }
 
     // will check ret value in this func and log err info, same as follows

@@ -90,6 +90,12 @@ int connect(int fd, const sockaddr *addr, socklen_t addrLen)
     return TEMP_FAILURE_RETRY(::connect(fd, addr, addrLen));
 }
 
+ssize_t write(int fd, const char *message, size_t len)
+{
+    auto n = TEMP_FAILURE_RETRY(::write(fd, message, len));
+    return n;
+}
+
 int getSocketError(int sockFd)
 {
     int err = 0;

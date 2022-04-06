@@ -96,10 +96,10 @@ public:
 
     // called by TcpServer when accepting a new connection.
     // enable this connection's read channel and set it's state to connected.
-    void connectionEstablished();
+    void onEstablished();
     // called by TcpServer when removing this connection from its ConnectionMap.
     // disable this connection's channel and set it's state to disConnected.
-    void connectionRemoved();
+    void onRemoved();
 
     const Buffer *sendBuffer() const
     {
@@ -118,6 +118,8 @@ public:
         return const_cast<Buffer *>(static_cast<const TcpConnection &>(*this).recvBuffer());
     }
 
+    void send(string message);
+
 private:
     void assertInLoopThread();
 
@@ -134,6 +136,8 @@ private:
     void onChannelWritable();
     void onChannelError();
     void onChannelClose();
+
+    void sendInLoop(string &&message);
 
     base::EventLoop *loop_;
     string name_;

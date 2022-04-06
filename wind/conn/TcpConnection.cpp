@@ -120,7 +120,7 @@ void TcpConnection::assertInLoopThread()
     loop_->assertInLoopThread();
 }
 
-void TcpConnection::connectionEstablished()
+void TcpConnection::onEstablished()
 {
     loop_->runInLoop([this]() {
         ASSERT(state() == TcpConnectionState::CONNECTING);
@@ -131,7 +131,7 @@ void TcpConnection::connectionEstablished()
     });
 }
 
-void TcpConnection::connectionRemoved()
+void TcpConnection::onRemoved()
 {
     loop_->runInLoop([this]() {
         if (WIND_UNLIKELY(state() == TcpConnectionState::CONNECTED)) {
@@ -141,6 +141,47 @@ void TcpConnection::connectionRemoved()
             callConnectionCallback();
         }
     });
+}
+
+void TcpConnection::send(string message)
+{
+    loop_->runInLoop([this, msg(std::move(message))]() mutable { sendInLoop(std::move(msg)); });
+}
+
+void TcpConnection::sendInLoop(string &&message)
+{
+    assertInLoopThread();
+
+    if (state_ != TcpConnectionState::CONNECTED) {
+        LOG_WARN << "TcpConnection::sendInLoop give up because conn is not connected. State: " << stateString() << ".";
+        return;
+    }
+
+    const char *msgData = message.data();
+    size_t msgLen = message.size();
+    ssize_t wroteBytes = 0;
+    size_t remaining = msgLen;
+
+    // we can write directly if there is nothing in output queue.
+    if (sendBuffer_.bytesReadable() == 0 && !channel_->isWriting()) {
+        wroteBytes = socket_.write(msgData, msgLen);
+        if (wroteBytes < 0) {
+            // TODO: error handle
+            wroteBytes = 0;
+        } else {
+            ASSERT(static_cast<size_t>(wroteBytes) <= msgLen);
+            remaining = msgLen - static_cast<size_t>(wroteBytes);
+        }
+    }
+
+    ASSERT(remaining <= msgLen);
+    ASSERT(wroteBytes >= 0);
+    if (remaining > 0) {
+        sendBuffer_.append(msgData + static_cast<size_t>(wroteBytes), remaining);
+        if (!channel_->isWriting()) {
+            channel_->enableWriting(true);
+        }
+    }
 }
 
 void TcpConnection::onChannelReadable(TimeStamp receivedTime)
@@ -160,7 +201,27 @@ void TcpConnection::onChannelReadable(TimeStamp receivedTime)
     }
 }
 
-void TcpConnection::onChannelWritable() {}
+void TcpConnection::onChannelWritable()
+{
+    assertInLoopThread();
+
+    if (WIND_UNLIKELY(!channel_->isWriting())) {
+        LOG_ERROR << "TcpConnection::onChannelWritable: channel(fd: " << channel_->fd() << ") is not writable!";
+        return;
+    }
+
+    ssize_t wroteBytes = socket_.write(sendBuffer_.peek(), sendBuffer_.bytesReadable());
+    if (wroteBytes < 0) {
+        // TODO: error handle
+    } else {
+        sendBuffer_.resume(static_cast<size_t>(wroteBytes));
+        if (sendBuffer_.bytesReadable() == 0) {
+            // write complete, can disable channel's write event.
+            channel_->disableWriting(true);
+        }
+    }
+}
+
 void TcpConnection::onChannelError() {}
 
 void TcpConnection::onChannelClose()
