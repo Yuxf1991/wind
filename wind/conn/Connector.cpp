@@ -67,13 +67,14 @@ Connector::~Connector() noexcept
     removeChannel();
 }
 
-void Connector::setOnConnectCallback(OnConnectCallback callback)
+void Connector::setOnConnectedCallback(OnConnectedCallback callback)
 {
     if (started_) {
         return;
     }
 
-    loop_->runInLoop([this, cb(std::move(callback))]() { onConnectCallback_ = std::move(cb); });
+    std::lock_guard<std::mutex> lock(mutex_);
+    onConnectedCallback_ = std::move(callback);
 }
 
 void Connector::stop()
@@ -193,9 +194,9 @@ void Connector::establish(UniqueFd &&sockFd)
     LOG_INFO << "Connector::establish: connect to " << remoteAddr() << " succeed.";
     auto fd = std::move(sockFd);
     state_ = State::CONNECTED;
-    if (onConnectCallback_ != nullptr) {
+    if (onConnectedCallback_ != nullptr) {
         // The callback should take the ownership of this socket fd.
-        onConnectCallback_(fd.release());
+        onConnectedCallback_(fd.release());
     }
 }
 

@@ -28,7 +28,7 @@
 namespace wind {
 namespace conn {
 class Connector : private base::NonCopyable, public std::enable_shared_from_this<Connector> {
-    using OnConnectCallback = std::function<void(int sockFd)>;
+    using OnConnectedCallback = std::function<void(int sockFd)>;
     enum class State { DISCONNECTED, CONNECTING, CONNECTED };
 
     enum class ConnectorType { INET, LOCAL, UNKNOWN };
@@ -47,8 +47,8 @@ public:
     Connector(base::EventLoop *loop, const SockAddrUnix &remoteAddr, int dataType = SOCK_STREAM, int protocol = 0);
     ~Connector() noexcept;
 
-    // must be called before calling start().
-    void setOnConnectCallback(OnConnectCallback callback);
+    // must be called before calling start() and thread safe.
+    void setOnConnectedCallback(OnConnectedCallback callback);
 
     void start();   // thread-safe
     void stop();    // thread-safe
@@ -89,7 +89,8 @@ private:
     int protocol_ = 0;
     ConnectorType connectorType_ = ConnectorType::UNKNOWN;
 
-    OnConnectCallback onConnectCallback_;
+    mutable std::mutex mutex_;
+    OnConnectedCallback onConnectedCallback_; // guarded by mutex_.
     std::shared_ptr<base::EventChannel> channel_;
 
     State state_ = State::DISCONNECTED;

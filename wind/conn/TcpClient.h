@@ -38,13 +38,22 @@ public:
     }
 
     void start();
+    // shutdown write, so called half-close.
+    void shutdown();
     void stop();
+
+    // Should be called when not started, thread safe.
+    void setConnectionCallback(TcpConnectionCallback callback);
+    // Should be called when not started, thread safe.
+    void setMessageCallback(TcpMessageCallback callback);
 
 private:
     void assertInLoopThread();
 
     // callback for connector_, would be called in loop thread.
-    void onConnect(int sockFd);
+    void onConnected(int sockFd);
+    // the connection is disconnected if it read 0 byte from its socket.
+    void onDisconnected(const TcpConnectionPtr &conn);
 
     base::EventLoop *loop_ = nullptr;
     string name_;
@@ -55,6 +64,9 @@ private:
     std::atomic<uint64_t> nextConnId_;
     mutable std::mutex mutex_;
     TcpConnectionPtr connection_; // guarded by mutex_.
+
+    TcpConnectionCallback connectionCallback_;
+    TcpMessageCallback messageCallback_;
 };
 } // namespace conn
 } // namespace wind

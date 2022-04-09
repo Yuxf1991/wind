@@ -30,10 +30,13 @@ using namespace base;
 TcpClient::TcpClient(base::EventLoop *loop, string name, const SockAddrInet &remoteAddr)
     : loop_(loop), name_(std::move(name)), connector_(std::make_shared<Connector>(loop, remoteAddr))
 {
-    connector_->setOnConnectCallback([this](int sockFd) { onConnect(sockFd); });
+    connector_->setOnConnectedCallback([this](int sockFd) { onConnected(sockFd); });
 }
 
-TcpClient::~TcpClient() noexcept {}
+TcpClient::~TcpClient() noexcept
+{
+    // TODO: close the connection if necessary.
+}
 
 void TcpClient::start()
 {
@@ -46,6 +49,11 @@ void TcpClient::start()
     connector_->start();
 }
 
+void TcpClient::shutdown()
+{
+    // TODO: call connection's shutdown().
+}
+
 void TcpClient::stop()
 {
     started_ = false;
@@ -54,23 +62,70 @@ void TcpClient::stop()
     connector_->stop();
 }
 
+void TcpClient::setConnectionCallback(TcpConnectionCallback callback)
+{
+    if (started_) {
+        LOG_INFO << "TcpClient::setConnectionCallback: already started.";
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    connectionCallback_ = std::move(callback);
+}
+
+void TcpClient::setMessageCallback(TcpMessageCallback callback)
+{
+    if (started_) {
+        LOG_INFO << "TcpClient::setConnectionCallback: already started.";
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    messageCallback_ = std::move(callback);
+}
+
 void TcpClient::assertInLoopThread()
 {
     loop_->assertInLoopThread();
 }
 
-void TcpClient::onConnect(int sockFd)
+void TcpClient::onConnected(int sockFd)
 {
     assertInLoopThread();
 
     const auto peerAddr = sockets::getPeerAddrInet(sockFd);
     string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(nextConnId_++);
+
     auto newConn = std::make_shared<TcpConnection>(loop_, connName, sockFd);
+    newConn->setConnectionCallback(connectionCallback_);
+    newConn->setMessageCallback(messageCallback_);
+    newConn->setCloseCallback([this](const TcpConnectionPtr &conn) { onDisconnected(conn); });
+    newConn->onEstablished();
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
         connection_ = newConn;
     }
+}
+
+void TcpClient::onDisconnected(const TcpConnectionPtr &conn)
+{
+    if (WIND_UNLIKELY(conn == nullptr)) {
+        return;
+    }
+
+    ASSERT(connection_ == conn);
+    ASSERT(loop_ == conn->getOwnerLoop());
+
+    assertInLoopThread();
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        connection_ = nullptr;
+    }
+    conn->onRemoved();
+
+    // TODO: need retry?
 }
 } // namespace conn
 } // namespace wind
