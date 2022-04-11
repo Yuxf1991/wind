@@ -58,10 +58,10 @@ TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
       peerAddr_(sockets::getPeerAddrInet(sockFd)),
       channel_(std::make_shared<EventChannel>(sockFd, loop_))
 {
-    channel_->setReadCallback([this](TimeStamp receivedTime) { onChannelReadable(receivedTime); });
-    channel_->setWriteCallback([this]() { onChannelWritable(); });
-    channel_->setErrorCallback([this]() { onChannelError(); });
-    channel_->setCloseCallback([this]() { onChannelClose(); });
+    channel_->setReadCallback([this](TimeStamp receivedTime) { handleRead(receivedTime); });
+    channel_->setWriteCallback([this]() { handleWrite(); });
+    channel_->setErrorCallback([this]() { handleError(); });
+    channel_->setCloseCallback([this]() { handleClose(); });
     socket_.setKeepAlive(true);
     setState(TcpConnectionState::CONNECTING);
 }
@@ -184,7 +184,7 @@ void TcpConnection::sendInLoop(string &&message)
     }
 }
 
-void TcpConnection::onChannelReadable(TimeStamp receivedTime)
+void TcpConnection::handleRead(TimeStamp receivedTime)
 {
     assertInLoopThread();
 
@@ -192,7 +192,7 @@ void TcpConnection::onChannelReadable(TimeStamp receivedTime)
     auto n = recvBuffer_.handleSocketRead(socket_.fd(), savedError);
 
     if (n == 0) {
-        onChannelClose();
+        handleClose();
     } else if (n > 0) {
         callMessageCallback(receivedTime);
     } else {
@@ -201,7 +201,7 @@ void TcpConnection::onChannelReadable(TimeStamp receivedTime)
     }
 }
 
-void TcpConnection::onChannelWritable()
+void TcpConnection::handleWrite()
 {
     assertInLoopThread();
 
@@ -222,9 +222,9 @@ void TcpConnection::onChannelWritable()
     }
 }
 
-void TcpConnection::onChannelError() {}
+void TcpConnection::handleError() {}
 
-void TcpConnection::onChannelClose()
+void TcpConnection::handleClose()
 {
     assertInLoopThread();
 

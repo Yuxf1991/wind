@@ -86,14 +86,13 @@ public:
         return sockets::connect(fd_.get(), remoteAddr.getSockAddr(), remoteAddr.len());
     }
 
-    ssize_t write(const string &message)
-    {
-        return sockets::write(fd_.get(), message.c_str(), message.size());
-    }
-
     ssize_t write(const char *message, size_t len)
     {
         return sockets::write(fd_.get(), message, len);
+    }
+    ssize_t write(const string &message)
+    {
+        return write(message.c_str(), message.size());
     }
 
     // will check ret value in this func and log err info, same as follows

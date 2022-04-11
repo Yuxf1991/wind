@@ -132,10 +132,10 @@ private:
     void callConnectionCallback();
     void callMessageCallback(base::TimeStamp receivedTime);
 
-    void onChannelReadable(base::TimeStamp receivedTime);
-    void onChannelWritable();
-    void onChannelError();
-    void onChannelClose();
+    void handleRead(base::TimeStamp receivedTime);
+    void handleWrite();
+    void handleError();
+    void handleClose();
 
     void sendInLoop(string &&message);
 
