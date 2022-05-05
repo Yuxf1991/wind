@@ -28,10 +28,10 @@
 
 namespace wind {
 namespace base {
-constexpr size_t DEFAULT_BUFFER_SIZE = 4096;
-constexpr size_t LARGE_BUFFER_SIZE = DEFAULT_BUFFER_SIZE * 1024;
+constexpr std::size_t DEFAULT_BUFFER_SIZE = 4096;
+constexpr std::size_t LARGE_BUFFER_SIZE = DEFAULT_BUFFER_SIZE * 1024;
 
-template <size_t BUF_SIZE>
+template <std::size_t BUF_SIZE>
 class FixedSizeBuffer : NonCopyable {
 public:
     FixedSizeBuffer() = default;
@@ -47,7 +47,7 @@ public:
     {
         return curr_;
     }
-    void grow(size_t len)
+    void grow(std::size_t len)
     {
         ASSERT(len < available());
         curr_ += len;
@@ -57,15 +57,15 @@ public:
     {
         return data_ + sizeof(data_);
     }
-    size_t available() const
+    std::size_t available() const
     {
-        return static_cast<size_t>(end() - curr());
+        return static_cast<std::size_t>(end() - curr());
     }
-    size_t length() const
+    std::size_t length() const
     {
-        return static_cast<size_t>(curr() - data());
+        return static_cast<std::size_t>(curr() - data());
     }
-    constexpr size_t capacity() const
+    constexpr std::size_t capacity() const
     {
         return sizeof(data_);
     }
@@ -82,12 +82,12 @@ public:
         reset();
     }
 
-    void append(const char *s, size_t len)
+    void append(const char *s, std::size_t len)
     {
         if (WIND_UNLIKELY(len == 0) || WIND_UNLIKELY(s == nullptr)) {
             return;
         }
-        size_t bytesToWrite = (available() > len ? len : available());
+        std::size_t bytesToWrite = (available() > len ? len : available());
         ::memcpy(curr_, s, bytesToWrite);
         curr_ += bytesToWrite;
     }
@@ -98,13 +98,13 @@ public:
         }
         append(s, ::strlen(s));
     }
-    void append(const string &s)
+    void append(const std::string &s)
     {
         append(s.c_str(), s.size());
     }
-    string toString() const
+    std::string toString() const
     {
-        return string(data_, length());
+        return std::string(data_, length());
     }
 
 private:

@@ -24,7 +24,8 @@
 
 namespace wind {
 namespace base {
-EventLoopThreadPool::EventLoopThreadPool(EventLoop *mainLoop, string name) : mainLoop_(mainLoop), name_(std::move(name))
+EventLoopThreadPool::EventLoopThreadPool(EventLoop *mainLoop, std::string name)
+    : mainLoop_(mainLoop), name_(std::move(name))
 {
     if (mainLoop_ == nullptr) {
         LOG_SYS_FATAL << "EventLoopThreadPool::ctor: EventLoop is null!";
@@ -55,7 +56,7 @@ void EventLoopThreadPool::start()
 
     loopThreads_.resize(threadNum_);
     loops_.resize(threadNum_);
-    for (size_t i = 0; i != threadNum_; ++i) {
+    for (std::size_t i = 0; i != threadNum_; ++i) {
         loopThreads_[i] = std::make_unique<EventLoopThread>(name_ + "_loop_" + std::to_string(i));
         loops_[i] = loopThreads_[i]->start();
     }

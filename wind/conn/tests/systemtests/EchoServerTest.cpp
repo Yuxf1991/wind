@@ -30,7 +30,7 @@ using namespace wind::conn;
 
 class EchoServer : public TcpServer {
 public:
-    EchoServer(EventLoop *loop, const SockAddrInet &listenAddr, string name)
+    EchoServer(EventLoop *loop, const SockAddrInet &listenAddr, std::string name)
         : TcpServer(loop, listenAddr, std::move(name))
     {
         setConnectionCallback([this](const TcpConnectionPtr &conn) { onConnection(conn); });
@@ -47,7 +47,7 @@ private:
     void onMessage(const TcpConnectionPtr &conn, TimeStamp receivedTime)
     {
         Buffer *buffer = conn->recvBuffer();
-        string message = buffer->readAll();
+        std::string message = buffer->readAll();
         LOG_INFO << "Connection " << conn->name() << " received message: " << message << " at "
                  << receivedTime.toFormattedString();
         conn->send(message);

@@ -31,10 +31,10 @@ namespace wind {
 namespace base {
 class LogFile : NonCopyable {
 public:
-    explicit LogFile(const string &fileName);
+    explicit LogFile(const std::string &fileName);
     ~LogFile() noexcept;
 
-    void write(const char *data, size_t len);
+    void write(const char *data, std::size_t len);
     void flush();
     FileSize size() const
     {

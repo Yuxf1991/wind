@@ -32,11 +32,11 @@ namespace base {
 class EventLoopThread : NonCopyable {
 public:
     EventLoopThread();
-    explicit EventLoopThread(string name);
+    explicit EventLoopThread(std::string name);
     ~EventLoopThread() noexcept;
 
     EventLoop *start();
-    const string &name() const
+    const std::string &name() const
     {
         return name_;
     }
@@ -46,7 +46,7 @@ private:
 
     mutable std::mutex mutex_;
     std::condition_variable cond_;
-    string name_;
+    std::string name_;
     Thread thread_;
     EventLoop *loop_ = nullptr;
 };

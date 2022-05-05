@@ -49,11 +49,11 @@ public:
     // not explicit because we use its implicit constructor.
     SourceFileName(const char *s)
     {
-        size_t len = ::strlen(s);
+        std::size_t len = ::strlen(s);
         append(s, len);
     }
     // not explicit, too.
-    template <size_t len>
+    template <std::size_t len>
     SourceFileName(const char (&s)[len])
     {
         append(s, len);
@@ -65,27 +65,27 @@ public:
         return buf_;
     }
 
-    size_t length() const
+    std::size_t length() const
     {
         return len_;
     }
 
 private:
-    void append(const char *data, size_t len)
+    void append(const char *data, std::size_t len)
     {
         const char *p = ::strrchr(data, '/') + 1;
         if (WIND_UNLIKELY(p == nullptr)) {
             return;
         }
 
-        size_t bytesToWrite = len - (p - data);
+        std::size_t bytesToWrite = len - (p - data);
         ASSERT(sizeof(buf_) > bytesToWrite);
         ::memcpy(buf_, p, bytesToWrite);
         len_ = bytesToWrite;
     }
 
     char buf_[256] = {0};
-    size_t len_ = 0;
+    std::size_t len_ = 0;
 };
 
 class Logger : NonCopyable {

@@ -31,8 +31,6 @@ using TimeType = int64_t;
 using ThreadId = pid_t;
 using ProcessId = pid_t;
 using FileSize = std::uintmax_t;
-using std::size_t;
-using std::string;
 
 template <typename EnumType>
 inline constexpr typename std::underlying_type<EnumType>::type enum_cast(EnumType e)

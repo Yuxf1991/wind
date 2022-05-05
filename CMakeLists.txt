@@ -31,7 +31,8 @@ add_compile_options(
         -Wall
         -Werror
         -Wno-missing-field-initializers
-        -std=c++17)
+        -std=c++17
+        -DENABLE_EXCEPTION=1)
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
         add_compile_options(-pg)

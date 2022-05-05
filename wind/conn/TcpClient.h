@@ -29,10 +29,10 @@ namespace wind {
 namespace conn {
 class TcpClient : base::NonCopyable {
 public:
-    TcpClient(base::EventLoop *loop, string name, const SockAddrInet &remoteAddr);
+    TcpClient(base::EventLoop *loop, std::string name, const SockAddrInet &remoteAddr);
     virtual ~TcpClient() noexcept;
 
-    const string &name() const
+    const std::string &name() const
     {
         return name_;
     }
@@ -56,7 +56,7 @@ private:
     void onDisconnected(const TcpConnectionPtr &conn);
 
     base::EventLoop *loop_ = nullptr;
-    string name_;
+    std::string name_;
     ConnectorPtr connector_;
 
     std::atomic<bool> started_ = false;

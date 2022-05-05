@@ -33,11 +33,11 @@ class BookStore : public Singleton<BookStore> {
 
 public:
     ~BookStore() noexcept = default;
-    size_t bookCnt() const
+    std::size_t bookCnt() const
     {
         return books_.size();
     }
-    void addBook(string book)
+    void addBook(std::string book)
     {
         books_.push_back(std::move(book));
     }
@@ -48,7 +48,7 @@ public:
 
 private:
     BookStore() = default;
-    std::vector<string> books_;
+    std::vector<std::string> books_;
 };
 
 TEST(SingletonTest, normalTest)
@@ -61,14 +61,14 @@ TEST(SingletonTest, normalTest)
     std::cout << "bookStore2 bookCnt: " << bookStore2.bookCnt() << std::endl;
     EXPECT_EQ(bookStore1.bookCnt(), bookStore2.bookCnt());
 
-    string book1("Hello world!");
+    std::string book1("Hello world!");
     std::cout << "Add book " << book1 << "to book store1.\n";
     bookStore1.addBook(book1);
     std::cout << "bookStore1 bookCnt: " << bookStore1.bookCnt() << std::endl;
     std::cout << "bookStore2 bookCnt: " << bookStore2.bookCnt() << std::endl;
     EXPECT_EQ(bookStore1.bookCnt(), bookStore2.bookCnt());
 
-    string book2("Hello world 2!");
+    std::string book2("Hello world 2!");
     std::cout << "Add book " << book2 << "to book store2.\n";
     bookStore2.addBook(book2);
     std::cout << "bookStore1 bookCnt: " << bookStore1.bookCnt() << std::endl;

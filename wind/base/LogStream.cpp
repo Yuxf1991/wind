@@ -25,7 +25,7 @@
 namespace wind {
 namespace base {
 namespace detail {
-void defaultOutput(const char *buf, size_t len)
+void defaultOutput(const char *buf, std::size_t len)
 {
     (void)::fwrite(buf, sizeof(char), len, stdout);
 }
@@ -35,7 +35,7 @@ void defaultFlush()
     (void)::fflush(stdout);
 }
 
-constexpr size_t MAX_NUMERIC_SIZE = 32;
+constexpr std::size_t MAX_NUMERIC_SIZE = 32;
 
 inline char digitToChar(int idx)
 {
@@ -59,7 +59,7 @@ inline char hexDigitToChar(int idx, bool upper = false)
 // ensure the out buffer's capacity is bigger than MAX_NUMERIC_SIZE.
 // return the real buf size after converting.
 template <typename T>
-size_t convertDigitToString(char *outBuf, T inValue)
+std::size_t convertDigitToString(char *outBuf, T inValue)
 {
     static_assert(std::is_integral<T>::value, "input type is not an integral type!");
     char *start = outBuf;
@@ -79,7 +79,7 @@ size_t convertDigitToString(char *outBuf, T inValue)
     return end - start;
 }
 
-size_t convertPointerToString(char *outBuf, uintptr_t p)
+std::size_t convertPointerToString(char *outBuf, uintptr_t p)
 {
     char *start = outBuf;
     char *end = outBuf;
@@ -187,17 +187,17 @@ LogStream &LogStream::operator<<(const void *pointer)
 LogStream &LogStream::operator<<(double val)
 {
     preProcessWithNumericInput();
-    size_t len = snprintf(buf_.curr(), buf_.available(), "%.12g", val);
+    std::size_t len = snprintf(buf_.curr(), buf_.available(), "%.12g", val);
     buf_.grow(len);
     return self();
 }
 
-void LogStream::append(const char *data, size_t len)
+void LogStream::append(const char *data, std::size_t len)
 {
     if (WIND_LIKELY(len <= buf_.available())) {
         buf_.append(data, len);
     } else {
-        size_t offset = 0;
+        std::size_t offset = 0;
         do {
             auto writeBytes = buf_.available();
             buf_.append(data + offset, writeBytes);
@@ -217,7 +217,7 @@ LogStream &LogStream::operator<<(const char *s)
     return self();
 }
 
-LogStream &LogStream::operator<<(const string &s)
+LogStream &LogStream::operator<<(const std::string &s)
 {
     append(s.data(), s.length());
     return self();

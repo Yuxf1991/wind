@@ -31,17 +31,17 @@
 namespace wind {
 namespace conn {
 class TcpServer : base::NonCopyable {
-    using ConnectionMap = std::map<string, TcpConnectionPtr>;
+    using ConnectionMap = std::map<std::string, TcpConnectionPtr>;
 
 public:
     TcpServer(
         base::EventLoop *loop,
         const SockAddrInet &listenAddr,
-        string name = "WindTcpServer",
+        std::string name = "WindTcpServer",
         bool reusePort = true);
     virtual ~TcpServer() noexcept;
 
-    const string &name() const
+    const std::string &name() const
     {
         return name_;
     }
@@ -51,7 +51,7 @@ public:
     // Should be called before calling start(), thread safe.
     void setMessageCallback(TcpMessageCallback callback);
     // Should be called before calling start(), thread safe.
-    void setThreadNum(size_t threadNum);
+    void setThreadNum(std::size_t threadNum);
 
     void start();
 
@@ -63,7 +63,7 @@ private:
     std::atomic<bool> running_ = false;
     mutable std::mutex mutex_;
     base::EventLoop *mainLoop_ = nullptr;
-    string name_;
+    std::string name_;
     std::unique_ptr<base::EventLoopThreadPool> threadPool_;
     std::unique_ptr<Acceptor> acceptor_;
     std::atomic<uint64_t> nextConnId_ = 0;

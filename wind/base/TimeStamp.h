@@ -68,8 +68,8 @@ public:
         return millis() / MILLI_SECS_PER_SECOND;
     }
 
-    string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
-    string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    std::string toString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
+    std::string toFormattedString(TimePrecision precision = TimePrecision::MILLI) const noexcept;
 
 private:
     TimeType microSecondsSinceEpoch_ = 0;

@@ -24,6 +24,10 @@
 
 #include <thread>
 
+#ifdef ENABLE_EXCEPTION
+#include <stdexcept>
+#endif // ENABLE_EXCEPTION
+
 #include "CurrentThread.h"
 #include "Log.h"
 
@@ -32,7 +36,7 @@ namespace base {
 using Thread = std::thread;
 
 template <typename Func, typename... Args>
-inline Thread make_thread(string name, Func &&func, Args &&... args)
+inline Thread make_thread(std::string name, Func &&func, Args &&...args)
 {
     auto hookedFunc = [name(std::move(name)),
                        func(std::forward<Func &&>(func)),
@@ -45,7 +49,7 @@ inline Thread make_thread(string name, Func &&func, Args &&... args)
 
 #ifdef ENABLE_EXCEPTION
         try {
-            std::apply([&](auto &&... args) { func(args...); }, std::move(args));
+            std::apply([&](auto &&...args) { func(args...); }, std::move(args));
             CurrentThread::t_tls.name = "finished";
         } catch (const std::exception &e) {
             LOG_ERROR << "Thread (name: " << CurrentThread::name() << ") failed: " << e.what() << ".";
@@ -56,7 +60,7 @@ inline Thread make_thread(string name, Func &&func, Args &&... args)
             throw; // rethrow
         }
 #else
-        std::apply([&](auto &&... args) { func(args...); }, std::move(args));
+        std::apply([&](auto &&...args) { func(args...); }, std::move(args));
         CurrentThread::t_tls.name = "finished";
 #endif // ENABLE_EXCEPTION
     };

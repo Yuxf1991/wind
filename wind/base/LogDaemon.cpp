@@ -28,7 +28,7 @@ namespace wind {
 namespace base {
 namespace fs = std::filesystem;
 
-LogDaemon::LogDaemon(string baseName, string logDir, FileSize rollSize, uint32_t flushInterval)
+LogDaemon::LogDaemon(std::string baseName, std::string logDir, FileSize rollSize, uint32_t flushInterval)
     : baseName_(std::move(baseName)),
       logDir_(std::move(logDir)),
       file_(std::make_unique<LogFile>(generateLogFileName())),
@@ -41,7 +41,7 @@ LogDaemon::LogDaemon(string baseName, string logDir, FileSize rollSize, uint32_t
         logDir_ = logDir_.parent_path();
     }
 
-    LogStream::setOutputFunc([this](const char *data, size_t len) { append(data, len); });
+    LogStream::setOutputFunc([this](const char *data, std::size_t len) { append(data, len); });
     LogStream::setFlushFunc([this]() { flush(); });
 }
 
@@ -54,7 +54,7 @@ LogDaemon::~LogDaemon() noexcept
     }
 }
 
-string LogDaemon::generateLogFileName()
+std::string LogDaemon::generateLogFileName()
 {
     // BaseName
     std::stringstream ss;
@@ -139,7 +139,7 @@ void LogDaemon::threadMain()
     }
 }
 
-void LogDaemon::append(const char *data, size_t len)
+void LogDaemon::append(const char *data, std::size_t len)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 

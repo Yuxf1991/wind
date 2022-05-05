@@ -23,6 +23,7 @@
 #pragma once
 
 #include <netinet/in.h>
+#include <stddef.h>
 #include <sys/un.h>
 
 #include "base/Types.h"
@@ -30,10 +31,10 @@
 namespace wind {
 namespace conn {
 namespace sockets {
-bool fromIpPortV4(const string &ip, in_port_t port, sockaddr_in *outAddr);
-bool fromIpPortV6(const string &ip, in_port_t port, sockaddr_in6 *outAddr);
-string toIpStringV4(const sockaddr_in &addrV4);
-string toIpStringV6(const sockaddr_in6 &addrV6);
+bool fromIpPortV4(const std::string &ip, in_port_t port, sockaddr_in *outAddr);
+bool fromIpPortV6(const std::string &ip, in_port_t port, sockaddr_in6 *outAddr);
+std::string toIpStringV4(const sockaddr_in &addrV4);
+std::string toIpStringV6(const sockaddr_in6 &addrV6);
 } // namespace sockets
 
 // copyable
@@ -60,7 +61,7 @@ public:
     {
         return constObjPtr()->SockType::family();
     }
-    string toString() const
+    std::string toString() const
     {
         return constObjPtr()->SockType::toString();
     }
@@ -82,7 +83,7 @@ class SockAddrInet : public SockAddr<SockAddrInet> {
 public:
     // Mostly for listening address.
     explicit SockAddrInet(in_port_t port = 0, bool ipv6 = false, bool onlyLoopBack = false) noexcept;
-    SockAddrInet(const string &ip, in_port_t port, bool ipv6 = false);
+    SockAddrInet(const std::string &ip, in_port_t port, bool ipv6 = false);
     ~SockAddrInet() noexcept = default;
 
     const sockaddr *getSockAddr() const
@@ -105,10 +106,10 @@ public:
     {
         return getSockAddr()->sa_family;
     }
-    string ip() const;
+    std::string ip() const;
     in_port_t port() const;
-    string portString() const;
-    string toString() const;
+    std::string portString() const;
+    std::string toString() const;
 
     bool operator==(const SockAddrInet &other) const
     {
@@ -127,7 +128,7 @@ private:
 class SockAddrUnix : public SockAddr<SockAddrUnix> {
 public:
     SockAddrUnix();
-    explicit SockAddrUnix(const string &path);
+    explicit SockAddrUnix(const std::string &path);
     ~SockAddrUnix() noexcept = default;
 
     const sockaddr *getSockAddr() const
@@ -150,7 +151,7 @@ public:
     {
         return getSockAddr()->sa_family;
     }
-    string toString() const
+    std::string toString() const
     {
         return addr_.sun_path;
     }

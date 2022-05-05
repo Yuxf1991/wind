@@ -28,8 +28,6 @@
 #include <string.h>
 #include <sys/eventfd.h>
 
-#define ENABLE_EXCEPTION 1
-
 #define UNUSED(val) (void)val;
 
 #ifdef NDEBUG
@@ -49,7 +47,7 @@
 namespace wind {
 namespace base {
 namespace utils {
-inline void memZero(void *data, size_t len)
+inline void memZero(void *data, std::size_t len)
 {
     ::memset(data, 0, len);
 }

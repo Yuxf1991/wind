@@ -34,14 +34,14 @@ namespace wind {
 namespace base {
 class ThreadPool : NonCopyable {
     using Task = std::function<void()>;
-    static constexpr size_t DEFAULT_TASK_QUEUE_CAPACITY = 16;
+    static constexpr std::size_t DEFAULT_TASK_QUEUE_CAPACITY = 16;
 
 public:
     ThreadPool();
-    ThreadPool(string name);
+    ThreadPool(std::string name);
     ~ThreadPool() noexcept;
 
-    const string &name() const
+    const std::string &name() const
     {
         return name_;
     }
@@ -51,15 +51,15 @@ public:
         return running_.load(std::memory_order_acquire);
     }
 
-    void setThreadNum(size_t threadNum);
-    void setTaskQueueCapacity(size_t capacity);
+    void setThreadNum(std::size_t threadNum);
+    void setTaskQueueCapacity(std::size_t capacity);
 
     bool empty() const
     {
         return taskSize() == 0;
     }
 
-    size_t taskSize() const;
+    std::size_t taskSize() const;
 
     // Start all the threads in the thread pool.
     void start();
@@ -78,8 +78,8 @@ private:
     void assertIsRunning() const;
     void assertIsNotRunning() const;
 
-    string name_;
-    std::atomic<bool> running_ = false;
+    std::string name_;
+    std::atomic<bool> running_{false};
 
     void addEmptyWorkerLocked(ThreadId workerId);
     void addEmptyWorker(ThreadId workerId);
@@ -89,22 +89,22 @@ private:
 
     class TaskWorker : NonCopyable {
     public:
-        TaskWorker(string name, ThreadPool &pool);
+        TaskWorker(std::string name, ThreadPool &pool);
         ~TaskWorker() noexcept;
 
-        string name() const
+        const std::string &name() const
         {
             return name_;
         }
 
         // Can shrink and expand capacity.
-        void setTaskCapacity(size_t capacity);
-        size_t getQueueSize() const
+        void setTaskCapacity(std::size_t capacity);
+        std::size_t getQueueSize() const
         {
             std::lock_guard<std::mutex> lock(mutex_);
             return getQueueSizeLocked();
         }
-        size_t getQueueCapacity() const
+        std::size_t getQueueCapacity() const
         {
             std::lock_guard<std::mutex> lock(mutex_);
             return getQueueCapacityLocked();
@@ -141,16 +141,16 @@ private:
         {
             return tasks_.empty();
         }
-        size_t getQueueSizeLocked() const
+        std::size_t getQueueSizeLocked() const
         {
             return tasks_.size();
         }
-        size_t getQueueCapacityLocked() const
+        std::size_t getQueueCapacityLocked() const
         {
             return taskQueueCapacity_;
         }
 
-        string name_;
+        std::string name_;
         ThreadPool &pool_;
 
         mutable std::mutex mutex_;
@@ -163,7 +163,7 @@ private:
         Thread thread_;
 
         std::queue<Task> tasks_;
-        size_t taskQueueCapacity_ = ThreadPool::DEFAULT_TASK_QUEUE_CAPACITY;
+        std::size_t taskQueueCapacity_ = ThreadPool::DEFAULT_TASK_QUEUE_CAPACITY;
 
         TimeStamp readyTime_;
     };
@@ -171,8 +171,8 @@ private:
     std::unordered_map<ThreadId, std::unique_ptr<TaskWorker>> workers_;
     std::queue<ThreadId> emptyWorkers_;
 
-    size_t threadNum_ = 0;
-    size_t taskQueueCapacity_ = DEFAULT_TASK_QUEUE_CAPACITY;
+    std::size_t threadNum_ = 0;
+    std::size_t taskQueueCapacity_ = DEFAULT_TASK_QUEUE_CAPACITY;
 };
 } // namespace base
 } // namespace wind

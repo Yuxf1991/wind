@@ -26,7 +26,7 @@
 
 namespace wind {
 namespace conn {
-Buffer::Buffer(size_t initialSize, size_t prependSize)
+Buffer::Buffer(std::size_t initialSize, std::size_t prependSize)
     : data_(prependSize + initialSize), readIdx_(prependSize), writeIdx_(prependSize)
 {}
 
@@ -47,7 +47,7 @@ Buffer &Buffer::operator=(Buffer &&other) noexcept
     return *this;
 }
 
-void Buffer::resume(size_t len)
+void Buffer::resume(std::size_t len)
 {
     ASSERT(len <= bytesReadable());
     if (WIND_LIKELY(len < bytesReadable())) {
@@ -57,7 +57,7 @@ void Buffer::resume(size_t len)
     }
 }
 
-void Buffer::makeMoreSpace(size_t len)
+void Buffer::makeMoreSpace(std::size_t len)
 {
     // make more space or move the data to the front inside this buffer.
     if ((len + PREPEND_SIZE) > (bytesWritable() + prependBytes())) {
@@ -71,14 +71,14 @@ void Buffer::makeMoreSpace(size_t len)
         ASSERT(readIdx_ > PREPEND_SIZE);
         std::move(begin() + readIdx_, begin() + writeIdx_, begin() + PREPEND_SIZE);
 
-        size_t readable = bytesReadable();
+        std::size_t readable = bytesReadable();
         readIdx_ = PREPEND_SIZE;
         writeIdx_ = readable + readIdx_;
         ASSERT(readable == bytesReadable());
     }
 }
 
-void Buffer::append(const char *data, size_t len)
+void Buffer::append(const char *data, std::size_t len)
 {
     if (bytesWritable() < len) {
         makeMoreSpace(len);
@@ -94,7 +94,7 @@ ssize_t Buffer::handleSocketRead(int sockFd, int &savedErrno)
 {
     char extraBuf[65536];
     iovec vec[2];
-    const size_t writable = bytesWritable();
+    const std::size_t writable = bytesWritable();
     vec[0].iov_base = begin() + writeIdx_;
     vec[0].iov_len = writable;
     vec[1].iov_base = extraBuf;
@@ -104,7 +104,7 @@ ssize_t Buffer::handleSocketRead(int sockFd, int &savedErrno)
     const auto len = ::readv(sockFd, vec, iovCnt);
     if (len < 0) {
         savedErrno = errno;
-    } else if (static_cast<size_t>(len) <= writable) {
+    } else if (static_cast<std::size_t>(len) <= writable) {
         writeIdx_ += len;
     } else {
         writeIdx_ = data_.size();

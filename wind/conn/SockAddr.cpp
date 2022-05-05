@@ -25,7 +25,7 @@
 #include <arpa/inet.h>
 
 #ifdef ENABLE_EXCEPTION
-#include <exception>
+#include <stdexcept>
 #endif
 
 #include "base/Log.h"
@@ -34,7 +34,7 @@
 namespace wind {
 namespace conn {
 namespace sockets {
-bool fromIpPortV4(const string &ip, in_port_t port, sockaddr_in *outAddr)
+bool fromIpPortV4(const std::string &ip, in_port_t port, sockaddr_in *outAddr)
 {
     ASSERT(outAddr != nullptr);
     outAddr->sin_family = AF_INET;
@@ -47,7 +47,7 @@ bool fromIpPortV4(const string &ip, in_port_t port, sockaddr_in *outAddr)
     return true;
 }
 
-bool fromIpPortV6(const string &ip, in_port_t port, sockaddr_in6 *outAddr)
+bool fromIpPortV6(const std::string &ip, in_port_t port, sockaddr_in6 *outAddr)
 {
     ASSERT(outAddr != nullptr);
     outAddr->sin6_family = AF_INET6;
@@ -60,14 +60,14 @@ bool fromIpPortV6(const string &ip, in_port_t port, sockaddr_in6 *outAddr)
     return true;
 }
 
-string toIpStringV4(const sockaddr_in &addrV4)
+std::string toIpStringV4(const sockaddr_in &addrV4)
 {
     char buf[INET_ADDRSTRLEN];
     (void)::inet_ntop(AF_INET, &addrV4.sin_addr, buf, static_cast<socklen_t>(sizeof(buf)));
     return buf;
 }
 
-string toIpStringV6(const sockaddr_in6 &addrV6)
+std::string toIpStringV6(const sockaddr_in6 &addrV6)
 {
     char buf[INET6_ADDRSTRLEN];
     (void)::inet_ntop(AF_INET6, &addrV6.sin6_addr, buf, static_cast<socklen_t>(sizeof(buf)));
@@ -89,7 +89,7 @@ SockAddrInet::SockAddrInet(in_port_t port, bool ipv6, bool onlyLoopBack) noexcep
     }
 }
 
-SockAddrInet::SockAddrInet(const string &ip, in_port_t port, bool ipv6)
+SockAddrInet::SockAddrInet(const std::string &ip, in_port_t port, bool ipv6)
 {
     base::utils::memZero(&addr_, sizeof(addr_));
     if (ipv6) {
@@ -111,7 +111,7 @@ SockAddrInet::SockAddrInet(const string &ip, in_port_t port, bool ipv6)
     }
 }
 
-string SockAddrInet::ip() const
+std::string SockAddrInet::ip() const
 {
     return family() == AF_INET ? sockets::toIpStringV4(addr_.v4) : sockets::toIpStringV6(addr_.v6);
 }
@@ -121,19 +121,19 @@ in_port_t SockAddrInet::port() const
     return family() == AF_INET ? endian::netToHost(addr_.v4.sin_port) : endian::netToHost(addr_.v6.sin6_port);
 }
 
-string SockAddrInet::portString() const
+std::string SockAddrInet::portString() const
 {
     return std::to_string(port());
 }
 
-string SockAddrInet::toString() const
+std::string SockAddrInet::toString() const
 {
     return ip() + ":" + portString();
 }
 
 SockAddrUnix::SockAddrUnix() : SockAddrUnix("") {}
 
-SockAddrUnix::SockAddrUnix(const string &path)
+SockAddrUnix::SockAddrUnix(const std::string &path)
 {
     base::utils::memZero(&addr_, sizeof(addr_));
     addr_.sun_family = AF_LOCAL;

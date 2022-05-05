@@ -43,8 +43,8 @@ public:
     // @rollSize: size for per logFile, 100MB by default.
     // @flushInterval: flush every interval seconds, 5s by default.
     explicit LogDaemon(
-        string baseName,
-        string logDir = "./",
+        std::string baseName,
+        std::string logDir = "./",
         FileSize rollSize = 100 * 1024 * 1024,
         uint32_t flushInterval = 5);
     ~LogDaemon() noexcept;
@@ -52,8 +52,8 @@ public:
     void start();
 
 private:
-    string generateLogFileName();
-    void append(const char *data, size_t len);
+    std::string generateLogFileName();
+    void append(const char *data, std::size_t len);
     void flush();
 
     void threadMain();
@@ -63,7 +63,7 @@ private:
     mutable std::mutex mutex_;
     std::condition_variable cond_;
 
-    string baseName_;
+    std::string baseName_;
     std::filesystem::path logDir_;
     std::unique_ptr<LogFile> file_;
 

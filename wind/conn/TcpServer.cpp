@@ -26,7 +26,7 @@ namespace wind {
 namespace conn {
 using namespace base;
 
-TcpServer::TcpServer(base::EventLoop *loop, const SockAddrInet &listenAddr, string name, bool reusePort)
+TcpServer::TcpServer(base::EventLoop *loop, const SockAddrInet &listenAddr, std::string name, bool reusePort)
     : mainLoop_(loop),
       name_(std::move(name)),
       threadPool_(std::make_unique<EventLoopThreadPool>(mainLoop_, "TcpServerThreadPool")),
@@ -60,7 +60,7 @@ void TcpServer::setMessageCallback(TcpMessageCallback callback)
     messageCallback_ = std::move(callback);
 }
 
-void TcpServer::setThreadNum(size_t threadNum)
+void TcpServer::setThreadNum(std::size_t threadNum)
 {
     if (running_) {
         LOG_INFO << "TcpServer::setThreadNum: server already started.";
@@ -94,7 +94,7 @@ void TcpServer::onNewConnection(int peerFd, const SockAddrInet &peerAddr)
     assertInMainLoopThread();
 
     EventLoop *ioLoop = threadPool_->getNextLoop();
-    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(nextConnId_++);
+    std::string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(nextConnId_++);
     auto newConn = std::make_shared<TcpConnection>(ioLoop, connName, peerFd);
     LOG_INFO << "New connection in: " << newConn->name() << ", localAddr: " << newConn->getLocalAddr().toString()
              << ", peerAddr: " << newConn->getPeerAddr().toString();

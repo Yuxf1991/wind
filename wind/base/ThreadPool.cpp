@@ -22,6 +22,10 @@
 
 #include "ThreadPool.h"
 
+#ifdef ENABLE_EXCEPTION
+#include <stdexcept>
+#endif // ENABLE_EXCEPTION
+
 #include "Log.h"
 
 namespace wind {
@@ -53,7 +57,7 @@ void ThreadPool::TaskWorker::stop() noexcept
     }
 }
 
-void ThreadPool::TaskWorker::setTaskCapacity(size_t capacity)
+void ThreadPool::TaskWorker::setTaskCapacity(std::size_t capacity)
 {
     if (!running_) {
         taskQueueCapacity_ = capacity;
@@ -156,7 +160,7 @@ void ThreadPool::TaskWorker::threadMain()
 
 ThreadPool::ThreadPool() : ThreadPool("WindThreadPool") {}
 
-ThreadPool::ThreadPool(string name) : name_(std::move(name)) {}
+ThreadPool::ThreadPool(std::string name) : name_(std::move(name)) {}
 
 ThreadPool::~ThreadPool() noexcept
 {
@@ -179,7 +183,7 @@ void ThreadPool::stop() noexcept
     LOG_INFO << "ThreadPool(name: " << name_ << ") stopped.";
 }
 
-void ThreadPool::setThreadNum(size_t threadNum)
+void ThreadPool::setThreadNum(std::size_t threadNum)
 {
     assertIsNotRunning();
 
@@ -187,7 +191,7 @@ void ThreadPool::setThreadNum(size_t threadNum)
     threadNum_ = threadNum;
 }
 
-void ThreadPool::setTaskQueueCapacity(size_t capacity)
+void ThreadPool::setTaskQueueCapacity(std::size_t capacity)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     taskQueueCapacity_ = capacity;
@@ -272,7 +276,7 @@ void ThreadPool::start()
 
     running_ = true;
 
-    for (size_t i = 0; i != threadNum_; ++i) {
+    for (std::size_t i = 0; i != threadNum_; ++i) {
         auto worker = std::make_unique<TaskWorker>(name_ + "_" + std::to_string(i), *this);
         worker->setTaskCapacity(taskQueueCapacity_);
         auto tid = worker->start();
@@ -284,10 +288,10 @@ void ThreadPool::start()
     }
 }
 
-size_t ThreadPool::taskSize() const
+std::size_t ThreadPool::taskSize() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    size_t taskNum = 0;
+    std::size_t taskNum = 0;
     for (const auto &[_, worker] : workers_) {
         taskNum += worker->getQueueSize();
     }

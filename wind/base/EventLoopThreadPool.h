@@ -28,10 +28,10 @@ namespace wind {
 namespace base {
 class EventLoopThreadPool : NonCopyable {
 public:
-    explicit EventLoopThreadPool(EventLoop *mainLoop, string name = "WindEventLoopThreadPool");
+    explicit EventLoopThreadPool(EventLoop *mainLoop, std::string name = "WindEventLoopThreadPool");
     ~EventLoopThreadPool() noexcept;
 
-    void setThreadNum(size_t threadNum)
+    void setThreadNum(std::size_t threadNum)
     {
         if (running_) {
             return;
@@ -41,19 +41,19 @@ public:
 
     EventLoop *getNextLoop();
     void start();
-    const string &name() const
+    const std::string &name() const
     {
         return name_;
     }
 
 private:
     EventLoop *mainLoop_ = nullptr;
-    string name_;
-    size_t threadNum_ = 0;
+    std::string name_;
+    std::size_t threadNum_ = 0;
     std::atomic<bool> running_ = false;
     std::vector<std::unique_ptr<EventLoopThread>> loopThreads_;
     std::vector<EventLoop *> loops_;
-    size_t currLoopIdx_ = 0;
+    std::size_t currLoopIdx_ = 0;
 };
 } // namespace base
 } // namespace wind

@@ -41,10 +41,10 @@ enum class TcpConnectionState {
 
 class TcpConnection : private base::NonCopyable, public std::enable_shared_from_this<TcpConnection> {
 public:
-    TcpConnection(base::EventLoop *loop, string name, int sockFd);
+    TcpConnection(base::EventLoop *loop, std::string name, int sockFd);
     virtual ~TcpConnection() noexcept;
 
-    const string &name() const
+    const std::string &name() const
     {
         return name_;
     }
@@ -62,7 +62,7 @@ public:
         return state() == TcpConnectionState::DISCONNECTED;
     }
 
-    string stateString() const;
+    std::string stateString() const;
 
     base::EventLoop *getOwnerLoop() const
     {
@@ -118,7 +118,7 @@ public:
         return const_cast<Buffer *>(static_cast<const TcpConnection &>(*this).recvBuffer());
     }
 
-    void send(string message);
+    void send(std::string message);
 
 private:
     void assertInLoopThread();
@@ -137,10 +137,10 @@ private:
     void handleError();
     void handleClose();
 
-    void sendInLoop(string &&message);
+    void sendInLoop(std::string &&message);
 
     base::EventLoop *loop_;
-    string name_;
+    std::string name_;
     Socket socket_;
     SockAddrInet localAddr_;
     SockAddrInet peerAddr_;

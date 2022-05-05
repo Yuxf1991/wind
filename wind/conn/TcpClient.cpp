@@ -27,7 +27,7 @@
 namespace wind {
 namespace conn {
 using namespace base;
-TcpClient::TcpClient(base::EventLoop *loop, string name, const SockAddrInet &remoteAddr)
+TcpClient::TcpClient(base::EventLoop *loop, std::string name, const SockAddrInet &remoteAddr)
     : loop_(loop), name_(std::move(name)), connector_(std::make_shared<Connector>(loop, remoteAddr))
 {
     connector_->setOnConnectedCallback([this](int sockFd) { onConnected(sockFd); });
@@ -94,7 +94,7 @@ void TcpClient::onConnected(int sockFd)
     assertInLoopThread();
 
     const auto peerAddr = sockets::getPeerAddrInet(sockFd);
-    string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(nextConnId_++);
+    std::string connName = name_ + "-" + peerAddr.toString() + "-" + std::to_string(nextConnId_++);
 
     auto newConn = std::make_shared<TcpConnection>(loop_, connName, sockFd);
     newConn->setConnectionCallback(connectionCallback_);

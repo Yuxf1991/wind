@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "base/EventLoop.h"
 #include "SockAddr.h"
 
@@ -54,17 +56,17 @@ public:
     void stop();    // thread-safe
     void restart(); // can only be called in loop's thread.
 
-    string remoteAddr() const;
+    std::string remoteAddr() const;
 
 private:
     void assertInLoopThread();
     void startInLoop();
 
-    string stateString() const;
+    std::string stateString() const;
 
     void tryConnectInet();
     void unLockUnixAddr();
-    void reuseAndLockUnixAddrOrDie(const string &socketPath);
+    void reuseAndLockUnixAddrOrDie(const std::string &socketPath);
     void tryConnectUnix();
     void handleConnectResult(base::UniqueFd &&sockFd, int savedErrno);
 
@@ -83,7 +85,7 @@ private:
     SockAddrUnix unixRemoteAddr_;
     // Only for unix domain socket.
     base::UniqueFd sockLockFileFd_;
-    string lockFileName_;
+    std::string lockFileName_;
 
     int dataType_ = SOCK_STREAM;
     int protocol_ = 0;

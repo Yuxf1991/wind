@@ -53,7 +53,7 @@ public:
     }
 
 private:
-    void reuseAndLockUnixAddrOrDie(const string &socketPath);
+    void reuseAndLockUnixAddrOrDie(const std::string &socketPath);
     void assertInLoopThread() const;
     void handleAcceptError();
     void acceptNewInetConn();
@@ -75,7 +75,7 @@ private:
 
     // Only for unix domain socket.
     base::UniqueFd sockLockFileFd_;
-    string lockFileName_;
+    std::string lockFileName_;
 };
 } // namespace conn
 } // namespace wind

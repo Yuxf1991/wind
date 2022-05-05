@@ -48,7 +48,7 @@ TEST(BufferTest, BufferInit2Test)
 TEST(BufferTest, BufferAppendTest)
 {
     Buffer buf;
-    string tmp(10, 'y');
+    std::string tmp(10, 'y');
     buf.append(tmp.c_str(), tmp.size());
     EXPECT_EQ(buf.bytesReadable(), tmp.size());
     tmp = buf.readAll();
@@ -58,7 +58,7 @@ TEST(BufferTest, BufferAppendTest)
 TEST(BufferTest, BufferAppendAutoGrowTest)
 {
     Buffer buf;
-    string tmp(2048, 'y');
+    std::string tmp(2048, 'y');
     buf.append(tmp.c_str(), tmp.size());
     EXPECT_EQ(buf.bytesReadable(), tmp.size());
     tmp = buf.readAll();
@@ -147,13 +147,13 @@ TEST(BufferTest, BufferReadWriteIntegerTest)
 TEST(BufferTest, BufferMixReadWriteTest)
 {
     Buffer buf;
-    string tmp = "Hello, wind!";
+    std::string tmp = "Hello, wind!";
     buf.writeInt32(static_cast<int32_t>(tmp.size()));
     buf.append(tmp.c_str(), tmp.size());
     EXPECT_EQ(buf.bytesReadable(), sizeof(int32_t) + tmp.size());
     int32_t strSize = buf.readInt32();
     EXPECT_EQ(strSize, static_cast<int32_t>(tmp.size()));
-    string str = buf.read(strSize);
+    std::string str = buf.read(strSize);
     EXPECT_EQ(str, tmp);
     EXPECT_EQ(buf.bytesReadable(), 0);
 }

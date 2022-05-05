@@ -28,7 +28,7 @@ namespace wind {
 namespace base {
 EventLoopThread::EventLoopThread() : EventLoopThread("WindEventLoopThread") {}
 
-EventLoopThread::EventLoopThread(string name) : name_(std::move(name)) {}
+EventLoopThread::EventLoopThread(std::string name) : name_(std::move(name)) {}
 
 EventLoopThread::~EventLoopThread() noexcept
 {

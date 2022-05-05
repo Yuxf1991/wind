@@ -40,7 +40,7 @@ TimeStamp TimeStamp::now() noexcept
     return TimeStamp(detail::microSecondsSinceEpoch());
 }
 
-string TimeStamp::toString(TimePrecision precision) const noexcept
+std::string TimeStamp::toString(TimePrecision precision) const noexcept
 {
     TimeType seconds = microSecondsSinceEpoch_ / MICRO_SECS_PER_SECOND;
     TimeType micros = microSecondsSinceEpoch_ % MICRO_SECS_PER_SECOND;
@@ -68,7 +68,7 @@ string TimeStamp::toString(TimePrecision precision) const noexcept
     return ss.str();
 }
 
-string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
+std::string TimeStamp::toFormattedString(TimePrecision precision) const noexcept
 {
     TimeType seconds = microSecondsSinceEpoch_ / MICRO_SECS_PER_SECOND;
     TimeType micros = microSecondsSinceEpoch_ % MICRO_SECS_PER_SECOND;

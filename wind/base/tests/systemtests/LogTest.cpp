@@ -54,7 +54,7 @@ int main()
         LOG_ERROR << "Hello this is an error log";
         // LOG_SYS_FATAL << "Hello this is a sys fatal log";
 
-        string tmp;
+        std::string tmp;
         std::getline(std::cin, tmp);
         if (tmp.size() == 1 && std::toupper(tmp[0]) == 'Q') {
             g_stop = true;

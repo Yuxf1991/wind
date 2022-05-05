@@ -30,7 +30,7 @@ int main()
     LogStream ss;
     ss << "hello world, my name is robot!\n";
 
-    string s2("what is your name? please tell me.\n");
+    std::string s2("what is your name? please tell me.\n");
     ss << s2;
 
     ss << Fmt("%.12g, %s", 15674.1545, "abc") << "hah\n";

@@ -159,7 +159,7 @@ void Connector::unLockUnixAddr()
     }
 }
 
-void Connector::reuseAndLockUnixAddrOrDie(const string &socketPath)
+void Connector::reuseAndLockUnixAddrOrDie(const std::string &socketPath)
 {
     unLockUnixAddr();
 
@@ -272,9 +272,9 @@ void Connector::onChannelError()
     }
 }
 
-string Connector::stateString() const
+std::string Connector::stateString() const
 {
-    string res = "UNKNOWN";
+    std::string res = "UNKNOWN";
     switch (state_) {
         case State::DISCONNECTED:
             res = "DISCONNECTED";
@@ -289,9 +289,9 @@ string Connector::stateString() const
     return res;
 }
 
-string Connector::remoteAddr() const
+std::string Connector::remoteAddr() const
 {
-    string remoteAddr;
+    std::string remoteAddr;
     switch (connectorType_) {
         case ConnectorType::INET:
             remoteAddr = inetRemoteAddr_.toString();

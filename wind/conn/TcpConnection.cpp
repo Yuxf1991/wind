@@ -50,7 +50,7 @@ void defaultMessageCallback(const TcpConnectionPtr &conn, TimeStamp receivedTime
 }
 } // namespace detail
 
-TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
+TcpConnection::TcpConnection(EventLoop *loop, std::string name, int sockFd)
     : loop_(loop),
       name_(std::move(name)),
       socket_(sockFd),
@@ -68,9 +68,9 @@ TcpConnection::TcpConnection(EventLoop *loop, string name, int sockFd)
 
 TcpConnection::~TcpConnection() noexcept {}
 
-string TcpConnection::stateString() const
+std::string TcpConnection::stateString() const
 {
-    string res;
+    std::string res;
     switch (state()) {
         case TcpConnectionState::CONNECTING: {
             res = "Connecting";
@@ -143,12 +143,12 @@ void TcpConnection::onRemoved()
     });
 }
 
-void TcpConnection::send(string message)
+void TcpConnection::send(std::string message)
 {
     loop_->runInLoop([this, msg(std::move(message))]() mutable { sendInLoop(std::move(msg)); });
 }
 
-void TcpConnection::sendInLoop(string &&message)
+void TcpConnection::sendInLoop(std::string &&message)
 {
     assertInLoopThread();
 
@@ -158,9 +158,9 @@ void TcpConnection::sendInLoop(string &&message)
     }
 
     const char *msgData = message.data();
-    size_t msgLen = message.size();
+    std::size_t msgLen = message.size();
     ssize_t wroteBytes = 0;
-    size_t remaining = msgLen;
+    std::size_t remaining = msgLen;
 
     // we can write directly if there is nothing in output queue.
     if (sendBuffer_.bytesReadable() == 0 && !channel_->isWriting()) {
@@ -169,15 +169,15 @@ void TcpConnection::sendInLoop(string &&message)
             // TODO: error handle
             wroteBytes = 0;
         } else {
-            ASSERT(static_cast<size_t>(wroteBytes) <= msgLen);
-            remaining = msgLen - static_cast<size_t>(wroteBytes);
+            ASSERT(static_cast<std::size_t>(wroteBytes) <= msgLen);
+            remaining = msgLen - static_cast<std::size_t>(wroteBytes);
         }
     }
 
     ASSERT(remaining <= msgLen);
     ASSERT(wroteBytes >= 0);
     if (remaining > 0) {
-        sendBuffer_.append(msgData + static_cast<size_t>(wroteBytes), remaining);
+        sendBuffer_.append(msgData + static_cast<std::size_t>(wroteBytes), remaining);
         if (!channel_->isWriting()) {
             channel_->enableWriting(true);
         }
@@ -214,7 +214,7 @@ void TcpConnection::handleWrite()
     if (wroteBytes < 0) {
         // TODO: error handle
     } else {
-        sendBuffer_.resume(static_cast<size_t>(wroteBytes));
+        sendBuffer_.resume(static_cast<std::size_t>(wroteBytes));
         if (sendBuffer_.bytesReadable() == 0) {
             // write complete, can disable channel's write event.
             channel_->disableWriting(true);

@@ -24,7 +24,7 @@
 
 namespace wind {
 namespace base {
-LogFile::LogFile(const string &fileName) : output_(fileName, std::ios::out) {}
+LogFile::LogFile(const std::string &fileName) : output_(fileName, std::ios::out) {}
 
 LogFile::~LogFile() noexcept
 {
@@ -32,7 +32,7 @@ LogFile::~LogFile() noexcept
     output_.close();
 }
 
-void LogFile::write(const char *data, size_t len)
+void LogFile::write(const char *data, std::size_t len)
 {
     output_.write(data, static_cast<std::streamsize>(len));
     size_ += len;
