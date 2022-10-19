@@ -125,7 +125,14 @@ void ThreadPool::TaskWorker::threadMain()
         initCond_.notify_all();
     }
 
-    while (running_) {
+    while (true) {
+	{
+            std::lock_guard<std::mutex> lock(mutex_);
+	    if (!running_) {
+		break;
+	    }
+	}
+
         auto task = fetchTask();
         {
             std::lock_guard<std::mutex> lock(mutex_);
@@ -148,10 +155,6 @@ void ThreadPool::TaskWorker::threadMain()
 #else
             task();
 #endif // ENABLE_EXCEPTION
-        }
-
-        if (isEmpty()) {
-            pool_.addEmptyWorker(tid_);
         }
     }
 
