@@ -93,7 +93,7 @@ void ThreadPoolTest4()
     threadPool.setThreadNum(8);
     threadPool.setTaskQueueCapacity(128);
     threadPool.start();
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < 10; ++i) {
         threadPool.runTask([]() { Task1(); });
         threadPool.runTask([]() { Task2(); });
         threadPool.runTask([]() { Task3(); });

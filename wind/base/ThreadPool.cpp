@@ -30,9 +30,7 @@
 
 namespace wind {
 namespace base {
-ThreadPool::TaskWorker::TaskWorker(std::string name, ThreadPool &pool)
-    : name_(std::move(name)), pool_(pool), readyTime_(TimeStamp::now())
-{}
+ThreadPool::TaskWorker::TaskWorker(std::string name) : name_(std::move(name)), readyTime_(TimeStamp::now()) {}
 
 ThreadPool::TaskWorker::~TaskWorker() noexcept
 {
@@ -126,12 +124,12 @@ void ThreadPool::TaskWorker::threadMain()
     }
 
     while (true) {
-	{
+        {
             std::lock_guard<std::mutex> lock(mutex_);
-	    if (!running_) {
-		break;
-	    }
-	}
+            if (!running_) {
+                break;
+            }
+        }
 
         auto task = fetchTask();
         {
@@ -280,7 +278,7 @@ void ThreadPool::start()
     running_ = true;
 
     for (std::size_t i = 0; i != threadNum_; ++i) {
-        auto worker = std::make_unique<TaskWorker>(name_ + "_" + std::to_string(i), *this);
+        auto worker = std::make_unique<TaskWorker>(name_ + "_" + std::to_string(i));
         worker->setTaskCapacity(taskQueueCapacity_);
         auto tid = worker->start();
         LOG_FATAL_IF(tid <= 0) << "Failed to start a worker in ThreadPool(name: " << name_ << ")!";

@@ -116,15 +116,21 @@ void LogDaemon::threadMain()
             }
         }
 
+        if (buffersToWrite.size() > 2) {
+            buffersToWrite.resize(2); // shrink
+        }
+
         if (tmpBuffer1 == nullptr) {
             tmpBuffer1 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
+            tmpBuffer1->clean();
         }
 
         {
             std::lock_guard<std::mutex> lock(mutex_);
             if (reservedBuffer_ == nullptr) {
                 reservedBuffer_ = std::move(tmpBuffer2);
+                reservedBuffer_->clean();
             }
         }
 
@@ -134,6 +140,7 @@ void LogDaemon::threadMain()
             } else {
                 tmpBuffer2 = std::move(buffersToWrite.back());
                 buffersToWrite.pop_back();
+                tmpBuffer2->clean();
             }
         }
     }

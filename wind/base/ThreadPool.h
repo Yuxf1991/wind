@@ -89,7 +89,7 @@ private:
 
     class TaskWorker : NonCopyable {
     public:
-        TaskWorker(std::string name, ThreadPool &pool);
+        explicit TaskWorker(std::string name);
         ~TaskWorker() noexcept;
 
         const std::string &name() const
@@ -151,7 +151,6 @@ private:
         }
 
         std::string name_;
-        ThreadPool &pool_;
 
         mutable std::mutex mutex_;
         std::condition_variable initCond_;
