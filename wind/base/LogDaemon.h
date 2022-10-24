@@ -37,6 +37,9 @@ class LogDaemon : NonCopyable {
     using LogBuffer = FixedSizeBuffer<LARGE_BUFFER_SIZE>;
     using LogBufferPtr = std::unique_ptr<LogBuffer>;
 
+    static constexpr FileSize DEFAULT_LOG_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+    static constexpr uint32_t DEFAULT_LOG_FLUSH_INTERVAL = 5;            // 5 seconds
+
 public:
     // @baseName: logFile's baseName.
     // @logDir: current dir by default.
@@ -45,8 +48,8 @@ public:
     explicit LogDaemon(
         std::string baseName,
         std::string logDir = "./",
-        FileSize rollSize = 100 * 1024 * 1024,
-        uint32_t flushInterval = 5);
+        FileSize rollSize = DEFAULT_LOG_FILE_SIZE,
+        uint32_t flushInterval = DEFAULT_LOG_FLUSH_INTERVAL);
     ~LogDaemon() noexcept;
 
     void start();
@@ -67,8 +70,8 @@ private:
     std::filesystem::path logDir_;
     std::unique_ptr<LogFile> file_;
 
-    FileSize rollSize_ = 100 * 1024 * 1024; // 100MB for per log file.
-    uint32_t flushInterval_ = 5;            // flush every 5 seconds by default.
+    FileSize rollSize_ = DEFAULT_LOG_FILE_SIZE;           // 100MB for per log file.
+    uint32_t flushInterval_ = DEFAULT_LOG_FLUSH_INTERVAL; // flush every 5 seconds by default.
 
     LogBufferPtr frontBuffer_;                 // Frontend threads will write logs to this buffer.
     LogBufferPtr reservedBuffer_;              // BackStore of the front buffer

@@ -93,14 +93,14 @@ void LogDaemon::threadMain()
     std::vector<LogBufferPtr> buffersToWrite;
     LogBufferPtr tmpBuffer1 = std::make_unique<LogBuffer>();
     LogBufferPtr tmpBuffer2 = std::make_unique<LogBuffer>();
-    while (running_) {
+    while (running_ || frontBuffer_->length() > 0) {
         {
             std::unique_lock<std::mutex> lock(mutex_);
             if (stagingBuffers_.empty()) {
                 cond_.wait_for(
-                    lock, std::chrono::seconds(flushInterval_), [this]() { return !stagingBuffers_.empty(); });
+                    lock, std::chrono::seconds(flushInterval_), [this]() { return !stagingBuffers_.empty() || !running_; });
             }
-            if (stagingBuffers_.empty()) {
+            if (stagingBuffers_.empty() || !running_) {
                 stagingBuffers_.push_back(std::move(frontBuffer_));
                 frontBuffer_ = std::move(tmpBuffer1);
             }

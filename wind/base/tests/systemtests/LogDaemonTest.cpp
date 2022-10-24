@@ -29,24 +29,16 @@
 using namespace wind;
 using namespace base;
 
-void logFunc()
-{
-    LOG_TRACE << "This is logFunc";
-    LOG_DEBUG << "This is logFunc";
-    LOG_INFO << "This is logFunc";
-    LOG_WARN << "This is logFunc";
-    LOG_ERROR << "This is logFunc";
-}
-
 int main()
 {
     LogDaemon logDaemon("log_daemon_test");
     logDaemon.start();
 
-    EventLoop loop;
-    // run logFunc every 16ms
-    loop.runEvery(&logFunc, 16 * 1000);
-    loop.start();
+    LOG_TRACE << "This is LOG_TRACE";
+    LOG_DEBUG << "This is LOG_DEBUG";
+    LOG_INFO << "This is LOG_INFO";
+    LOG_WARN << "This is LOG_WARN";
+    LOG_ERROR << "This is LOG_ERROR";
 
     return 0;
 }
