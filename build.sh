@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 Tracy
+# Copyright (c) 2022 Tracy
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-link_libraries(wind_conn)
+#!/usr/bin/bash
 
-add_executable(EchoServerTest EchoServerTest.cpp)
-add_executable(SockAddrInetTest SockAddrInetTest.cpp)
-add_executable(SocketTest SocketTest.cpp)
-add_executable(AcceptorTest AcceptorTest.cpp)
-add_executable(TcpServerTest TcpServerTest.cpp)
-add_executable(TcpClientTest TcpClientTest.cpp)
+CURRENT_DIR=$(cd "$(dirname "$0")";pwd)
+
+echo "current_dir:" $CURRENT_DIR
+
+python ./build/build.py $*

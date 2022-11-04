@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 Tracy
+# Copyright (c) 2022 Tracy
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,5 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-add_subdirectory(unittests)
-add_subdirectory(systemtests)
+#!/usr/bin/python
+
+
+import sys
+
+
+def main():
+    return
+
+
+if __name__ == "__main__":
+    print(sys.argv)
+    main()

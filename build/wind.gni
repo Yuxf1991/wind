@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 Tracy
+# Copyright (c) 2022 Tracy
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,3 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-link_libraries(wind_base)
-
-add_executable(LogStreamTest LogStreamTest.cpp)
-add_executable(LogTest LogTest.cpp)
-add_executable(ThreadPoolTest ThreadPoolTest.cpp)
-add_executable(TimerTest TimerTest.cpp)
-add_executable(LogFileTest LogFileTest.cpp)
-add_executable(LogDaemonTest LogDaemonTest.cpp)
