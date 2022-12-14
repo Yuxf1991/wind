@@ -32,7 +32,7 @@ LogFile::~LogFile() noexcept
     output_.close();
 }
 
-void LogFile::write(const char *data, std::size_t len)
+void LogFile::write(const char *data, size_t len)
 {
     output_.write(data, static_cast<std::streamsize>(len));
     size_ += len;

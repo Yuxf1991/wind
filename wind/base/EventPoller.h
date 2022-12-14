@@ -47,7 +47,7 @@ private:
     void epollCtl(const std::shared_ptr<EventChannel> &channel, int operation);
     EventLoop *eventLoop_ = nullptr;
     UniqueFd epollFd_;
-    static std::size_t eventSize_;
+    static size_t eventSize_;
     std::vector<epoll_event> activeEvents_; // to receive events from epoll_wait.
     std::unordered_map<int, std::shared_ptr<EventChannel>> channels_;
 };

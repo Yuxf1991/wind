@@ -20,36 +20,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#!/usr/bin/python
 
-import("//build/wind.gni")
 
-config("wind_target_default_configs") {
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-Wno-unused-private-field",
-  ]
-  if (is_debug == false) {
-    cflags += [
-      "-DNDEBUG",
-      "-DLOG_HIDE_FILE_LINE",
-      "-O3",
-    ]
-  } else {
-    cflags += [
-      "-g",
-      "-O0",
-    ]
-  }
-  cflags_cc = [ "-std=c++17" ]
-  include_dirs = [
-    "//wind",
-  ]
-}
+import os
+import sys
 
-group("WindLibrary") {
-  deps = [
-    "//wind/base:windbase",
-    "//wind/conn:windconn",
-  ]
-}
+import cmd_utils
+
+
+to_format_exts = [".c", ".cc", ".cxx", ".cpp", ".h", ".hpp"]
+
+
+def format(source_code_directory):
+    format_cmd = "clang-format -style=file -i "
+    print("format codes for %s start." % source_code_directory)
+    source_code_abspath = os.path.abspath(source_code_directory)
+    for [dirpath, _, filenames] in os.walk(source_code_abspath):
+        cur_abs_path = os.path.join(source_code_abspath, dirpath)
+        for filename in filenames:
+            abs_file_name = os.path.join(cur_abs_path, filename)
+            need_to_format = False
+            for ext in to_format_exts:
+                if abs_file_name.endswith(ext):
+                    need_to_format = True
+                    break
+            if need_to_format:
+                format_cmd_tmp = format_cmd + abs_file_name
+                if cmd_utils.execute(format_cmd_tmp) != 0:
+                    sys.exit("[!] exit unexpectly.")
+    print("format codes for %s done." % source_code_directory)

@@ -35,6 +35,7 @@ bool fromIpPortV4(const std::string &ip, in_port_t port, sockaddr_in *outAddr);
 bool fromIpPortV6(const std::string &ip, in_port_t port, sockaddr_in6 *outAddr);
 std::string toIpStringV4(const sockaddr_in &addrV4);
 std::string toIpStringV6(const sockaddr_in6 &addrV6);
+constexpr char SOCKET_LOCK_SUFFIX[] = ".lock";
 } // namespace sockets
 
 // copyable

@@ -51,7 +51,7 @@ public:
     // Should be called before calling start(), thread safe.
     void setMessageCallback(TcpMessageCallback callback);
     // Should be called before calling start(), thread safe.
-    void setThreadNum(std::size_t threadNum);
+    void setThreadNum(size_t threadNum);
 
     void start();
 

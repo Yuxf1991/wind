@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <iomanip>
+#include <sstream>
 
 namespace wind {
 namespace base {

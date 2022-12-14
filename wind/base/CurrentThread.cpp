@@ -42,7 +42,7 @@ void mainThreadInit()
     CurrentThread::t_tls.name = "main";
     pid = CurrentThread::pid();
     int len = ::snprintf(pidString, sizeof(pidString), "%d", pid);
-    ASSERT(static_cast<std::size_t>(len) < sizeof(pidString));
+    ASSERT(static_cast<size_t>(len) < sizeof(pidString));
 }
 
 struct MainThreadInitializer {
@@ -70,7 +70,7 @@ void cacheTid()
     }
 
     int len = ::snprintf(t_tls.tidString, sizeof(t_tls.tidString), "%d", t_tls.tid);
-    ASSERT(static_cast<std::size_t>(len) < sizeof(t_tls.tidString));
+    ASSERT(static_cast<size_t>(len) < sizeof(t_tls.tidString));
 }
 
 const char *tidString()

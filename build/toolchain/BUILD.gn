@@ -2,23 +2,33 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-toolchain("gcc") {
+toolchain("clang") {
+  cc = "clang"
+  cxx = "clang++ -stdlib=libc++"
+  asm = "clang"
+
   tool("cc") {
     depfile = "{{output}}.d"
-    command = "gcc -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+    command = "$cc -MD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "CC {{output}}"
-    outputs =
-        [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+    outputs = [ "{{target_out_dir}}/{{label_name}}/{{source_name_part}}.o" ]
   }
 
   tool("cxx") {
     depfile = "{{output}}.d"
-    command = "g++ -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+    command = "$cxx -MD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "CXX {{output}}"
-    outputs =
-        [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+    outputs = [ "{{target_out_dir}}/{{label_name}}/{{source_name_part}}.o" ]
+  }
+
+  tool("asm") {
+    depfile = "{{output}}.d"
+    command = "$asm -MD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
+    depsformat = "gcc"
+    description = "ASM {{output}}"
+    outputs = [ "{{target_out_dir}}/{{label_name}}/{{source_name_part}}.o" ]
   }
 
   tool("alink") {
@@ -35,16 +45,10 @@ toolchain("gcc") {
     soname = "{{target_output_name}}{{output_extension}}"  # e.g. "libfoo.so".
     sofile = "{{output_dir}}/$soname"
     rspfile = soname + ".rsp"
-    if (is_mac) {
-      os_specific_option = "-install_name @executable_path/$sofile"
-      rspfile_content = "{{inputs}} {{solibs}} {{libs}}"
-    } else {
-      os_specific_option = "-Wl,-soname=$soname"
-      rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
-    }
-
-    command = "g++ -shared {{ldflags}} -o $sofile $os_specific_option @$rspfile"
-
+    os_specific_option = "-Wl,-soname=$soname"
+    rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
+    command =
+        "$cxx -shared {{ldflags}} -o $sofile $os_specific_option @$rspfile"
     description = "SOLINK $soname"
 
     # Use this for {{output_extension}} expansions unless a target manually
@@ -55,7 +59,6 @@ toolchain("gcc") {
     # Use this for {{output_dir}} expansions unless a target manually overrides
     # it (in which case {{output_dir}} will be what the target specifies).
     default_output_dir = "{{root_out_dir}}"
-
     outputs = [ sofile ]
     link_output = sofile
     depend_output = sofile
@@ -65,11 +68,7 @@ toolchain("gcc") {
   tool("link") {
     outfile = "{{target_output_name}}{{output_extension}}"
     rspfile = "$outfile.rsp"
-    if (is_mac) {
-      command = "g++ {{ldflags}} -o $outfile @$rspfile {{solibs}} {{libs}}"
-    } else {
-      command = "g++ {{ldflags}} -o $outfile -Wl,--start-group @$rspfile {{solibs}} -Wl,--end-group {{libs}}"
-    }
+    command = "$cxx {{ldflags}} -o $outfile -Wl,--start-group @$rspfile {{solibs}} -Wl,--end-group {{libs}}"
     description = "LINK $outfile"
     default_output_dir = "{{root_out_dir}}"
     rspfile_content = "{{inputs}}"

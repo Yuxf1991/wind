@@ -26,6 +26,7 @@
 #include <condition_variable>
 #include <filesystem>
 #include <memory>
+#include <vector>
 
 #include "LogFile.h"
 #include "Thread.h"
@@ -56,7 +57,7 @@ public:
 
 private:
     std::string generateLogFileName();
-    void append(const char *data, std::size_t len);
+    void append(const char *data, size_t len);
     void flush();
 
     void threadMain();

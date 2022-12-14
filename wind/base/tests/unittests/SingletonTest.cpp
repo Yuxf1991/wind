@@ -33,7 +33,7 @@ class BookStore : public Singleton<BookStore> {
 
 public:
     ~BookStore() noexcept = default;
-    std::size_t bookCnt() const
+    size_t bookCnt() const
     {
         return books_.size();
     }

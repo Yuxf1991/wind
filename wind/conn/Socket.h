@@ -36,7 +36,7 @@ void bindOrDie(int fd, const sockaddr *addr, socklen_t addrLen);
 int accept(int fd, sockaddr *addr, socklen_t addrLen);
 int connect(int fd, const sockaddr *addr, socklen_t addrLen);
 
-ssize_t write(int fd, const char *message, std::size_t len);
+ssize_t write(int fd, const char *message, size_t len);
 
 SockAddrInet getLocalAddrInet(int sockFd);
 SockAddrInet getPeerAddrInet(int sockFd);
@@ -86,7 +86,7 @@ public:
         return sockets::connect(fd_.get(), remoteAddr.getSockAddr(), remoteAddr.len());
     }
 
-    ssize_t write(const char *message, std::size_t len)
+    ssize_t write(const char *message, size_t len)
     {
         return sockets::write(fd_.get(), message, len);
     }

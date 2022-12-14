@@ -21,6 +21,9 @@
 // SOFTWARE.
 
 #include "Log.h"
+
+#include <unordered_map>
+
 #include "CurrentThread.h"
 #include "TimeStamp.h"
 

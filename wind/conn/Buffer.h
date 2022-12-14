@@ -34,10 +34,10 @@ namespace conn {
 // copyable and movable
 class Buffer {
 public:
-    static constexpr std::size_t PREPEND_SIZE = 8;
-    static constexpr std::size_t INITIAL_SIZE = 1016;
+    static constexpr size_t PREPEND_SIZE = 8;
+    static constexpr size_t INITIAL_SIZE = 1016;
 
-    explicit Buffer(std::size_t initialSize = INITIAL_SIZE, std::size_t prependSize = PREPEND_SIZE);
+    explicit Buffer(size_t initialSize = INITIAL_SIZE, size_t prependSize = PREPEND_SIZE);
     ~Buffer() noexcept = default;
 
     Buffer(const Buffer &other) = default;
@@ -68,22 +68,22 @@ public:
     {
         return const_cast<char *>(static_cast<const Buffer &>(*this).writeBegin());
     }
-    std::size_t prependBytes() const
+    size_t prependBytes() const
     {
         return readIdx_;
     }
-    std::size_t bytesReadable() const
+    size_t bytesReadable() const
     {
         ASSERT(readIdx_ <= writeIdx_);
         return writeIdx_ - readIdx_;
     }
-    std::size_t bytesWritable() const
+    size_t bytesWritable() const
     {
         ASSERT(writeIdx_ <= data_.size());
         return data_.size() - writeIdx_;
     }
 
-    void resume(std::size_t len);
+    void resume(size_t len);
     void resumeAll()
     {
         readIdx_ = PREPEND_SIZE;
@@ -195,10 +195,10 @@ public:
         resume(sizeof(uint64_t));
         return val;
     }
-    std::string read(std::size_t len)
+    std::string read(size_t len)
     {
         ASSERT(len <= bytesReadable());
-        std::size_t readLen = (len <= bytesReadable()) ? len : bytesReadable();
+        size_t readLen = (len <= bytesReadable()) ? len : bytesReadable();
         std::string res{peek(), readLen};
         resume(len);
         return res;
@@ -208,8 +208,8 @@ public:
         return read(bytesReadable());
     }
 
-    void append(const char *data, std::size_t len);
-    void append(const void *data, std::size_t len)
+    void append(const char *data, size_t len);
+    void append(const void *data, size_t len)
     {
         append(static_cast<const char *>(data), len);
     }
@@ -259,10 +259,10 @@ private:
         append(&netVal, sizeof(netVal));
     }
     // make more space if necessary
-    void makeMoreSpace(std::size_t len);
+    void makeMoreSpace(size_t len);
     std::vector<char> data_;
-    std::size_t readIdx_ = PREPEND_SIZE;
-    std::size_t writeIdx_ = PREPEND_SIZE;
+    size_t readIdx_ = PREPEND_SIZE;
+    size_t writeIdx_ = PREPEND_SIZE;
 };
 } // namespace conn
 } // namespace wind

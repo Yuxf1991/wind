@@ -60,7 +60,7 @@ void TcpServer::setMessageCallback(TcpMessageCallback callback)
     messageCallback_ = std::move(callback);
 }
 
-void TcpServer::setThreadNum(std::size_t threadNum)
+void TcpServer::setThreadNum(size_t threadNum)
 {
     if (running_) {
         LOG_INFO << "TcpServer::setThreadNum: server already started.";

@@ -22,6 +22,8 @@
 
 #include "LogDaemon.h"
 
+#include <sstream>
+
 #include "TimeStamp.h"
 
 namespace wind {
@@ -41,7 +43,7 @@ LogDaemon::LogDaemon(std::string baseName, std::string logDir, FileSize rollSize
         logDir_ = logDir_.parent_path();
     }
 
-    LogStream::setOutputFunc([this](const char *data, std::size_t len) { append(data, len); });
+    LogStream::setOutputFunc([this](const char *data, size_t len) { append(data, len); });
     LogStream::setFlushFunc([this]() { flush(); });
 }
 
@@ -97,8 +99,9 @@ void LogDaemon::threadMain()
         {
             std::unique_lock<std::mutex> lock(mutex_);
             if (stagingBuffers_.empty()) {
-                cond_.wait_for(
-                    lock, std::chrono::seconds(flushInterval_), [this]() { return !stagingBuffers_.empty() || !running_; });
+                cond_.wait_for(lock, std::chrono::seconds(flushInterval_), [this]() {
+                    return !stagingBuffers_.empty() || !running_;
+                });
             }
             if (stagingBuffers_.empty() || !running_) {
                 stagingBuffers_.push_back(std::move(frontBuffer_));
@@ -146,7 +149,7 @@ void LogDaemon::threadMain()
     }
 }
 
-void LogDaemon::append(const char *data, std::size_t len)
+void LogDaemon::append(const char *data, size_t len)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 

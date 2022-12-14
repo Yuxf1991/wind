@@ -31,7 +31,7 @@ public:
     explicit EventLoopThreadPool(EventLoop *mainLoop, std::string name = "WindEventLoopThreadPool");
     ~EventLoopThreadPool() noexcept;
 
-    void setThreadNum(std::size_t threadNum)
+    void setThreadNum(size_t threadNum)
     {
         if (running_) {
             return;
@@ -49,11 +49,11 @@ public:
 private:
     EventLoop *mainLoop_ = nullptr;
     std::string name_;
-    std::size_t threadNum_ = 0;
+    size_t threadNum_ = 0;
     std::atomic<bool> running_ = false;
     std::vector<std::unique_ptr<EventLoopThread>> loopThreads_;
     std::vector<EventLoop *> loops_;
-    std::size_t currLoopIdx_ = 0;
+    size_t currLoopIdx_ = 0;
 };
 } // namespace base
 } // namespace wind

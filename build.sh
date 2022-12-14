@@ -23,7 +23,4 @@
 #!/usr/bin/bash
 
 CURRENT_DIR=$(cd "$(dirname "$0")";pwd)
-
-echo "current_dir:" $CURRENT_DIR
-
-python ./build/build.py $*
+python ${CURRENT_DIR}/build/scripts/build.py $*

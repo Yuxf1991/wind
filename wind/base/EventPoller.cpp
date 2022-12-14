@@ -44,7 +44,7 @@ std::string epollOperationToString(int operation)
 }
 } // namespace detail
 
-std::size_t EventPoller::eventSize_ = 32;
+size_t EventPoller::eventSize_ = 32;
 
 EventPoller::EventPoller(EventLoop *eventLoop)
     : eventLoop_(eventLoop), epollFd_(::epoll_create1(EPOLL_CLOEXEC)), activeEvents_(eventSize_)
@@ -74,7 +74,7 @@ TimeStamp EventPoller::pollOnce(std::vector<std::shared_ptr<EventChannel>> &acti
             activeChannels.emplace_back(channel);
         }
 
-        if (static_cast<std::size_t>(cnt) == eventSize_) {
+        if (static_cast<size_t>(cnt) == eventSize_) {
             eventSize_ *= 2;
             activeEvents_.resize(eventSize_);
         }

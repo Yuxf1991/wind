@@ -20,36 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#!/usr/bin/python
 
-import("//build/wind.gni")
 
-config("wind_target_default_configs") {
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-Wno-unused-private-field",
-  ]
-  if (is_debug == false) {
-    cflags += [
-      "-DNDEBUG",
-      "-DLOG_HIDE_FILE_LINE",
-      "-O3",
-    ]
-  } else {
-    cflags += [
-      "-g",
-      "-O0",
-    ]
-  }
-  cflags_cc = [ "-std=c++17" ]
-  include_dirs = [
-    "//wind",
-  ]
-}
+import os
 
-group("WindLibrary") {
-  deps = [
-    "//wind/base:windbase",
-    "//wind/conn:windconn",
-  ]
-}
+
+def execute(cmd, print_cmd=True):
+    if print_cmd:
+        print(cmd)
+    ret = os.system(cmd)
+    return ret

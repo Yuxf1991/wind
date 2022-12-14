@@ -34,10 +34,6 @@ namespace wind {
 namespace conn {
 using namespace base;
 
-namespace detail {
-const char *LOCK_SUFFIX = ".lock";
-} // namespace detail
-
 Connector::Connector(EventLoop *loop, const SockAddrInet &remoteAddr, int dataType, int protocol)
     : loop_(loop),
       inetRemoteAddr_(remoteAddr),
@@ -163,7 +159,7 @@ void Connector::reuseAndLockUnixAddrOrDie(const std::string &socketPath)
 {
     unLockUnixAddr();
 
-    lockFileName_ = socketPath + detail::LOCK_SUFFIX;
+    lockFileName_ = socketPath + sockets::SOCKET_LOCK_SUFFIX;
     sockLockFileFd_.reset(TEMP_FAILURE_RETRY(::open(lockFileName_.c_str(), O_RDONLY | O_CREAT, 0600)));
     if (!sockLockFileFd_.valid()) {
         LOG_SYS_FATAL << "Create lock file path: " << socketPath << ") failed: " << strerror(errno) << ".";

@@ -46,9 +46,9 @@ struct TimerId {
 namespace std {
 template <>
 struct hash<typename wind::base::TimerId> {
-    std::size_t operator()(wind::base::TimerId timerId) const
+    size_t operator()(wind::base::TimerId timerId) const
     {
-        return static_cast<std::size_t>(timerId.id ^ reinterpret_cast<uintptr_t>(timerId.timer));
+        return static_cast<size_t>(timerId.id ^ reinterpret_cast<uintptr_t>(timerId.timer));
     }
 };
 } // namespace std

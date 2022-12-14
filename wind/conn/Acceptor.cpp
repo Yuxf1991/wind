@@ -29,9 +29,6 @@
 
 namespace wind {
 namespace conn {
-namespace detail {
-const char *LOCK_SUFFIX = ".lock";
-} // namespace detail
 
 Acceptor::Acceptor(base::EventLoop *eventLoop, const SockAddrInet &listenAddr, bool reusePort, int type, int protocol)
     : loop_(eventLoop),
@@ -71,7 +68,7 @@ Acceptor::~Acceptor() noexcept
 
 void Acceptor::reuseAndLockUnixAddrOrDie(const std::string &socketPath)
 {
-    lockFileName_ = socketPath + detail::LOCK_SUFFIX;
+    lockFileName_ = socketPath + sockets::SOCKET_LOCK_SUFFIX;
     sockLockFileFd_.reset(TEMP_FAILURE_RETRY(::open(lockFileName_.c_str(), O_RDONLY | O_CREAT, 0600)));
     if (!sockLockFileFd_.valid()) {
         LOG_SYS_FATAL << "Create lock file for Socket(fd: " << acceptSocket_.fd() << ", path: " << socketPath

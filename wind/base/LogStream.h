@@ -28,7 +28,7 @@
 
 namespace wind {
 namespace base {
-using OutputFunc = std::function<void(const char *buf, std::size_t len)>;
+using OutputFunc = std::function<void(const char *buf, size_t len)>;
 using FlushFunc = std::function<void()>;
 
 class Fmt {
@@ -37,7 +37,7 @@ public:
     explicit Fmt(const char *fmt, Args... args)
     {
         int len = ::snprintf(buf_.curr(), buf_.available(), fmt, args...);
-        ASSERT(static_cast<std::size_t>(len) <= buf_.available());
+        ASSERT(static_cast<size_t>(len) <= buf_.available());
         buf_.grow(len);
     }
 
@@ -48,7 +48,7 @@ public:
         return buf_.data();
     }
 
-    std::size_t length() const
+    size_t length() const
     {
         return buf_.length();
     }
@@ -111,7 +111,7 @@ public:
         return self() << static_cast<const char *>(s);
     }
     LogStream &operator<<(const Fmt &fmt);
-    void append(const char *data, std::size_t len);
+    void append(const char *data, size_t len);
 
     static void setOutputFunc(OutputFunc func);
     static void output(LogStream &stream);

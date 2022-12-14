@@ -56,7 +56,7 @@ void EventLoopThreadPool::start()
 
     loopThreads_.resize(threadNum_);
     loops_.resize(threadNum_);
-    for (std::size_t i = 0; i != threadNum_; ++i) {
+    for (size_t i = 0; i != threadNum_; ++i) {
         loopThreads_[i] = std::make_unique<EventLoopThread>(name_ + "_loop_" + std::to_string(i));
         loops_[i] = loopThreads_[i]->start();
     }
