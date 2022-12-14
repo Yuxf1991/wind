@@ -18,7 +18,7 @@ export REPO_URL='https://mirrors.bfsu.edu.cn/git/git-repo'
 #### 1.2 Download wind project
 ```shell
 mkdir Wind && cd Wind
-repo init -u git@github.com:Yuxf1991/manifest.git -b main
+repo init -u git@github.com:Yuxf1991/windmanifest.git -b main
 repo sync
 ```
 
