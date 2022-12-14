@@ -28,3 +28,6 @@ __pycache__
 
 # thirdparty
 thirdparty
+
+# repo
+.repo

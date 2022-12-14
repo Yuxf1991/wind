@@ -80,15 +80,20 @@ def build_wind(gn_abs_path, wind_project_path, wind_out_path, build_type, jobs_n
 
 
 def build_all(project_root_abs_path, build_type, jobs_num):
-    out_path = os.path.join(project_root_abs_path, "out", build_type)
+    out_path = os.path.join(project_root_abs_path, "out")
+    if not os.path.exists(out_path):
+        os.mkdir(out_path)
+    out_build_path = os.path.join(out_path, build_type)
+    if not os.path.exists(out_build_path):
+        os.mkdir(out_build_path)
     wind_codes_directory = os.path.join(project_root_abs_path, "wind")
-    wind_out_path = os.path.join(out_path, "wind")
+    wind_out_path = os.path.join(out_build_path, "wind")
     samples_codes_directory = os.path.join(project_root_abs_path, "samples")
-    samples_out_path = os.path.join(out_path, "samples")
+    samples_out_path = os.path.join(out_build_path, "samples")
 
     thirdparty_path = os.path.join(project_root_abs_path, "thirdparty")
     # build gn
-    out_gn_path = os.path.join(out_path, "gn")
+    out_gn_path = os.path.join(out_build_path, "gn")
     if not os.path.exists(out_gn_path):
         os.mkdir(out_gn_path)
     gn_sources_path = os.path.join(thirdparty_path, "gn")
